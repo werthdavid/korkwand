@@ -235,8 +235,8 @@ final class Pins {
 		$out = array(
 			'id'           => (int) $pin->ID,
 			'type'         => $type,
-			'title'        => (string) $pin->post_title,
-			'text'         => (string) $pin->post_content,
+			'title'        => self::decode( (string) $pin->post_title ),
+			'text'         => self::decode( (string) $pin->post_content ),
 			'x'            => (int) get_post_meta( $pin->ID, '_pin_x', true ),
 			'y'            => (int) get_post_meta( $pin->ID, '_pin_y', true ),
 			'rotation'     => (int) get_post_meta( $pin->ID, '_pin_rotation', true ),
@@ -258,6 +258,14 @@ final class Pins {
 		return new \WP_Error( 'nzp_invalid', $message, array( 'status' => 400 ) );
 	}
 
+	/**
+	 * sanitize_*_field speichert "<" als "&lt;". Ausgabe und Laengenpruefung arbeiten auf dem
+	 * decodierten Text; Escaping (esc_html) passiert beim Rendern.
+	 */
+	private static function decode( string $value ): string {
+		return wp_specialchars_decode( $value, ENT_QUOTES );
+	}
+
 	private static function clean_title( $value ): string {
 		return trim( sanitize_text_field( is_scalar( $value ) ? (string) $value : '' ) );
 	}
@@ -267,7 +275,7 @@ final class Pins {
 	}
 
 	private static function validate_title( string $title ): ?\WP_Error {
-		$len = mb_strlen( $title );
+		$len = mb_strlen( self::decode( $title ) );
 		if ( $len < 1 || $len > self::MAX_TITLE ) {
 			return self::invalid( __( 'Der Titel muss 1 bis 60 Zeichen lang sein.', 'nz-pinnwand' ) );
 		}
@@ -275,7 +283,7 @@ final class Pins {
 	}
 
 	private static function validate_text( string $text, int $max ): ?\WP_Error {
-		if ( mb_strlen( $text ) > $max ) {
+		if ( mb_strlen( self::decode( $text ) ) > $max ) {
 			/* translators: %d: maximale Zeichenzahl */
 			return self::invalid( sprintf( __( 'Der Text darf höchstens %d Zeichen lang sein.', 'nz-pinnwand' ), $max ) );
 		}

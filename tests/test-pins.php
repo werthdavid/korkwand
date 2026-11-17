@@ -278,4 +278,20 @@ class NZP_Test_Pins extends WP_UnitTestCase {
 		$this->assertSame( 768, $arr['image']['width'] );
 		$this->assertSame( 384, $arr['image']['height'] );
 	}
+
+	public function test_less_than_sign_roundtrips_decoded() {
+		$pin = $this->postit( array( 'title' => 'a < b', 'text' => '3 < 5' ) );
+		$this->assertNotWPError( $pin );
+		$arr = Pins::to_array( $pin, 0 );
+		$this->assertSame( '3 < 5', $arr['text'] );
+		$this->assertSame( 'a < b', $arr['title'] );
+	}
+
+	public function test_length_checks_count_decoded_text() {
+		$this->assertNotWPError( $this->postit( array( 'text' => str_repeat( '<', 300 ) ) ) );
+		$this->assertWPError( $this->postit( array( 'text' => str_repeat( '<', 301 ) ) ) );
+		$this->assertNotWPError( $this->postit( array( 'title' => str_repeat( '<', 60 ) ) ) );
+		$pin = $this->postit();
+		$this->assertNotWPError( Pins::update( $pin, array( 'text' => str_repeat( '<', 300 ) ), $this->user ) );
+	}
 }
