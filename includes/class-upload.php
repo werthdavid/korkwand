@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 class Upload {
 
 	public const MAX_BYTES  = 8388608;
-	public const MAX_PIXELS = 50000000;
+	public const MAX_PIXELS = 25000000;
 
 	/** @return array<string,string> */
 	public static function mimes(): array {
@@ -66,7 +66,19 @@ class Upload {
 			return self::error( __( 'Die Bildabmessungen sind zu groß.', 'nz-pinnwand' ) );
 		}
 
-		// 2. Verschieben in die Mediathek.
+		// 2. Metadaten im Temp-Verzeichnis entfernen (Re-Encode), bevor die Datei oeffentlich erreichbar wird.
+		wp_raise_memory_limit( 'image' );
+		$clean = wp_tempnam( $name );
+		if ( ! $clean || ! self::reencode( $tmp, $check['type'], $clean ) ) {
+			if ( $clean ) {
+				wp_delete_file( $clean );
+			}
+			return self::error( __( 'Das Bild konnte nicht verarbeitet werden.', 'nz-pinnwand' ) );
+		}
+		$file['tmp_name'] = $clean;
+		$file['size']     = (int) filesize( $clean );
+
+		// 3. Bereinigte Datei in die Mediathek verschieben.
 		$moved = wp_handle_sideload(
 			$file,
 			array(
@@ -75,16 +87,11 @@ class Upload {
 			)
 		);
 		if ( isset( $moved['error'] ) || empty( $moved['file'] ) ) {
+			wp_delete_file( $clean );
 			return self::error( $type_msg );
 		}
 		$path = $moved['file'];
 		$mime = (string) $moved['type'];
-
-		// 3. Metadaten entfernen (Re-Encode), bevor Unterformate erzeugt werden.
-		if ( ! self::reencode( $path, $mime ) ) {
-			wp_delete_file( $path );
-			return self::error( __( 'Das Bild konnte nicht verarbeitet werden.', 'nz-pinnwand' ) );
-		}
 
 		// 4. Attachment anlegen.
 		$id = wp_insert_attachment(
@@ -107,8 +114,8 @@ class Upload {
 		return (int) $id;
 	}
 
-	/** Kodiert die Datei per GD neu (verwirft EXIF/GPS/ICC/XMP). Gibt false bei Fehler zurueck. */
-	private static function reencode( string $path, string $mime ): bool {
+	/** Kodiert $path per GD neu und schreibt das Ergebnis nach $dest (verwirft EXIF/GPS/ICC/XMP). Gibt false bei Fehler zurueck. */
+	private static function reencode( string $path, string $mime, string $dest ): bool {
 		$loaders = array(
 			'image/jpeg' => 'imagecreatefromjpeg',
 			'image/png'  => 'imagecreatefrompng',
@@ -140,13 +147,13 @@ class Upload {
 
 		switch ( $mime ) {
 			case 'image/jpeg':
-				$ok = function_exists( 'imagejpeg' ) && imagejpeg( $img, $path, 90 );
+				$ok = function_exists( 'imagejpeg' ) && imagejpeg( $img, $dest, 90 );
 				break;
 			case 'image/png':
-				$ok = function_exists( 'imagepng' ) && imagepng( $img, $path );
+				$ok = function_exists( 'imagepng' ) && imagepng( $img, $dest );
 				break;
 			default:
-				$ok = function_exists( 'imagewebp' ) && imagewebp( $img, $path, 90 );
+				$ok = function_exists( 'imagewebp' ) && imagewebp( $img, $dest, 90 );
 		}
 		imagedestroy( $img );
 		return (bool) $ok;

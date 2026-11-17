@@ -122,4 +122,62 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 		$r = Upload::handle( $this->file_from( DIR_TESTDATA . '/images/test-image.gif', 'a.gif', 'image/gif' ), $this->user );
 		$this->assertWPError( $r );
 	}
+
+	private function upload_files(): array {
+		$dir = wp_get_upload_dir();
+		$out = array();
+		if ( is_dir( $dir['basedir'] ) ) {
+			foreach ( new \RecursiveIteratorIterator( new \RecursiveDirectoryIterator( $dir['basedir'], \FilesystemIterator::SKIP_DOTS ) ) as $f ) {
+				$out[] = $f->getPathname();
+			}
+		}
+		sort( $out );
+		return $out;
+	}
+
+	public function test_rejects_corrupt_image_when_reencode_fails_and_leaves_nothing() {
+		$cases  = array(
+			'trunc.png' => array( 'test-image.png', 400, 'image/png' ),
+			'trunc.jpg' => array( 'test-image.jpg', 600, 'image/jpeg' ),
+		);
+		foreach ( $cases as $name => $c ) {
+			$file = $this->file_from( DIR_TESTDATA . '/images/' . $c[0], $name, $c[2] );
+			file_put_contents( $file['tmp_name'], substr( file_get_contents( $file['tmp_name'] ), 0, $c[1] ) );
+			$file['size'] = filesize( $file['tmp_name'] );
+			$this->assertNotFalse( getimagesize( $file['tmp_name'] ), 'Fixture muss getimagesize bestehen' );
+			$before_att   = $this->attachment_count();
+			$before_files = $this->upload_files();
+			$r            = Upload::handle( $file, $this->user );
+			$this->assertWPError( $r, $name );
+			$this->assertSame( 'nzp_upload', $r->get_error_code() );
+			$this->assertSame( 400, $r->get_error_data()['status'] );
+			$this->assertSame( $before_att, $this->attachment_count() );
+			$this->assertSame( $before_files, $this->upload_files(), 'Nichts in uploads/ zurueckgelassen' );
+		}
+	}
+
+	public function test_rejects_too_many_pixels() {
+		// PNG-Header mit 6000x5000 (30 MP) ohne Bilddaten; scheitert vor jedem Decode.
+		$png  = "\x89PNG\r\n\x1a\n" . pack( 'N', 13 ) . 'IHDR' . pack( 'NNCCCCC', 6000, 5000, 8, 2, 0, 0, 0 ) . pack( 'N', 0 );
+		$tmp  = wp_tempnam( 'big.png' );
+		file_put_contents( $tmp, $png );
+		$file = array( 'name' => 'big.png', 'type' => 'image/png', 'tmp_name' => $tmp, 'error' => 0, 'size' => filesize( $tmp ) );
+		$r    = Upload::handle( $file, $this->user );
+		$this->assertWPError( $r );
+		$this->assertSame( 'nzp_upload', $r->get_error_code() );
+		$this->assertSame( 400, $r->get_error_data()['status'] );
+	}
+
+	public function test_insert_failure_removes_moved_file() {
+		add_filter( 'wp_insert_post_empty_content', '__return_true' );
+		$before_att   = $this->attachment_count();
+		$before_files = $this->upload_files();
+		$r            = Upload::handle( $this->file_from( DIR_TESTDATA . '/images/test-image.png', 'ok.png', 'image/png' ), $this->user );
+		remove_filter( 'wp_insert_post_empty_content', '__return_true' );
+		$this->assertWPError( $r );
+		$this->assertSame( 'nzp_upload', $r->get_error_code() );
+		$this->assertSame( 400, $r->get_error_data()['status'] );
+		$this->assertSame( $before_att, $this->attachment_count() );
+		$this->assertSame( $before_files, $this->upload_files(), 'Verschobene Datei wurde geloescht' );
+	}
 }
