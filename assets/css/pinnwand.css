@@ -264,3 +264,10 @@
 .nzp-dialog button:focus-visible,
 .nzp-dialog input:focus-visible,
 .nzp-dialog textarea:focus-visible { outline: 3px solid #0b57d0; outline-offset: 2px; }
+
+/* Touch: Long-Press-Drag; iOS-Linkvorschau/Textauswahl auf editierbaren Zetteln unterdruecken. */
+.nzp-pin[data-can-edit="1"] {
+	user-select: none;
+	-webkit-user-select: none;
+}
+.nzp-pin[data-can-edit="1"] a.nzp-lightbox { -webkit-touch-callout: none; }

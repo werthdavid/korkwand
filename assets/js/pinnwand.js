@@ -100,6 +100,12 @@ class Board {
 		root.addEventListener('click', (e) => this.onClick(e), true);
 		root.addEventListener('dragstart', (e) => e.preventDefault());
 		root.addEventListener('pointerdown', (e) => this.onPointerDown(e));
+		// Permanente, nicht-passive Touch-Listener: der Browser entscheidet beim touchstart, ob die Geste
+		// abbrechbar ist. Nur waehrend eines aktiven Long-Press-Drags wird das Scrollen unterbunden.
+		root.addEventListener('touchstart', () => {}, { passive: false });
+		root.addEventListener('touchmove', (e) => {
+			if (this.drag && this.drag.active && e.cancelable) e.preventDefault();
+		}, { passive: false });
 	}
 
 	get inList() {
@@ -193,12 +199,10 @@ class Board {
 		d.onMove = (ev) => this.onPointerMove(ev);
 		d.onUp = (ev) => this.onPointerUp(ev, false);
 		d.onCancel = (ev) => this.onPointerUp(ev, true);
-		d.onTouchMove = (ev) => { if (d.active) ev.preventDefault(); };
 		d.onContext = (ev) => { if (d.touch) ev.preventDefault(); };
 		document.addEventListener('pointermove', d.onMove);
 		document.addEventListener('pointerup', d.onUp);
 		document.addEventListener('pointercancel', d.onCancel);
-		document.addEventListener('touchmove', d.onTouchMove, { passive: false });
 		document.addEventListener('contextmenu', d.onContext);
 
 		if (d.touch) {
@@ -246,7 +250,6 @@ class Board {
 		document.removeEventListener('pointermove', d.onMove);
 		document.removeEventListener('pointerup', d.onUp);
 		document.removeEventListener('pointercancel', d.onCancel);
-		document.removeEventListener('touchmove', d.onTouchMove);
 		document.removeEventListener('contextmenu', d.onContext);
 		d.pin.classList.remove('nzp-pin--dragging');
 		try { d.pin.releasePointerCapture(d.pointerId); } catch (err) { /* ignore */ }
