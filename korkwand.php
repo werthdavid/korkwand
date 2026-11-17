@@ -1,14 +1,17 @@
 <?php
 /**
  * Plugin Name:       Korkwand
+ * Plugin URI:        https://github.com/werthdavid/korkwand
  * Description:       A cork pinboard for WordPress: members pin post-it notes and photos, guests just look.
  * Version:           0.1.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
- * Text Domain:       korkwand
- * Domain Path:       /languages
+ * Author:            werthdavid
+ * Author URI:        https://github.com/werthdavid
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       korkwand
+ * Domain Path:       /languages
  */
 
 defined( 'ABSPATH' ) || exit;

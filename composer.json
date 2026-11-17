@@ -12,5 +12,12 @@
 	},
 	"config": {
 		"allow-plugins": {}
-	}
+	},
+	"homepage": "https://github.com/werthdavid/korkwand",
+	"authors": [
+		{
+			"name": "werthdavid",
+			"homepage": "https://github.com/werthdavid"
+		}
+	]
 }
