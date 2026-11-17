@@ -1,0 +1,180 @@
+/* nz-pinnwand: Korkwand mit Post-its und Bildern. Logische Breite 1000px. */
+@font-face {
+	font-family: "Patrick Hand";
+	src: url(../fonts/patrick-hand.woff2) format("woff2");
+	font-display: swap;
+}
+
+.nzp {
+	--nzp-scale: 1;
+	--nzp-hand: "Patrick Hand", "Comic Sans MS", cursive;
+	--nzp-cork: #b98a56;
+	container-type: inline-size;
+	margin: 1.5em 0;
+}
+
+.nzp-toolbar {
+	display: flex;
+	align-items: center;
+	gap: .75em;
+	margin-bottom: .75em;
+}
+
+.nzp-add {
+	font: inherit;
+	padding: .4em 1em;
+	border: 0;
+	border-radius: 4px;
+	background: #3b6e3b;
+	color: #fff;
+	cursor: pointer;
+}
+
+.nzp-add:hover { background: #2f5a2f; }
+
+.nzp-add:focus-visible,
+.nzp-lightbox:focus-visible,
+.nzp-pin:focus-visible,
+.nzp-pin button:focus-visible {
+	outline: 3px solid #0b57d0;
+	outline-offset: 2px;
+}
+
+.nzp-error {
+	padding: .5em 1em;
+	border-left: 4px solid #b32d2e;
+	background: #fcf0f1;
+}
+
+/* Ohne JS horizontal scrollbar; JS setzt --nzp-scale. */
+.nzp-board {
+	overflow-x: auto;
+	border: 10px solid #6b4423;
+	border-radius: 4px;
+	box-shadow: inset 0 0 20px rgba(0, 0, 0, .45);
+	background-color: var(--nzp-cork);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .14 0 0 0 0 .05 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.nzp-canvas {
+	position: relative;
+	width: 1000px;
+	overflow: hidden;
+	transform: scale(var(--nzp-scale, 1));
+	transform-origin: 0 0;
+}
+
+.nzp-pin {
+	position: absolute;
+	top: 0;
+	left: 0;
+	box-sizing: border-box;
+	margin: 0;
+	transform: translate(var(--x, 0), var(--y, 0)) rotate(var(--r, 0deg));
+	box-shadow: 2px 4px 8px rgba(0, 0, 0, .4);
+	transition: box-shadow .15s ease;
+}
+
+.nzp-pin::before {
+	content: "";
+	position: absolute;
+	top: -10px;
+	left: 50%;
+	width: 24px;
+	height: 32px;
+	margin-left: -12px;
+	background: url(../img/pin.svg) no-repeat center / contain;
+	pointer-events: none;
+}
+
+.nzp-pin:hover { box-shadow: 4px 8px 14px rgba(0, 0, 0, .5); }
+
+.nzp-pin--postit {
+	width: 200px;
+	min-height: 200px;
+	padding: 28px 14px 14px;
+	background: #fff59d;
+	color: #2b2b2b;
+	font-family: var(--nzp-hand);
+	font-size: 18px;
+	line-height: 1.25;
+	overflow: hidden;
+}
+
+.nzp-pin--postit h3 {
+	margin: 0 0 .4em;
+	font: inherit;
+	font-size: 22px;
+	font-weight: 700;
+	overflow-wrap: anywhere;
+}
+
+.nzp-pin--postit p {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.nzp-pin--image {
+	width: 260px;
+	padding: 18px 10px 10px;
+	background: #fff;
+	color: #2b2b2b;
+	font-family: var(--nzp-hand);
+}
+
+.nzp-pin--image img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.nzp-pin--image figcaption {
+	margin-top: 6px;
+	text-align: center;
+	font-size: 17px;
+	overflow-wrap: anywhere;
+}
+
+.nzp-author {
+	display: block;
+	margin-top: .5em;
+	font-size: 14px;
+	opacity: .7;
+	text-align: right;
+}
+
+.nzp-pin--sticky { box-shadow: 2px 4px 8px rgba(0, 0, 0, .4), 0 0 0 3px rgba(255, 215, 0, .8); }
+
+/* Mobil: Listenansicht bei Containerbreite < 700px. */
+@container (max-width: 699px) {
+	.nzp-board { overflow-x: visible; }
+
+	.nzp-canvas {
+		display: flex;
+		flex-direction: column;
+		gap: 22px;
+		width: auto;
+		height: auto !important;
+		padding: 24px 12px 12px;
+		overflow: visible;
+		transform: none;
+	}
+
+	.nzp-pin {
+		position: relative;
+		width: 100%;
+		transform: none;
+	}
+
+	.nzp-pin--postit,
+	.nzp-pin--image { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.nzp *,
+	.nzp *::before,
+	.nzp *::after {
+		transition: none !important;
+		animation: none !important;
+	}
+}

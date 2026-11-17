@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "nz/pinnwand",
+	"title": "Pinnwand",
+	"category": "widgets",
+	"icon": "sticky",
+	"description": "Zeigt eine Pinnwand mit Zetteln und Bildern.",
+	"textdomain": "nz-pinnwand",
+	"attributes": {
+		"board": { "type": "string", "default": "" }
+	},
+	"supports": { "html": false },
+	"editorScript": "nzp-block-editor",
+	"render": "file:./render.php"
+}
