@@ -1,4 +1,4 @@
-# Dateien, die nicht ins Release-ZIP gehoeren (Format: rsync --exclude-from)
+# Files excluded from the release ZIP (rsync --exclude-from format)
 .git
 .gitignore
 .gitattributes
@@ -17,3 +17,4 @@ composer.lock
 package.json
 package-lock.json
 phpunit.xml.dist
+README.md

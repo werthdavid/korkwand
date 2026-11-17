@@ -1,42 +1,61 @@
-# NZ Pinnwand
+# Korkwand
 
-Pinnwand (Korkwand) für WordPress: Angemeldete Mitglieder heften Post-its und Fotos an, Gäste sehen die Wand nur an.
-Voraussetzungen: WordPress ab 6.5, PHP ab 8.1.
+A cork pinboard for WordPress: logged-in members pin post-it notes and photos to a board, guests can only look.
+Requires WordPress 6.5+ and PHP 8.1+. License: GPL-2.0-or-later.
 
-## Einbinden
+This file is the developer README. End-user documentation lives in `readme.txt` (WordPress.org format).
 
-- **Pinnwand anlegen:** im Admin unter *Pinnwand → Pinnwände* (Taxonomie). Pro Pinnwand: Lebensdauer in Tagen (0 = nie), Höhe, maximale Zettelzahl, E-Mail-Benachrichtigung.
-- **Shortcode:** `[korkwand board="slug"]` in eine Seite oder einen Beitrag einfügen.
-- **Block:** „Pinnwand“ (`korkwand/board`) im Block-Editor einfügen und die Pinnwand auswählen.
-- Unbekannte Pinnwand: Gäste sehen nichts, Administratoren einen Hinweis.
+## Features at a glance
 
-## Rollen und Rechte
+- Boards are managed in the admin under *Korkwand → Boards* (taxonomy `korkwand_board`). Per board: lifetime in days (0 = never expires), height, maximum number of notes, email notification.
+- Embed a board with the shortcode `[korkwand board="slug"]` or the block `korkwand/board`.
+- Capabilities: `korkwand_post` (create notes: subscriber and up) and `korkwand_moderate` (edit/delete any note, mark notes sticky: editor and administrator).
+- Notes are a custom post type (`korkwand_pin`), created only through the REST API (`korkwand/v1`) from the frontend.
+- Image uploads: JPEG, PNG, WebP up to 8 MB (or the host limit if lower), re-encoded to strip EXIF/GPS, file names anonymised (`korkwand-<random>.<ext>`).
+- Rate limit: 10 new notes per user per hour. Privacy export/erase hooks and uninstall cleanup are included.
 
-- **Zettel anheften** (`korkwand_post`): Abonnent, Mitarbeiter, Autor, Redakteur, Administrator. Gäste können nur ansehen.
-- **Moderieren** (`korkwand_moderate`): Redakteur und Administrator. Sie können fremde Zettel ändern, löschen und anheften („Sticky“, läuft nie ab).
-- Jeder Nutzer ändert und löscht nur eigene Zettel. Pro Nutzer sind höchstens 10 neue Zettel pro Stunde möglich.
-- Zettel werden nur im Frontend angelegt. Im Admin (*Pinnwand*) lassen sie sich prüfen, bearbeiten, in den Papierkorb legen und löschen.
-- Gäste sehen nie Autorennamen.
+## Development setup
 
-## Seiten-Cache
+The host needs Node.js and Docker; PHP is not required locally because the tests run inside [wp-env](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/).
 
-Die Zettel stehen im ausgelieferten HTML. Mit einem Seiten-Cache (Plugin, CDN, Hosting) sehen Gäste neue Zettel erst nach dem Leeren des Caches. Seite mit der Pinnwand vom Cache ausnehmen oder eine kurze Lebensdauer (TTL) einstellen. Angemeldete Nutzer aktualisieren die Ansicht nach jeder Aktion selbst.
+```sh
+npm install
+./node_modules/.bin/wp-env start
+./node_modules/.bin/wp-env run tests-cli --env-cwd=wp-content/plugins/korkwand composer install
+```
 
-## Bilder-Upload
+wp-env mounts the repository folder under its folder name, so the checkout directory must be called `korkwand`
+(otherwise adjust the `--env-cwd` path in the `test:php` script in `package.json`).
+The development site runs on http://localhost:8888, the test site on http://localhost:8889.
 
-- Erlaubt: JPEG, PNG, WebP, höchstens 8 MB. Metadaten (EXIF/GPS) werden entfernt, Dateinamen anonymisiert (`pinnwand-<zufall>.<endung>`).
-- Das effektive Limit ist das Minimum aus 8 MB und den Host-Einstellungen. Empfohlen: `upload_max_filesize` und `post_max_size` mindestens 8 MB (besser 10 MB), sonst erscheint „Das Bild ist zu groß (maximal X MB)“.
-- Beim endgültigen Löschen eines Zettels wird sein Plugin-Upload mitgelöscht; Mediathek-Bilder bleiben unangetastet.
+## Tests
 
-## Schrift (optional)
+```sh
+npm run test:php   # PHPUnit inside wp-env (tests/test-*.php)
+npm run test:js    # node --test for the pure geometry helpers (tests/js)
+```
 
-Für die Handschrift-Optik die Datei `assets/fonts/patrick-hand.woff2` (Patrick Hand, SIL Open Font License 1.1, Quelle: google/fonts, `ofl/patrickhand`) ablegen. Ohne die Datei wird „Comic Sans MS“ bzw. eine Standard-Schreibschrift verwendet.
+## Build
 
-## Datenschutz
+```sh
+npm run build:zip
+```
 
-Die Zettel eines Nutzers sind in den WordPress-Werkzeugen für Datenexport und -löschung enthalten. Beim Löschen eines Nutzers werden dessen Zettel endgültig gelöscht (auch bei Zuweisung der Inhalte an einen anderen Nutzer). Beim Deinstallieren werden alle Daten entfernt, sofern die Option dazu aktiviert ist (Standard).
+Creates `dist/korkwand.zip` with the top-level folder `korkwand/`, excluding development files listed in `.distignore`
+(requires `rsync` and `zip`).
 
-## Entwicklung und Release
+## Internationalisation
 
-- Tests: `npm run test:php` (benötigt `wp-env`), `npm run test:js`.
-- Release-ZIP: `npm run build:zip` erzeugt `dist/korkwand.zip` ohne Entwicklungsdateien (siehe `.distignore`; benötigt `rsync` und `zip`).
+All user-facing source strings are English with the text domain `korkwand` (`Domain Path: /languages`).
+Frontend script modules cannot use `wp_set_script_translations()`, so the PHP side translates all JavaScript UI strings
+and passes them as `window.Korkwand.i18n` (see `Render::js_strings()`). The block editor script uses the regular
+`wp.i18n` functions. `languages/de_DE-pairs.tsv` lists the English source string and its German translation (tab
+separated, `\n` written as an escape sequence).
+
+## Code layout
+
+- `korkwand.php`: plugin header, constants, autoloader (`Korkwand\` namespace, `includes/class-*.php`)
+- `includes/`: model, REST API, rendering, permissions, upload handling, cleanup, privacy, admin
+- `assets/js/`: ES modules (registered as script modules with versioned import map), `assets/css/korkwand.css`
+- `blocks/board/`: block.json, editor script, server-side render
+- `uninstall.php`: removes data unless the option to keep it is set

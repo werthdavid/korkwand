@@ -1,6 +1,6 @@
 {
 	"name": "korkwand/korkwand",
-	"description": "Pinnwand (Korkwand mit Post-its) fuer WordPress",
+	"description": "Korkwand: a cork pinboard with post-it notes and images for WordPress",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0-or-later",
 	"require": {
