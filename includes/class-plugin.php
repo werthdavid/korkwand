@@ -11,6 +11,10 @@ final class Plugin {
 		Render::register();
 		Cleanup::register();
 		Privacy::register();
+		add_action( 'admin_init', array( Admin::class, 'register_settings' ) );
+		if ( is_admin() ) {
+			Admin::register();
+		}
 	}
 
 	public static function activate(): void {
