@@ -5,7 +5,7 @@ import { listPins, createPin, updatePin, deletePin, SessionExpiredError } from '
 import { openPinDialog } from './dialog.js';
 import { openLightbox } from './lightbox.js';
 
-const LIST_BREAKPOINT = 700;
+const LIST_BREAKPOINT = 480;
 const DRAG_THRESHOLD = 4;
 const LONG_PRESS_MS = 300;
 

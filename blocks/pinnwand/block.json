@@ -10,7 +10,7 @@
 	"attributes": {
 		"board": { "type": "string", "default": "" }
 	},
-	"supports": { "html": false },
+	"supports": { "html": false, "align": [ "wide", "full" ] },
 	"editorScript": "nzp-block-editor",
 	"render": "file:./render.php"
 }

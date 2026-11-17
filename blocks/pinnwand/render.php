@@ -8,4 +8,6 @@
 defined( 'ABSPATH' ) || exit;
 
 // Render::board() liefert bereits vollstaendig escaptes Markup.
+echo '<div ' . get_block_wrapper_attributes() . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 echo \NZ\Pinnwand\Render::board( (string) ( $attributes['board'] ?? '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+echo '</div>';

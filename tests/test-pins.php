@@ -303,4 +303,17 @@ class NZP_Test_Pins extends WP_UnitTestCase {
 		$this->assertFalse( Pins::trash( $pin2 ) );
 		$this->assertSame( 'publish', get_post_status( $pin2->ID ) );
 	}
+
+	public function test_crlf_is_normalised_to_lf() {
+		$pin = $this->postit( array( 'text' => "x\r\ny\rz" ) );
+		$this->assertSame( "x\ny\nz", get_post( $pin->ID )->post_content );
+	}
+
+	public function test_crlf_text_within_limit_after_normalising_is_accepted() {
+		$text = str_repeat( "a\r\n", 100 ); // 199 Zeichen nach Normalisierung, roh 299.
+		$pin  = $this->postit( array( 'text' => implode( "\r\n", array( str_repeat( 'a', 99 ), str_repeat( 'a', 99 ), str_repeat( 'a', 100 ) ) ) ) );
+		$this->assertInstanceOf( \WP_Post::class, $pin );
+		$this->assertSame( 300, mb_strlen( get_post( $pin->ID )->post_content ) );
+		$this->assertInstanceOf( \WP_Post::class, $this->postit( array( 'text' => $text ) ) );
+	}
 }

@@ -89,6 +89,13 @@ class NZP_Test_Render extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'data-board="test"', $html );
 	}
 
+	public function test_block_output_has_wrapper_and_alignment_class() {
+		$html = do_blocks( '<!-- wp:nz/pinnwand {"board":"test","align":"wide"} /-->' );
+		$this->assertStringContainsString( 'wp-block-nz-pinnwand', $html );
+		$this->assertStringContainsString( 'alignwide', $html );
+		$this->assertStringContainsString( 'data-board="test"', $html );
+	}
+
 	public function test_image_pin_markup() {
 		$att = self::factory()->attachment->create_object( array( 'file' => 'a.jpg', 'post_mime_type' => 'image/jpeg', 'post_type' => 'attachment' ) );
 		Pins::create( $this->board, $this->user, array( 'type' => 'image', 'text' => 'Unterschrift', 'attachment_id' => $att ) );

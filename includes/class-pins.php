@@ -272,7 +272,10 @@ final class Pins {
 	}
 
 	private static function clean_text( $value ): string {
-		return trim( sanitize_textarea_field( is_scalar( $value ) ? (string) $value : '' ) );
+		$text = is_scalar( $value ) ? (string) $value : '';
+		// Multipart liefert CRLF: auf LF normalisieren, damit die Zeichenzaehlung stimmt.
+		$text = str_replace( array( "\r\n", "\r" ), "\n", $text );
+		return trim( sanitize_textarea_field( $text ) );
 	}
 
 	private static function validate_title( string $title ): ?\WP_Error {

@@ -163,6 +163,7 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 
 	public function test_uninstall_removes_everything_by_default() {
 		delete_option( 'nzp_delete_data_on_uninstall' );
+		update_option( 'nzp_version', NZP_VERSION, false );
 		list( $pin, $att ) = $this->image_pin();
 		$trashed           = $this->pin_aged( 1 );
 		wp_trash_post( $trashed->ID );
@@ -179,6 +180,7 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 		$this->assertFalse( wp_next_scheduled( 'nzp_daily_cleanup' ) );
 		$this->assertFalse( get_role( 'administrator' )->has_cap( 'pinnwand_moderate' ) );
 		$this->assertFalse( get_option( 'nzp_delete_data_on_uninstall', false ) );
+		$this->assertFalse( get_option( 'nzp_version', false ) );
 		\NZ\Pinnwand\Permissions::install_caps();
 		Plugin::activate();
 	}

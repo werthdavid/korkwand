@@ -233,6 +233,7 @@ final class Cleanup {
 		Permissions::remove_caps();
 		wp_clear_scheduled_hook( 'nzp_daily_cleanup' );
 		delete_option( 'nzp_delete_data_on_uninstall' );
+		delete_option( 'nzp_version' );
 
 		// Rate-Limit-Transients (inkl. Timeout-Eintraege).
 		$like = $wpdb->esc_like( '_transient_nzp_rl_' ) . '%';

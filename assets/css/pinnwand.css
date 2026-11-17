@@ -145,8 +145,8 @@
 
 .nzp-pin--sticky { box-shadow: 2px 4px 8px rgba(0, 0, 0, .4), 0 0 0 3px rgba(255, 215, 0, .8); }
 
-/* Mobil: Listenansicht bei Containerbreite < 700px. */
-@container (max-width: 699px) {
+/* Mobil: Listenansicht bei Containerbreite < 480px. */
+@container (max-width: 479px) {
 	.nzp-board { overflow-x: visible; }
 
 	.nzp-canvas {
