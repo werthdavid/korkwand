@@ -113,7 +113,11 @@ class Board {
 	}
 
 	layout() {
-		if (this.inList) {
+		const list = this.inList;
+		// Skalierte Ansicht: kein Scrollen (overflow:hidden per CSS). Klasse vor dem Messen setzen,
+		// damit clientWidth keine Scrollbar abzieht.
+		this.root.classList.toggle('nzp--scaled', !list);
+		if (list) {
 			this.scale = 1;
 			this.root.style.removeProperty('--nzp-scale');
 			this.board.style.height = '';
