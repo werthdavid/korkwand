@@ -6,9 +6,12 @@ defined( 'ABSPATH' ) || exit;
 final class Plugin {
 
 	public static function boot(): void {
+		add_action( 'init', array( Model::class, 'register' ) );
 	}
 
 	public static function activate(): void {
+		Model::register();
+		flush_rewrite_rules();
 	}
 
 	public static function deactivate(): void {
