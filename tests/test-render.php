@@ -78,6 +78,7 @@ class NZP_Test_Render extends WP_UnitTestCase {
 		$data = wp_scripts()->get_data( 'nzp-config', 'after' );
 		$this->assertStringContainsString( 'pinnwand\/v1\/', implode( '', (array) $data ) );
 		$this->assertStringContainsString( 'loginUrl', implode( '', (array) $data ) );
+		$this->assertStringContainsString( '"maxBytes":' . \NZ\Pinnwand\Upload::max_bytes(), implode( '', (array) $data ) );
 		ob_start();
 		wp_script_modules()->print_enqueued_script_modules();
 		$this->assertStringContainsString( 'nzp-script', ob_get_clean() );

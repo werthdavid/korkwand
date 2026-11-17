@@ -1,5 +1,5 @@
 // Anlegen-/Bearbeiten-Dialog (<dialog>, showModal). Baut das DOM nur mit createElement/textContent.
-const MAX_BYTES = 8388608;
+const DEFAULT_MAX_BYTES = 8388608;
 const LIMITS = { title: 60, postit: 300, caption: 100 };
 
 function el(tag, props = {}, ...children) {
@@ -11,6 +11,17 @@ function el(tag, props = {}, ...children) {
 	}
 	n.append(...children);
 	return n;
+}
+
+// Effektives Upload-Limit (vom Server: min(8 MB, Host-Limit)).
+function maxBytes() {
+	const n = Number(window.NZP && window.NZP.maxBytes);
+	return n > 0 ? Math.min(n, DEFAULT_MAX_BYTES) : DEFAULT_MAX_BYTES;
+}
+
+function maxLabel() {
+	const mb = Math.round((maxBytes() / 1048576) * 10) / 10;
+	return String(mb).replace('.', ',');
 }
 
 function field(labelText, control) {
@@ -38,8 +49,9 @@ export function openPinDialog({ pin = null, trigger = null, onSubmit }) {
 	// Typwahl (nur beim Anlegen)
 	const typeBox = el('fieldset', { className: 'nzp-type' }, el('legend', { text: 'Art des Zettels' }));
 	for (const [val, label] of [['postit', 'Post-it'], ['image', 'Bild']]) {
-		const r = el('input', { type: 'radio', name: 'nzp-type', value: val, checked: val === type });
-		typeBox.append(el('label', {}, r, ' ' + label));
+		const rid = 'nzp-type-' + val;
+		const r = el('input', { type: 'radio', id: rid, name: 'nzp-type', value: val, checked: val === type });
+		typeBox.append(el('label', { htmlFor: rid, className: 'nzp-type-label' }, r, el('span', { text: ' ' + label })));
 		r.addEventListener('change', () => { type = val; sync(); });
 	}
 	typeBox.hidden = editing;
@@ -51,7 +63,7 @@ export function openPinDialog({ pin = null, trigger = null, onSubmit }) {
 
 	const titleRow = field('Titel (Pflicht, max. 60 Zeichen)', titleIn);
 	const textRow = field('Text (optional, max. 300 Zeichen)', textArea);
-	const fileRow = field('Bild (JPEG, PNG oder WebP, max. 8 MB)', fileIn);
+	const fileRow = field(`Bild (JPEG, PNG oder WebP, max. ${maxLabel()} MB)`, fileIn);
 	const capRow = field('Bildunterschrift (optional, max. 100 Zeichen)', captionIn);
 
 	function sync() {
@@ -82,7 +94,7 @@ export function openPinDialog({ pin = null, trigger = null, onSubmit }) {
 		if (type === 'image' && !editing) {
 			if (!file) return showError('Bitte ein Bild auswählen.');
 			if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return showError('Nur JPEG, PNG oder WebP sind erlaubt.');
-			if (file.size > MAX_BYTES) return showError('Das Bild ist größer als 8 MB.');
+			if (file.size > maxBytes()) return showError(`Das Bild ist zu groß (maximal ${maxLabel()} MB).`);
 		}
 		const values = type === 'postit'
 			? { type, title: titleIn.value.trim(), text: textArea.value, file: null }

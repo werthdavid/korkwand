@@ -187,4 +187,36 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 		$this->assertSame( $before_att, $this->attachment_count() );
 		$this->assertSame( $before_files, $this->upload_files(), 'Verschobene Datei wurde geloescht' );
 	}
+
+	public function test_ini_and_form_size_errors_map_to_too_large_message() {
+		foreach ( array( UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE ) as $code ) {
+			$file          = $this->file_from( DIR_TESTDATA . '/images/test-image.png', 'x.png', 'image/png' );
+			$file['error'] = $code;
+			$r             = Upload::handle( $file, $this->user );
+			$this->assertWPError( $r );
+			$this->assertSame( 'Das Bild ist zu groß (maximal 8 MB).', $r->get_error_message() );
+		}
+		$file          = $this->file_from( DIR_TESTDATA . '/images/test-image.png', 'x.png', 'image/png' );
+		$file['error'] = UPLOAD_ERR_PARTIAL;
+		$this->assertStringContainsString( 'fehlgeschlagen', Upload::handle( $file, $this->user )->get_error_message() );
+	}
+
+	public function test_effective_limit_is_min_of_8mb_and_host_limit() {
+		$this->assertSame( min( 8388608, wp_max_upload_size() ), Upload::max_bytes() );
+		$low = static fn() => 2097152;
+		add_filter( 'upload_size_limit', $low );
+		$this->assertSame( 2097152, Upload::max_bytes() );
+		$file         = $this->file_from( DIR_TESTDATA . '/images/test-image.png', 'x.png', 'image/png' );
+		$file['size'] = 3000000;
+		$r            = Upload::handle( $file, $this->user );
+		remove_filter( 'upload_size_limit', $low );
+		$this->assertWPError( $r );
+		$this->assertSame( 'Das Bild ist zu groß (maximal 2 MB).', $r->get_error_message() );
+		add_filter( 'upload_size_limit', static fn() => 1572864 );
+		$this->assertSame( 'Das Bild ist zu groß (maximal ' . number_format_i18n( 1.5, 1 ) . ' MB).', Upload::too_large_error()->get_error_message() );
+		remove_all_filters( 'upload_size_limit' );
+		add_filter( 'upload_size_limit', static fn() => 99999999999 );
+		$this->assertSame( 8388608, Upload::max_bytes() );
+		remove_all_filters( 'upload_size_limit' );
+	}
 }

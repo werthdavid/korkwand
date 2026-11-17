@@ -123,6 +123,50 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 		$this->assertSame( 'nzp_not_found', $res->get_data()['code'] );
 	}
 
+	public function test_slug_with_underscore_is_routable() {
+		$id = self::factory()->term->create( array( 'taxonomy' => 'pinboard', 'name' => 'Mein Board', 'slug' => 'mein_board' ) );
+		$this->assertSame( 'mein_board', get_term( $id, 'pinboard' )->slug );
+		$res = $this->req( 'GET', '/boards/mein_board/pins' );
+		$this->assertSame( 200, $res->get_status() );
+		$this->assertSame( 'mein_board', $res->get_data()['board']['slug'] );
+		wp_set_current_user( $this->sub );
+		$this->assertSame( 201, $this->req( 'POST', '/boards/mein_board/pins', array( 'type' => 'postit', 'title' => 'x' ) )->get_status() );
+	}
+
+	public function test_dropped_multipart_body_answers_german_too_large_400() {
+		wp_set_current_user( $this->sub );
+		$_SERVER['CONTENT_LENGTH'] = '99999999';
+		$r = new \WP_REST_Request( 'POST', '/pinnwand/v1/boards/test/pins' );
+		$r->set_header( 'content_type', 'multipart/form-data; boundary=x' );
+		$res = rest_do_request( $r );
+		unset( $_SERVER['CONTENT_LENGTH'] );
+		$this->assertSame( 400, $res->get_status() );
+		$this->assertSame( 'nzp_upload', $res->get_data()['code'] );
+		$this->assertStringStartsWith( 'Das Bild ist zu groß (maximal ', $res->get_data()['message'] );
+	}
+
+	public function test_missing_type_without_dropped_body_is_plain_400_and_costs_no_rate_slot() {
+		wp_set_current_user( $this->sub );
+		$res = $this->req( 'POST', '/boards/test/pins', array( 'title' => 'x' ) );
+		$this->assertSame( 400, $res->get_status() );
+		$this->assertSame( 'nzp_invalid', $res->get_data()['code'] );
+		$this->assertTrue( \NZ\Pinnwand\RateLimit::hit( $this->sub ) );
+	}
+
+	public function test_guest_without_type_gets_401_not_400() {
+		$res = $this->req( 'POST', '/boards/test/pins', array( 'title' => 'x' ) );
+		$this->assertSame( 401, $res->get_status() );
+	}
+
+	public function test_ini_size_upload_error_maps_to_too_large() {
+		wp_set_current_user( $this->sub );
+		$file = array( 'image' => array( 'name' => 'x.jpg', 'type' => '', 'tmp_name' => '', 'error' => UPLOAD_ERR_INI_SIZE, 'size' => 0 ) );
+		$res  = $this->req( 'POST', '/boards/test/pins', array( 'type' => 'image' ), $file );
+		$this->assertSame( 400, $res->get_status() );
+		$this->assertSame( 'nzp_upload', $res->get_data()['code'] );
+		$this->assertStringStartsWith( 'Das Bild ist zu groß', $res->get_data()['message'] );
+	}
+
 	public function test_create_validation_errors_400_and_bad_type_rejected() {
 		$this->assertSame( 400, $this->create_as( $this->sub, array( 'title' => '' ) )->get_status() );
 		$this->assertSame( 400, $this->create_as( $this->sub, array( 'type' => 'video' ) )->get_status() );

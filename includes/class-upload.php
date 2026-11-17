@@ -25,6 +25,31 @@ class Upload {
 		return new \WP_Error( 'nzp_upload', $message, array( 'status' => 400 ) );
 	}
 
+	/** Effektives Limit: Plugin-Grenze, begrenzt durch die Host-Einstellungen (upload_max_filesize/post_max_size). */
+	public static function max_bytes(): int {
+		return max( 1, min( self::MAX_BYTES, (int) wp_max_upload_size() ) );
+	}
+
+	/** Limit in MB als Text, z. B. "8" oder "1,5". */
+	private static function max_label(): string {
+		$mb = round( self::max_bytes() / 1048576, 1 );
+		return floor( $mb ) === $mb ? (string) (int) $mb : number_format_i18n( $mb, 1 );
+	}
+
+	/** Fehlermeldung "Bild zu gross" mit dem effektiven Limit. */
+	public static function too_large_error(): \WP_Error {
+		/* translators: %s: maximale Groesse in MB */
+		return self::error( sprintf( __( 'Das Bild ist zu groß (maximal %s MB).', 'nz-pinnwand' ), self::max_label() ) );
+	}
+
+	/** Uebersetzt einen PHP-Upload-Fehlercode (UPLOAD_ERR_*) in einen WP_Error. */
+	public static function upload_error( int $code ): \WP_Error {
+		if ( UPLOAD_ERR_INI_SIZE === $code || UPLOAD_ERR_FORM_SIZE === $code ) {
+			return self::too_large_error();
+		}
+		return self::error( __( 'Der Upload ist fehlgeschlagen. Bitte versuche es erneut.', 'nz-pinnwand' ) );
+	}
+
 	/**
 	 * Nimmt eine Datei im $_FILES-Format entgegen und legt ein Attachment an.
 	 *
@@ -43,14 +68,14 @@ class Upload {
 
 		// 1. Validierung, bevor irgendetwas verschoben wird.
 		if ( ! isset( $file['error'] ) || UPLOAD_ERR_OK !== (int) $file['error'] ) {
-			return self::error( __( 'Der Upload ist fehlgeschlagen. Bitte versuche es erneut.', 'nz-pinnwand' ) );
+			return self::upload_error( (int) ( $file['error'] ?? UPLOAD_ERR_NO_FILE ) );
 		}
 		if ( '' === $tmp || ! is_file( $tmp ) ) {
 			return self::error( __( 'Es wurde keine Datei hochgeladen.', 'nz-pinnwand' ) );
 		}
 		$size = max( (int) ( $file['size'] ?? 0 ), (int) filesize( $tmp ) );
-		if ( $size > self::MAX_BYTES ) {
-			return self::error( __( 'Das Bild ist zu groß (maximal 8 MB).', 'nz-pinnwand' ) );
+		if ( $size > self::max_bytes() ) {
+			return self::too_large_error();
 		}
 		$type_msg = __( 'Nur JPEG-, PNG- und WebP-Bilder sind erlaubt.', 'nz-pinnwand' );
 

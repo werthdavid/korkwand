@@ -174,6 +174,7 @@ final class Render {
 				'rest'     => esc_url_raw( rest_url( 'pinnwand/v1/' ) ),
 				'nonce'    => wp_create_nonce( 'wp_rest' ),
 				'loginUrl' => self::login_url(),
+				'maxBytes' => Upload::max_bytes(),
 			);
 			wp_add_inline_script( 'nzp-config', 'window.NZP = ' . wp_json_encode( $config ) . ';' );
 			wp_enqueue_script( 'nzp-config' );
