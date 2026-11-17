@@ -1,0 +1,19 @@
+# Dateien, die nicht ins Release-ZIP gehoeren (Format: rsync --exclude-from)
+.git
+.gitignore
+.gitattributes
+.distignore
+.DS_Store
+.superpowers/
+.wp-env.json
+.phpunit.result.cache
+vendor/
+node_modules/
+tests/
+scripts/
+dist/
+composer.json
+composer.lock
+package.json
+package-lock.json
+phpunit.xml.dist

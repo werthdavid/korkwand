@@ -5,7 +5,8 @@
 	"scripts": {
 		"env:start": "wp-env start",
 		"test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/nz-pinnwand vendor/bin/phpunit",
-		"test:js": "node --test tests/js/*.test.mjs"
+		"test:js": "node --test tests/js/*.test.mjs",
+		"build:zip": "sh scripts/build-zip.sh"
 	},
 	"devDependencies": {
 		"@wordpress/env": "^10.0.0"
