@@ -1,29 +1,29 @@
 <?php
-namespace NZ\Pinnwand;
+namespace Korkwand;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Registriert Post Type `pin`, Taxonomie `pinboard` sowie Post-/Term-Meta.
+ * Registriert Post Type `pin`, Taxonomie `korkwand_board` sowie Post-/Term-Meta.
  */
 final class Model {
 
 	public static function register(): void {
 		register_post_type(
-			'pin',
+			'korkwand_pin',
 			array(
 				'labels'          => array(
-					'name'          => __( 'Pinnwand', 'nz-pinnwand' ),
-					'singular_name' => __( 'Zettel', 'nz-pinnwand' ),
-					'menu_name'     => __( 'Pinnwand', 'nz-pinnwand' ),
-					'add_new_item'  => __( 'Neuen Zettel hinzufügen', 'nz-pinnwand' ),
-					'edit_item'     => __( 'Zettel bearbeiten', 'nz-pinnwand' ),
+					'name'          => __( 'Pinnwand', 'korkwand' ),
+					'singular_name' => __( 'Zettel', 'korkwand' ),
+					'menu_name'     => __( 'Pinnwand', 'korkwand' ),
+					'add_new_item'  => __( 'Neuen Zettel hinzufügen', 'korkwand' ),
+					'edit_item'     => __( 'Zettel bearbeiten', 'korkwand' ),
 				),
 				'public'          => false,
 				'show_ui'         => true,
 				'show_in_rest'    => false,
 				'supports'        => array( 'title', 'author', 'thumbnail' ),
-				'capability_type' => array( 'pin', 'pins' ),
+				'capability_type' => array( 'korkwand_pin', 'korkwand_pins' ),
 				// Zettel entstehen nur im Frontend; im Backend lassen sie sich pruefen, bearbeiten, loeschen.
 				'capabilities'    => array( 'create_posts' => 'do_not_allow' ),
 				'map_meta_cap'    => true,
@@ -32,12 +32,12 @@ final class Model {
 		);
 
 		register_taxonomy(
-			'pinboard',
-			'pin',
+			'korkwand_board',
+			'korkwand_pin',
 			array(
 				'labels'            => array(
-					'name'          => __( 'Pinnwände', 'nz-pinnwand' ),
-					'singular_name' => __( 'Pinnwand', 'nz-pinnwand' ),
+					'name'          => __( 'Pinnwände', 'korkwand' ),
+					'singular_name' => __( 'Pinnwand', 'korkwand' ),
 				),
 				'hierarchical'      => false,
 				'public'            => false,
@@ -54,30 +54,30 @@ final class Model {
 		);
 
 		$post_meta = array(
-			'_pin_type'     => array(
+			'_korkwand_type'     => array(
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
 			),
-			'_pin_x'        => array(
+			'_korkwand_x'        => array(
 				'type'              => 'integer',
 				'sanitize_callback' => 'absint',
 			),
-			'_pin_y'        => array(
+			'_korkwand_y'        => array(
 				'type'              => 'integer',
 				'sanitize_callback' => 'absint',
 			),
-			'_pin_rotation' => array(
+			'_korkwand_rotation' => array(
 				'type'              => 'integer',
 				'sanitize_callback' => array( self::class, 'sanitize_rotation' ),
 			),
-			'_pin_sticky'   => array(
+			'_korkwand_sticky'   => array(
 				'type'              => 'boolean',
 				'sanitize_callback' => 'rest_sanitize_boolean',
 			),
 		);
 		foreach ( $post_meta as $key => $args ) {
 			register_post_meta(
-				'pin',
+				'korkwand_pin',
 				$key,
 				$args + array(
 					'single'       => true,
@@ -94,7 +94,7 @@ final class Model {
 		);
 		foreach ( $term_meta as $key => $type ) {
 			register_term_meta(
-				'pinboard',
+				'korkwand_board',
 				$key,
 				array(
 					'type'         => $type,

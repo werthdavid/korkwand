@@ -2,20 +2,20 @@
 /**
  * Tests fuer Aufraeumen, Nutzerloeschung und Deinstallation.
  */
-use NZ\Pinnwand\Cleanup;
-use NZ\Pinnwand\Pins;
-use NZ\Pinnwand\Plugin;
+use Korkwand\Cleanup;
+use Korkwand\Pins;
+use Korkwand\Plugin;
 
-class NZP_Test_Cleanup extends WP_UnitTestCase {
+class Korkwand_Test_Cleanup extends WP_UnitTestCase {
 
 	private \WP_Term $board;
 	private int $user;
 
 	public function set_up() {
 		parent::set_up();
-		\NZ\Pinnwand\Permissions::install_caps();
-		$id          = self::factory()->term->create( array( 'taxonomy' => 'pinboard', 'name' => 'Test' ) );
-		$this->board = get_term( $id, 'pinboard' );
+		\Korkwand\Permissions::install_caps();
+		$id          = self::factory()->term->create( array( 'taxonomy' => 'korkwand_board', 'name' => 'Test' ) );
+		$this->board = get_term( $id, 'korkwand_board' );
 		$this->user  = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 	}
 
@@ -23,7 +23,7 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 		$ts = time() - $days_ago * DAY_IN_SECONDS;
 		$id = self::factory()->post->create(
 			array(
-				'post_type'     => 'pin',
+				'post_type'     => 'korkwand_pin',
 				'post_status'   => 'publish',
 				'post_title'    => "Alt $days_ago",
 				'post_author'   => $user ?? $this->user,
@@ -31,18 +31,18 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 				'post_date_gmt' => gmdate( 'Y-m-d H:i:s', $ts ),
 			)
 		);
-		wp_set_object_terms( $id, array( $this->board->term_id ), 'pinboard' );
-		update_post_meta( $id, '_pin_type', 'postit' );
-		update_post_meta( $id, '_pin_sticky', $sticky ? 1 : 0 );
+		wp_set_object_terms( $id, array( $this->board->term_id ), 'korkwand_board' );
+		update_post_meta( $id, '_korkwand_type', 'postit' );
+		update_post_meta( $id, '_korkwand_sticky', $sticky ? 1 : 0 );
 		return get_post( $id );
 	}
 
-	/** $plugin_upload = Attachment stammt aus dem Plugin-Upload (Meta _nzp_upload), sonst Mediathek-Bild. */
+	/** $plugin_upload = Attachment stammt aus dem Plugin-Upload (Meta _korkwand_upload), sonst Mediathek-Bild. */
 	private function image_pin( ?int $user = null, bool $plugin_upload = true ): array {
 		$user = $user ?? $this->user;
 		$att  = self::factory()->attachment->create_object(
 			array(
-				'file'           => 'nzp-test.jpg',
+				'file'           => 'korkwand-test.jpg',
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 				'post_author'    => $user,
@@ -50,15 +50,15 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 		);
 		$id   = self::factory()->post->create(
 			array(
-				'post_type'   => 'pin',
+				'post_type'   => 'korkwand_pin',
 				'post_status' => 'publish',
 				'post_author' => $user,
 			)
 		);
-		wp_set_object_terms( $id, array( $this->board->term_id ), 'pinboard' );
-		update_post_meta( $id, '_pin_type', 'image' );
+		wp_set_object_terms( $id, array( $this->board->term_id ), 'korkwand_board' );
+		update_post_meta( $id, '_korkwand_type', 'image' );
 		if ( $plugin_upload ) {
-			update_post_meta( $att, '_nzp_upload', 1 );
+			update_post_meta( $att, '_korkwand_upload', 1 );
 		}
 		set_post_thumbnail( $id, $att );
 		return array( $id, $att );
@@ -102,12 +102,12 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 		list( $pin, $att ) = $this->image_pin( null, false );
 		wp_delete_post( $pin, true );
 		$this->assertNull( get_post( $pin ) );
-		$this->assertNotNull( get_post( $att ), 'Mediathek-Bild ohne _nzp_upload darf nicht geloescht werden' );
+		$this->assertNotNull( get_post( $att ), 'Mediathek-Bild ohne _korkwand_upload darf nicht geloescht werden' );
 	}
 
 	public function test_force_delete_pin_keeps_image_shared_with_trashed_pin() {
 		list( $pin, $att ) = $this->image_pin();
-		$other             = self::factory()->post->create( array( 'post_type' => 'pin', 'post_author' => $this->user ) );
+		$other             = self::factory()->post->create( array( 'post_type' => 'korkwand_pin', 'post_author' => $this->user ) );
 		set_post_thumbnail( $other, $att );
 		wp_trash_post( $other );
 		wp_delete_post( $pin, true );
@@ -125,7 +125,7 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 
 	public function test_force_delete_pin_keeps_image_used_by_other_pin() {
 		list( $pin, $att ) = $this->image_pin();
-		$other             = self::factory()->post->create( array( 'post_type' => 'pin', 'post_author' => $this->user ) );
+		$other             = self::factory()->post->create( array( 'post_type' => 'korkwand_pin', 'post_author' => $this->user ) );
 		set_post_thumbnail( $other, $att );
 		wp_delete_post( $pin, true );
 		$this->assertNotNull( get_post( $att ) );
@@ -194,7 +194,7 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 	}
 
 	public function test_uninstall_deletes_pins_behind_an_undeletable_one() {
-		delete_option( 'nzp_delete_data_on_uninstall' );
+		delete_option( 'korkwand_delete_data_on_uninstall' );
 		$ids     = array( $this->pin_aged( 1 )->ID, $this->pin_aged( 1 )->ID );
 		$blocked = $ids[0];
 		$block   = static fn( $check, $post ) => $post->ID === $blocked ? false : $check;
@@ -202,7 +202,7 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 		Cleanup::uninstall();
 		remove_filter( 'pre_delete_post', $block, 10 );
 		$this->assertNull( get_post( $ids[1] ) );
-		\NZ\Pinnwand\Permissions::install_caps();
+		\Korkwand\Permissions::install_caps();
 		Plugin::activate();
 		wp_delete_post( $blocked, true );
 	}
@@ -211,34 +211,34 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 		$this->assertNotFalse( has_action( 'wpmu_delete_user', array( Cleanup::class, 'delete_user_pins' ) ) );
 		$this->assertNotFalse( has_action( 'delete_user', array( Cleanup::class, 'delete_user_pins' ) ) );
 		$this->assertNotFalse( has_action( 'before_delete_post', array( Cleanup::class, 'delete_attachment' ) ) );
-		$this->assertNotFalse( has_action( 'nzp_daily_cleanup', array( Cleanup::class, 'trash_expired' ) ) );
+		$this->assertNotFalse( has_action( 'korkwand_daily_cleanup', array( Cleanup::class, 'trash_expired' ) ) );
 	}
 
 	public function test_cron_scheduled_on_activate() {
-		wp_clear_scheduled_hook( 'nzp_daily_cleanup' );
-		$this->assertFalse( wp_next_scheduled( 'nzp_daily_cleanup' ) );
+		wp_clear_scheduled_hook( 'korkwand_daily_cleanup' );
+		$this->assertFalse( wp_next_scheduled( 'korkwand_daily_cleanup' ) );
 		Plugin::activate();
-		$first = wp_next_scheduled( 'nzp_daily_cleanup' );
+		$first = wp_next_scheduled( 'korkwand_daily_cleanup' );
 		$this->assertNotFalse( $first );
 		Plugin::activate();
-		$this->assertSame( $first, wp_next_scheduled( 'nzp_daily_cleanup' ) );
-		$this->assertSame( 'daily', wp_get_schedule( 'nzp_daily_cleanup' ) );
+		$this->assertSame( $first, wp_next_scheduled( 'korkwand_daily_cleanup' ) );
+		$this->assertSame( 'daily', wp_get_schedule( 'korkwand_daily_cleanup' ) );
 	}
 
 	public function test_cron_cleared_on_deactivate() {
 		Plugin::activate();
 		Plugin::deactivate();
-		$this->assertFalse( wp_next_scheduled( 'nzp_daily_cleanup' ) );
+		$this->assertFalse( wp_next_scheduled( 'korkwand_daily_cleanup' ) );
 		Plugin::activate();
 	}
 
 	public function test_uninstall_removes_everything_by_default() {
-		delete_option( 'nzp_delete_data_on_uninstall' );
-		update_option( 'nzp_version', NZP_VERSION, false );
+		delete_option( 'korkwand_delete_data_on_uninstall' );
+		update_option( 'korkwand_version', KORKWAND_VERSION, false );
 		list( $pin, $att ) = $this->image_pin();
 		$trashed           = $this->pin_aged( 1 );
 		wp_trash_post( $trashed->ID );
-		set_transient( 'nzp_rl_5', array( time() ), 3600 );
+		set_transient( 'korkwand_rl_5', array( time() ), 3600 );
 		$term_id = $this->board->term_id;
 
 		Cleanup::uninstall();
@@ -246,31 +246,31 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 		$this->assertNull( get_post( $pin ) );
 		$this->assertNull( get_post( $att ) );
 		$this->assertNull( get_post( $trashed->ID ) );
-		$this->assertNull( get_term( $term_id, 'pinboard' ) );
-		$this->assertFalse( get_transient( 'nzp_rl_5' ) );
-		$this->assertFalse( wp_next_scheduled( 'nzp_daily_cleanup' ) );
-		$this->assertFalse( get_role( 'administrator' )->has_cap( 'pinnwand_moderate' ) );
-		$this->assertFalse( get_option( 'nzp_delete_data_on_uninstall', false ) );
-		$this->assertFalse( get_option( 'nzp_version', false ) );
-		\NZ\Pinnwand\Permissions::install_caps();
+		$this->assertNull( get_term( $term_id, 'korkwand_board' ) );
+		$this->assertFalse( get_transient( 'korkwand_rl_5' ) );
+		$this->assertFalse( wp_next_scheduled( 'korkwand_daily_cleanup' ) );
+		$this->assertFalse( get_role( 'administrator' )->has_cap( 'korkwand_moderate' ) );
+		$this->assertFalse( get_option( 'korkwand_delete_data_on_uninstall', false ) );
+		$this->assertFalse( get_option( 'korkwand_version', false ) );
+		\Korkwand\Permissions::install_caps();
 		Plugin::activate();
 	}
 
 	public function test_uninstall_keeps_data_when_option_is_zero() {
-		update_option( 'nzp_delete_data_on_uninstall', '0' );
+		update_option( 'korkwand_delete_data_on_uninstall', '0' );
 		$pin = $this->pin_aged( 1 );
 
 		Cleanup::uninstall();
 
 		$this->assertNotNull( get_post( $pin->ID ) );
-		$this->assertInstanceOf( WP_Term::class, get_term( $this->board->term_id, 'pinboard' ) );
-		$this->assertFalse( get_option( 'nzp_delete_data_on_uninstall', false ) );
-		\NZ\Pinnwand\Permissions::install_caps();
+		$this->assertInstanceOf( WP_Term::class, get_term( $this->board->term_id, 'korkwand_board' ) );
+		$this->assertFalse( get_option( 'korkwand_delete_data_on_uninstall', false ) );
+		\Korkwand\Permissions::install_caps();
 		Plugin::activate();
 	}
 
 	public function test_uninstall_php_guards_direct_access() {
-		$src = file_get_contents( NZP_DIR . 'uninstall.php' );
+		$src = file_get_contents( KORKWAND_DIR . 'uninstall.php' );
 		$this->assertStringContainsString( "defined( 'WP_UNINSTALL_PLUGIN' )", $src );
 		$this->assertStringContainsString( 'Cleanup::uninstall()', $src );
 	}

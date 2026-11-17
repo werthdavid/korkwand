@@ -2,9 +2,9 @@
 /**
  * Tests fuer die REST-API (Autorisierungsgrenze des Plugins).
  */
-use NZ\Pinnwand\Pins;
+use Korkwand\Pins;
 
-class NZP_Test_Rest extends WP_UnitTestCase {
+class Korkwand_Test_Rest extends WP_UnitTestCase {
 
 	private \WP_Term $board;
 	private int $sub;
@@ -13,14 +13,14 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		\NZ\Pinnwand\Permissions::install_caps();
+		\Korkwand\Permissions::install_caps();
 
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
 
-		$id           = self::factory()->term->create( array( 'taxonomy' => 'pinboard', 'name' => 'Test', 'slug' => 'test' ) );
-		$this->board  = get_term( $id, 'pinboard' );
+		$id           = self::factory()->term->create( array( 'taxonomy' => 'korkwand_board', 'name' => 'Test', 'slug' => 'test' ) );
+		$this->board  = get_term( $id, 'korkwand_board' );
 		$this->sub    = self::factory()->user->create( array( 'role' => 'subscriber', 'display_name' => 'Anna Beispiel' ) );
 		$this->other  = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		$this->editor = self::factory()->user->create( array( 'role' => 'editor' ) );
@@ -33,13 +33,13 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wp_rest_server;
 		$wp_rest_server = null;
-		remove_all_filters( 'nzp_is_uploaded_file' );
+		remove_all_filters( 'korkwand_is_uploaded_file' );
 		reset_phpmailer_instance();
 		parent::tear_down();
 	}
 
 	private function req( string $method, string $route, array $params = array(), array $files = array() ): \WP_REST_Response {
-		$r = new \WP_REST_Request( $method, '/pinnwand/v1' . $route );
+		$r = new \WP_REST_Request( $method, '/korkwand/v1' . $route );
 		foreach ( $params as $k => $v ) {
 			$r->set_param( $k, $v );
 		}
@@ -88,7 +88,7 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 	public function test_get_unknown_board_404() {
 		$res = $this->req( 'GET', '/boards/gibtsnicht/pins' );
 		$this->assertSame( 404, $res->get_status() );
-		$this->assertSame( 'nzp_not_found', $res->get_data()['code'] );
+		$this->assertSame( 'korkwand_not_found', $res->get_data()['code'] );
 	}
 
 	public function test_guest_cannot_create_401() {
@@ -99,8 +99,8 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 
 	public function test_user_without_cap_cannot_create_403() {
 		$u = self::factory()->user->create( array( 'role' => 'subscriber' ) );
-		get_userdata( $u )->remove_cap( 'pinnwand_post' );
-		get_userdata( $u )->add_cap( 'pinnwand_post', false );
+		get_userdata( $u )->remove_cap( 'korkwand_post' );
+		get_userdata( $u )->add_cap( 'korkwand_post', false );
 		$res = $this->create_as( $u );
 		$this->assertSame( 403, $res->get_status() );
 		$this->assertCount( 0, Pins::visible( $this->board ) );
@@ -120,12 +120,12 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 		wp_set_current_user( $this->sub );
 		$res = $this->req( 'POST', '/boards/gibtsnicht/pins', array( 'type' => 'postit', 'title' => 'x' ) );
 		$this->assertSame( 404, $res->get_status() );
-		$this->assertSame( 'nzp_not_found', $res->get_data()['code'] );
+		$this->assertSame( 'korkwand_not_found', $res->get_data()['code'] );
 	}
 
 	public function test_slug_with_underscore_is_routable() {
-		$id = self::factory()->term->create( array( 'taxonomy' => 'pinboard', 'name' => 'Mein Board', 'slug' => 'mein_board' ) );
-		$this->assertSame( 'mein_board', get_term( $id, 'pinboard' )->slug );
+		$id = self::factory()->term->create( array( 'taxonomy' => 'korkwand_board', 'name' => 'Mein Board', 'slug' => 'mein_board' ) );
+		$this->assertSame( 'mein_board', get_term( $id, 'korkwand_board' )->slug );
 		$res = $this->req( 'GET', '/boards/mein_board/pins' );
 		$this->assertSame( 200, $res->get_status() );
 		$this->assertSame( 'mein_board', $res->get_data()['board']['slug'] );
@@ -136,12 +136,12 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 	public function test_dropped_multipart_body_answers_german_too_large_400() {
 		wp_set_current_user( $this->sub );
 		$_SERVER['CONTENT_LENGTH'] = '99999999';
-		$r = new \WP_REST_Request( 'POST', '/pinnwand/v1/boards/test/pins' );
+		$r = new \WP_REST_Request( 'POST', '/korkwand/v1/boards/test/pins' );
 		$r->set_header( 'content_type', 'multipart/form-data; boundary=x' );
 		$res = rest_do_request( $r );
 		unset( $_SERVER['CONTENT_LENGTH'] );
 		$this->assertSame( 400, $res->get_status() );
-		$this->assertSame( 'nzp_upload', $res->get_data()['code'] );
+		$this->assertSame( 'korkwand_upload', $res->get_data()['code'] );
 		$this->assertStringStartsWith( 'Das Bild ist zu groß (maximal ', $res->get_data()['message'] );
 	}
 
@@ -149,8 +149,8 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 		wp_set_current_user( $this->sub );
 		$res = $this->req( 'POST', '/boards/test/pins', array( 'title' => 'x' ) );
 		$this->assertSame( 400, $res->get_status() );
-		$this->assertSame( 'nzp_invalid', $res->get_data()['code'] );
-		$this->assertTrue( \NZ\Pinnwand\RateLimit::hit( $this->sub ) );
+		$this->assertSame( 'korkwand_invalid', $res->get_data()['code'] );
+		$this->assertTrue( \Korkwand\RateLimit::hit( $this->sub ) );
 	}
 
 	public function test_guest_without_type_gets_401_not_400() {
@@ -163,7 +163,7 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 		$file = array( 'image' => array( 'name' => 'x.jpg', 'type' => '', 'tmp_name' => '', 'error' => UPLOAD_ERR_INI_SIZE, 'size' => 0 ) );
 		$res  = $this->req( 'POST', '/boards/test/pins', array( 'type' => 'image' ), $file );
 		$this->assertSame( 400, $res->get_status() );
-		$this->assertSame( 'nzp_upload', $res->get_data()['code'] );
+		$this->assertSame( 'korkwand_upload', $res->get_data()['code'] );
 		$this->assertStringStartsWith( 'Das Bild ist zu groß', $res->get_data()['message'] );
 	}
 
@@ -189,7 +189,7 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 	}
 
 	public function test_subscriber_creates_image_pin_201() {
-		add_filter( 'nzp_is_uploaded_file', '__return_true' );
+		add_filter( 'korkwand_is_uploaded_file', '__return_true' );
 		wp_set_current_user( $this->sub );
 		$res = $this->req( 'POST', '/boards/test/pins', array( 'type' => 'image', 'text' => 'Bild' ), $this->image_file() );
 		$this->assertSame( 201, $res->get_status() );
@@ -200,7 +200,7 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 	}
 
 	public function test_failed_create_deletes_uploaded_attachment() {
-		add_filter( 'nzp_is_uploaded_file', '__return_true' );
+		add_filter( 'korkwand_is_uploaded_file', '__return_true' );
 		$before = $this->attachment_count();
 		wp_set_current_user( $this->sub );
 		$res = $this->req( 'POST', '/boards/test/pins', array( 'type' => 'image', 'text' => str_repeat( 'a', 101 ) ), $this->image_file() );
@@ -213,8 +213,8 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 		wp_set_current_user( $this->other );
 		$res = $this->req( 'PATCH', '/pins/' . $pin->ID, array( 'x' => 500, 'y' => 300 ) );
 		$this->assertSame( 403, $res->get_status() );
-		$this->assertSame( 100, (int) get_post_meta( $pin->ID, '_pin_x', true ) );
-		$this->assertSame( 100, (int) get_post_meta( $pin->ID, '_pin_y', true ) );
+		$this->assertSame( 100, (int) get_post_meta( $pin->ID, '_korkwand_x', true ) );
+		$this->assertSame( 100, (int) get_post_meta( $pin->ID, '_korkwand_y', true ) );
 	}
 
 	public function test_guest_cannot_patch_401() {
@@ -237,10 +237,10 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 		$pin = $this->pin_of( $this->sub );
 		wp_set_current_user( $this->sub );
 		$this->req( 'PATCH', '/pins/' . $pin->ID, array( 'sticky' => true ) );
-		$this->assertSame( 0, (int) get_post_meta( $pin->ID, '_pin_sticky', true ) );
+		$this->assertSame( 0, (int) get_post_meta( $pin->ID, '_korkwand_sticky', true ) );
 		wp_set_current_user( $this->editor );
 		$this->req( 'PATCH', '/pins/' . $pin->ID, array( 'sticky' => true ) );
-		$this->assertSame( 1, (int) get_post_meta( $pin->ID, '_pin_sticky', true ) );
+		$this->assertSame( 1, (int) get_post_meta( $pin->ID, '_korkwand_sticky', true ) );
 	}
 
 	public function test_subscriber_cannot_delete_foreign_pin_403() {
@@ -279,11 +279,11 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 		wp_trash_post( $gone->ID );
 		$res = $this->req( 'PATCH', '/pins/' . $gone->ID, array( 'x' => 1 ) );
 		$this->assertSame( 404, $res->get_status() );
-		$this->assertSame( 'nzp_not_found', $res->get_data()['code'] );
+		$this->assertSame( 'korkwand_not_found', $res->get_data()['code'] );
 		$this->assertSame( 404, $this->req( 'DELETE', '/pins/' . $gone->ID )->get_status() );
 
 		$orphan = $this->pin_of( $this->sub );
-		wp_delete_term( $this->board->term_id, 'pinboard' );
+		wp_delete_term( $this->board->term_id, 'korkwand_board' );
 		$this->assertSame( 404, $this->req( 'PATCH', '/pins/' . $orphan->ID, array( 'x' => 1 ) )->get_status() );
 		$this->assertSame( 404, $this->req( 'DELETE', '/pins/' . $orphan->ID )->get_status() );
 		$this->assertSame( 404, $this->req( 'PATCH', '/pins/999999', array( 'x' => 1 ) )->get_status() );
@@ -295,14 +295,14 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 		}
 		$res = $this->create_as( $this->sub );
 		$this->assertSame( 429, $res->get_status() );
-		$this->assertSame( 'nzp_rate_limited', $res->get_data()['code'] );
+		$this->assertSame( 'korkwand_rate_limited', $res->get_data()['code'] );
 		$this->assertSame( 'Zu viele neue Zettel – bitte später erneut versuchen.', $res->get_data()['message'] );
 		// Anderer Nutzer ist nicht betroffen.
 		$this->assertSame( 201, $this->create_as( $this->other )->get_status() );
 	}
 
 	public function test_rate_limit_precedes_upload() {
-		add_filter( 'nzp_is_uploaded_file', '__return_true' );
+		add_filter( 'korkwand_is_uploaded_file', '__return_true' );
 		for ( $i = 0; $i < 10; $i++ ) {
 			$this->create_as( $this->sub );
 		}
@@ -314,12 +314,12 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 
 	public function test_ratelimit_hit_unit() {
 		for ( $i = 0; $i < 10; $i++ ) {
-			$this->assertTrue( \NZ\Pinnwand\RateLimit::hit( 42 ) );
+			$this->assertTrue( \Korkwand\RateLimit::hit( 42 ) );
 		}
-		$this->assertFalse( \NZ\Pinnwand\RateLimit::hit( 42 ) );
+		$this->assertFalse( \Korkwand\RateLimit::hit( 42 ) );
 		// Alte Zeitstempel verfallen.
-		set_transient( 'nzp_rl_43', array_fill( 0, 10, time() - 3700 ), 3600 );
-		$this->assertTrue( \NZ\Pinnwand\RateLimit::hit( 43 ) );
+		set_transient( 'korkwand_rl_43', array_fill( 0, 10, time() - 3700 ), 3600 );
+		$this->assertTrue( \Korkwand\RateLimit::hit( 43 ) );
 	}
 
 	public function test_notify_sends_mail_when_enabled() {
@@ -346,7 +346,7 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 		add_filter( 'pre_trash_post', '__return_false' );
 		$res = $this->req( 'DELETE', '/pins/' . $pin->ID );
 		$this->assertSame( 500, $res->get_status() );
-		$this->assertSame( 'nzp_error', $res->get_data()['code'] );
+		$this->assertSame( 'korkwand_error', $res->get_data()['code'] );
 		$this->assertSame( 'publish', get_post_status( $pin->ID ) );
 	}
 }

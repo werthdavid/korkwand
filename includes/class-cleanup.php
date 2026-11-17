@@ -1,5 +1,5 @@
 <?php
-namespace NZ\Pinnwand;
+namespace Korkwand;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -11,7 +11,7 @@ final class Cleanup {
 	private const BATCH = 100;
 
 	public static function register(): void {
-		add_action( 'nzp_daily_cleanup', array( self::class, 'trash_expired' ) );
+		add_action( 'korkwand_daily_cleanup', array( self::class, 'trash_expired' ) );
 		add_action( 'before_delete_post', array( self::class, 'delete_attachment' ) );
 		add_action( 'delete_user', array( self::class, 'delete_user_pins' ) );
 		add_action( 'wpmu_delete_user', array( self::class, 'delete_user_pins' ) );
@@ -23,7 +23,7 @@ final class Cleanup {
 	public static function trash_expired(): int {
 		$boards = get_terms(
 			array(
-				'taxonomy'   => 'pinboard',
+				'taxonomy'   => 'korkwand_board',
 				'hide_empty' => false,
 			)
 		);
@@ -42,7 +42,7 @@ final class Cleanup {
 			do {
 				$ids = get_posts(
 					array(
-						'post_type'        => 'pin',
+						'post_type'        => 'korkwand_pin',
 						'post_status'      => 'publish',
 						'posts_per_page'   => self::BATCH,
 						'fields'           => 'ids',
@@ -53,7 +53,7 @@ final class Cleanup {
 						'suppress_filters' => true,
 						'tax_query'        => array(
 							array(
-								'taxonomy' => 'pinboard',
+								'taxonomy' => 'korkwand_board',
 								'field'    => 'term_id',
 								'terms'    => array( $board->term_id ),
 							),
@@ -67,11 +67,11 @@ final class Cleanup {
 						'meta_query'       => array(
 							'relation' => 'OR',
 							array(
-								'key'     => '_pin_sticky',
+								'key'     => '_korkwand_sticky',
 								'compare' => 'NOT EXISTS',
 							),
 							array(
-								'key'     => '_pin_sticky',
+								'key'     => '_korkwand_sticky',
 								'value'   => '1',
 								'compare' => '!=',
 							),
@@ -93,12 +93,12 @@ final class Cleanup {
 
 	/**
 	 * Beim endgueltigen Loeschen eines Zettels dessen Bild entfernen. Geloescht werden nur
-	 * Attachments aus dem Plugin-Upload (Meta `_nzp_upload`), die sonst nirgends verwendet werden.
+	 * Attachments aus dem Plugin-Upload (Meta `_korkwand_upload`), die sonst nirgends verwendet werden.
 	 * Mediathek-Bilder bleiben unangetastet.
 	 */
 	public static function delete_attachment( $post_id ): void {
 		$post_id = (int) $post_id;
-		if ( 'pin' !== get_post_type( $post_id ) ) {
+		if ( 'korkwand_pin' !== get_post_type( $post_id ) ) {
 			return;
 		}
 		$thumb = (int) get_post_meta( $post_id, '_thumbnail_id', true );
@@ -106,7 +106,7 @@ final class Cleanup {
 			return;
 		}
 		$att = get_post( $thumb );
-		if ( ! $att || 'attachment' !== $att->post_type || ! get_post_meta( $thumb, '_nzp_upload', true ) ) {
+		if ( ! $att || 'attachment' !== $att->post_type || ! get_post_meta( $thumb, '_korkwand_upload', true ) ) {
 			return;
 		}
 		$parent = (int) $att->post_parent;
@@ -147,7 +147,7 @@ final class Cleanup {
 			return 0;
 		}
 		$count = self::delete_batch( $user_id, 0 );
-		delete_transient( 'nzp_rl_' . $user_id );
+		delete_transient( 'korkwand_rl_' . $user_id );
 		return $count;
 	}
 
@@ -180,7 +180,7 @@ final class Cleanup {
 	/** @return array<string,mixed> */
 	private static function user_pins_query( int $user_id, int $per ): array {
 		return array(
-			'post_type'        => 'pin',
+			'post_type'        => 'korkwand_pin',
 			'post_status'      => array_merge( array_values( get_post_stati() ), array( 'trash' ) ),
 			'author'           => $user_id,
 			'posts_per_page'   => $per,
@@ -198,21 +198,21 @@ final class Cleanup {
 	public static function uninstall(): void {
 		global $wpdb;
 
-		$purge = get_option( 'nzp_delete_data_on_uninstall', '1' );
+		$purge = get_option( 'korkwand_delete_data_on_uninstall', '1' );
 
 		if ( '1' === (string) $purge ) {
 			// Hooks sind bei der Deinstallation nicht registriert: Bild-Bereinigung sicherstellen.
 			if ( ! has_action( 'before_delete_post', array( self::class, 'delete_attachment' ) ) ) {
 				add_action( 'before_delete_post', array( self::class, 'delete_attachment' ) );
 			}
-			if ( ! post_type_exists( 'pin' ) || ! taxonomy_exists( 'pinboard' ) ) {
+			if ( ! post_type_exists( 'korkwand_pin' ) || ! taxonomy_exists( 'korkwand_board' ) ) {
 				Model::register();
 			}
 			$failed = array();
 			do {
 				$ids = get_posts(
 					array(
-						'post_type'        => 'pin',
+						'post_type'        => 'korkwand_pin',
 						'post_status'      => array_merge( array_values( get_post_stati() ), array( 'trash' ) ),
 						'posts_per_page'   => self::BATCH,
 						'fields'           => 'ids',
@@ -232,26 +232,26 @@ final class Cleanup {
 
 			$terms = get_terms(
 				array(
-					'taxonomy'   => 'pinboard',
+					'taxonomy'   => 'korkwand_board',
 					'hide_empty' => false,
 					'fields'     => 'ids',
 				)
 			);
 			if ( ! is_wp_error( $terms ) ) {
 				foreach ( $terms as $term_id ) {
-					wp_delete_term( (int) $term_id, 'pinboard' );
+					wp_delete_term( (int) $term_id, 'korkwand_board' );
 				}
 			}
 		}
 
 		Permissions::remove_caps();
-		wp_clear_scheduled_hook( 'nzp_daily_cleanup' );
-		delete_option( 'nzp_delete_data_on_uninstall' );
-		delete_option( 'nzp_version' );
+		wp_clear_scheduled_hook( 'korkwand_daily_cleanup' );
+		delete_option( 'korkwand_delete_data_on_uninstall' );
+		delete_option( 'korkwand_version' );
 
 		// Rate-Limit-Transients (inkl. Timeout-Eintraege).
-		$like = $wpdb->esc_like( '_transient_nzp_rl_' ) . '%';
-		$tmo  = $wpdb->esc_like( '_transient_timeout_nzp_rl_' ) . '%';
+		$like = $wpdb->esc_like( '_transient_korkwand_rl_' ) . '%';
+		$tmo  = $wpdb->esc_like( '_transient_timeout_korkwand_rl_' ) . '%';
 		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s", $like, $tmo ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		wp_cache_flush();
 	}

@@ -1,15 +1,15 @@
 <?php
-namespace NZ\Pinnwand;
+namespace Korkwand;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * REST-API `pinnwand/v1`. Hier liegt die Autorisierungsgrenze: jede Schreiboperation wird geprueft.
+ * REST-API `korkwand/v1`. Hier liegt die Autorisierungsgrenze: jede Schreiboperation wird geprueft.
  * Authentifizierung: WordPress-Cookie + X-WP-Nonce (ohne gueltige Nonce gilt der Nutzer als Gast).
  */
 final class Rest {
 
-	public const NS = 'pinnwand/v1';
+	public const NS = 'korkwand/v1';
 
 	public static function register(): void {
 		$slug = '(?P<slug>[a-z0-9_%-]+)';
@@ -72,10 +72,10 @@ final class Rest {
 	public static function can_create() {
 		$uid = get_current_user_id();
 		if ( $uid <= 0 ) {
-			return self::error( 'nzp_unauthorized', __( 'Bitte melde dich an.', 'nz-pinnwand' ), 401 );
+			return self::error( 'korkwand_unauthorized', __( 'Bitte melde dich an.', 'korkwand' ), 401 );
 		}
 		if ( ! Permissions::can_post( $uid ) ) {
-			return self::error( 'nzp_forbidden', __( 'Du darfst keine Zettel anlegen.', 'nz-pinnwand' ), 403 );
+			return self::error( 'korkwand_forbidden', __( 'Du darfst keine Zettel anlegen.', 'korkwand' ), 403 );
 		}
 		return true;
 	}
@@ -84,14 +84,14 @@ final class Rest {
 	public static function can_modify( \WP_REST_Request $request ) {
 		$uid = get_current_user_id();
 		if ( $uid <= 0 ) {
-			return self::error( 'nzp_unauthorized', __( 'Bitte melde dich an.', 'nz-pinnwand' ), 401 );
+			return self::error( 'korkwand_unauthorized', __( 'Bitte melde dich an.', 'korkwand' ), 401 );
 		}
 		$pin = self::find_pin( (int) $request['id'] );
 		if ( is_wp_error( $pin ) ) {
 			return $pin;
 		}
 		if ( ! Permissions::can_edit( $uid, $pin ) ) {
-			return self::error( 'nzp_forbidden', __( 'Du darfst diesen Zettel nicht ändern.', 'nz-pinnwand' ), 403 );
+			return self::error( 'korkwand_forbidden', __( 'Du darfst diesen Zettel nicht ändern.', 'korkwand' ), 403 );
 		}
 		return true;
 	}
@@ -134,10 +134,10 @@ final class Rest {
 			if ( self::body_dropped( $request ) ) {
 				return Upload::too_large_error();
 			}
-			return self::error( 'nzp_invalid', __( 'Ungültiger Zettel-Typ.', 'nz-pinnwand' ), 400 );
+			return self::error( 'korkwand_invalid', __( 'Ungültiger Zettel-Typ.', 'korkwand' ), 400 );
 		}
 		if ( ! RateLimit::hit( $uid ) ) {
-			return self::error( 'nzp_rate_limited', __( 'Zu viele neue Zettel – bitte später erneut versuchen.', 'nz-pinnwand' ), 429 );
+			return self::error( 'korkwand_rate_limited', __( 'Zu viele neue Zettel – bitte später erneut versuchen.', 'korkwand' ), 429 );
 		}
 
 		// attachment_id wird bewusst nie vom Client uebernommen.
@@ -159,10 +159,10 @@ final class Rest {
 				return Upload::upload_error( (int) $file['error'] );
 			}
 			if ( ! is_array( $file ) || ! isset( $file['tmp_name'] ) || ! is_string( $file['tmp_name'] ) || '' === $file['tmp_name'] ) {
-				return self::error( 'nzp_invalid', __( 'Ein Bild ist erforderlich.', 'nz-pinnwand' ), 400 );
+				return self::error( 'korkwand_invalid', __( 'Ein Bild ist erforderlich.', 'korkwand' ), 400 );
 			}
 			if ( ! self::is_uploaded_file( $file ) ) {
-				return self::error( 'nzp_upload', __( 'Es wurde keine Datei hochgeladen.', 'nz-pinnwand' ), 400 );
+				return self::error( 'korkwand_upload', __( 'Es wurde keine Datei hochgeladen.', 'korkwand' ), 400 );
 			}
 			$attachment_id = Upload::handle( $file, $uid );
 			if ( is_wp_error( $attachment_id ) ) {
@@ -214,7 +214,7 @@ final class Rest {
 			return $pin;
 		}
 		if ( ! Pins::trash( $pin ) ) {
-			return self::error( 'nzp_error', __( 'Der Zettel konnte nicht gelöscht werden.', 'nz-pinnwand' ), 500 );
+			return self::error( 'korkwand_error', __( 'Der Zettel konnte nicht gelöscht werden.', 'korkwand' ), 500 );
 		}
 		return new \WP_REST_Response( array( 'deleted' => true ) );
 	}
@@ -228,10 +228,10 @@ final class Rest {
 	 */
 	private static function find_pin( int $id ) {
 		$pin = $id > 0 ? get_post( $id ) : null;
-		if ( ! $pin instanceof \WP_Post || 'pin' !== $pin->post_type || 'publish' !== $pin->post_status ) {
+		if ( ! $pin instanceof \WP_Post || 'korkwand_pin' !== $pin->post_type || 'publish' !== $pin->post_status ) {
 			return self::not_found();
 		}
-		$terms = wp_get_object_terms( $pin->ID, 'pinboard' );
+		$terms = wp_get_object_terms( $pin->ID, 'korkwand_board' );
 		if ( is_wp_error( $terms ) || ! $terms ) {
 			return self::not_found();
 		}
@@ -240,14 +240,14 @@ final class Rest {
 
 	/**
 	 * Prueft, ob die Datei ein echter HTTP-Upload ist (verhindert, dass beliebige Serverpfade
-	 * als tmp_name verarbeitet werden). Filter `nzp_is_uploaded_file` (Standard: is_uploaded_file)
+	 * als tmp_name verarbeitet werden). Filter `korkwand_is_uploaded_file` (Standard: is_uploaded_file)
 	 * existiert nur als Test-Naht, da PHPUnit keine echten Uploads erzeugen kann; in Produktion
 	 * nicht ueberschreiben.
 	 *
 	 * @param array<string,mixed> $file
 	 */
 	private static function is_uploaded_file( array $file ): bool {
-		return (bool) apply_filters( 'nzp_is_uploaded_file', is_uploaded_file( (string) $file['tmp_name'] ), $file );
+		return (bool) apply_filters( 'korkwand_is_uploaded_file', is_uploaded_file( (string) $file['tmp_name'] ), $file );
 	}
 
 	/**
@@ -263,7 +263,7 @@ final class Rest {
 	}
 
 	private static function not_found(): \WP_Error {
-		return self::error( 'nzp_not_found', __( 'Nicht gefunden.', 'nz-pinnwand' ), 404 );
+		return self::error( 'korkwand_not_found', __( 'Nicht gefunden.', 'korkwand' ), 404 );
 	}
 
 	private static function error( string $code, string $message, int $status ): \WP_Error {

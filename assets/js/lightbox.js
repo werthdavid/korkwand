@@ -5,7 +5,7 @@ let lastTrigger = null;
 function ensure() {
 	if (dlg) return dlg;
 	dlg = document.createElement('dialog');
-	dlg.className = 'nzp-lightbox-dialog';
+	dlg.className = 'korkwand-lightbox-dialog';
 	dlg.setAttribute('aria-label', 'Bildansicht');
 	Object.assign(dlg.style, { padding: '0', border: '0', background: 'transparent', maxWidth: '96vw', maxHeight: '96vh', overflow: 'visible' });
 

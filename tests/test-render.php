@@ -2,19 +2,19 @@
 /**
  * Tests fuer Shortcode, Block und Markup.
  */
-use NZ\Pinnwand\Pins;
-use NZ\Pinnwand\Render;
+use Korkwand\Pins;
+use Korkwand\Render;
 
-class NZP_Test_Render extends WP_UnitTestCase {
+class Korkwand_Test_Render extends WP_UnitTestCase {
 
 	private \WP_Term $board;
 	private int $user;
 
 	public function set_up() {
 		parent::set_up();
-		\NZ\Pinnwand\Permissions::install_caps();
-		$id          = self::factory()->term->create( array( 'taxonomy' => 'pinboard', 'name' => 'Test', 'slug' => 'test' ) );
-		$this->board = get_term( $id, 'pinboard' );
+		\Korkwand\Permissions::install_caps();
+		$id          = self::factory()->term->create( array( 'taxonomy' => 'korkwand_board', 'name' => 'Test', 'slug' => 'test' ) );
+		$this->board = get_term( $id, 'korkwand_board' );
 		$this->user  = self::factory()->user->create( array( 'role' => 'subscriber', 'display_name' => 'Anna Beispiel' ) );
 		$pin = Pins::create( $this->board, $this->user, array( 'type' => 'postit', 'title' => 'Hallo', 'text' => 'Text' ) );
 		// Gespeicherte Form wie nach sanitize_*_field (HTML-Entities), Ausgabe muss escapen.
@@ -24,14 +24,14 @@ class NZP_Test_Render extends WP_UnitTestCase {
 	}
 
 	public function test_shortcode_renders_pins_and_escapes() {
-		$html = do_shortcode( '[pinnwand board="test"]' );
-		$this->assertStringContainsString( 'class="nzp"', $html );
+		$html = do_shortcode( '[korkwand board="test"]' );
+		$this->assertStringContainsString( 'class="korkwand"', $html );
 		$this->assertStringContainsString( 'data-board="test"', $html );
 		$this->assertStringContainsString( 'data-height="700"', $html );
 		$this->assertStringContainsString( '&lt;b&gt;x&lt;/b&gt;<br />', $html );
 		$this->assertStringContainsString( 'Hallo &lt;i&gt;', $html );
 		$this->assertStringNotContainsString( '<b>x</b>', $html );
-		$this->assertStringContainsString( 'nzp-pin--postit', $html );
+		$this->assertStringContainsString( 'korkwand-pin--postit', $html );
 		$this->assertMatchesRegularExpression( '/data-can-edit="0"/', $html );
 		$this->assertMatchesRegularExpression( '/--x:\d+px;--y:\d+px;--r:-?\d+deg/', $html );
 	}
@@ -41,15 +41,15 @@ class NZP_Test_Render extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'data-can-post="0"', $html );
 		$this->assertStringContainsString( 'wp-login.php', $html );
 		$this->assertStringNotContainsString( 'Anna Beispiel', $html );
-		$this->assertStringNotContainsString( 'nzp-author', $html );
-		$this->assertStringNotContainsString( 'nzp-add', $html );
+		$this->assertStringNotContainsString( 'korkwand-author', $html );
+		$this->assertStringNotContainsString( 'korkwand-add', $html );
 	}
 
 	public function test_subscriber_sees_add_button_and_author() {
 		wp_set_current_user( $this->user );
 		$html = Render::board( 'test' );
 		$this->assertStringContainsString( 'data-can-post="1"', $html );
-		$this->assertStringContainsString( 'nzp-add', $html );
+		$this->assertStringContainsString( 'korkwand-add', $html );
 		$this->assertStringContainsString( 'Anna Beispiel', $html );
 		$this->assertStringContainsString( 'data-can-edit="1"', $html );
 	}
@@ -57,31 +57,31 @@ class NZP_Test_Render extends WP_UnitTestCase {
 	public function test_unknown_board_empty_for_guest_hint_for_admin() {
 		$this->assertSame( '', Render::board( 'gibtsnicht' ) );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		$this->assertStringContainsString( 'nzp-error', Render::board( 'gibtsnicht' ) );
+		$this->assertStringContainsString( 'korkwand-error', Render::board( 'gibtsnicht' ) );
 	}
 
 	public function test_multiple_boards_get_unique_ids() {
 		$a = Render::board( 'test' );
 		$b = Render::board( 'test' );
-		preg_match( '/id="(nzp-\d+)"/', $a, $ma );
-		preg_match( '/id="(nzp-\d+)"/', $b, $mb );
+		preg_match( '/id="(korkwand-\d+)"/', $a, $ma );
+		preg_match( '/id="(korkwand-\d+)"/', $b, $mb );
 		$this->assertNotEmpty( $ma[1] );
 		$this->assertNotSame( $ma[1], $mb[1] );
 	}
 
 	public function test_assets_enqueued_only_when_rendered() {
-		$this->assertFalse( wp_style_is( 'nzp-style', 'enqueued' ) );
-		$this->assertFalse( wp_script_is( 'nzp-config', 'enqueued' ) );
+		$this->assertFalse( wp_style_is( 'korkwand-style', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'korkwand-config', 'enqueued' ) );
 		Render::board( 'test' );
-		$this->assertTrue( wp_style_is( 'nzp-style', 'enqueued' ) );
-		$this->assertTrue( wp_script_is( 'nzp-config', 'enqueued' ) );
-		$data = wp_scripts()->get_data( 'nzp-config', 'after' );
-		$this->assertStringContainsString( 'pinnwand\/v1\/', implode( '', (array) $data ) );
+		$this->assertTrue( wp_style_is( 'korkwand-style', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'korkwand-config', 'enqueued' ) );
+		$data = wp_scripts()->get_data( 'korkwand-config', 'after' );
+		$this->assertStringContainsString( 'korkwand\/v1\/', implode( '', (array) $data ) );
 		$this->assertStringContainsString( 'loginUrl', implode( '', (array) $data ) );
-		$this->assertStringContainsString( '"maxBytes":' . \NZ\Pinnwand\Upload::max_bytes(), implode( '', (array) $data ) );
+		$this->assertStringContainsString( '"maxBytes":' . \Korkwand\Upload::max_bytes(), implode( '', (array) $data ) );
 		ob_start();
 		wp_script_modules()->print_enqueued_script_modules();
-		$this->assertStringContainsString( 'nzp-script', ob_get_clean() );
+		$this->assertStringContainsString( 'korkwand-script', ob_get_clean() );
 	}
 
 	public function test_login_hint_is_one_linked_sentence() {
@@ -92,25 +92,25 @@ class NZP_Test_Render extends WP_UnitTestCase {
 
 	public function test_style_registered_on_init_and_block_uses_it() {
 		Render::register_style();
-		$this->assertTrue( wp_style_is( 'nzp-style', 'registered' ) );
-		$this->assertSame( array( 'nzp-style' ), WP_Block_Type_Registry::get_instance()->get_registered( 'nz/pinnwand' )->style_handles );
-		$json = json_decode( file_get_contents( NZP_DIR . 'blocks/pinnwand/block.json' ), true );
-		$this->assertSame( 'nzp-style', $json['style'] );
+		$this->assertTrue( wp_style_is( 'korkwand-style', 'registered' ) );
+		$this->assertSame( array( 'korkwand-style' ), WP_Block_Type_Registry::get_instance()->get_registered( 'korkwand/board' )->style_handles );
+		$json = json_decode( file_get_contents( KORKWAND_DIR . 'blocks/board/block.json' ), true );
+		$this->assertSame( 'korkwand-style', $json['style'] );
 	}
 
 	public function test_style_enqueued_early_on_singular_with_shortcode() {
-		$page = self::factory()->post->create( array( 'post_type' => 'page', 'post_content' => 'Hallo [pinnwand board="test"]' ) );
+		$page = self::factory()->post->create( array( 'post_type' => 'page', 'post_content' => 'Hallo [korkwand board="test"]' ) );
 		$this->go_to( get_permalink( $page ) );
-		$this->assertFalse( wp_style_is( 'nzp-style', 'enqueued' ) );
+		$this->assertFalse( wp_style_is( 'korkwand-style', 'enqueued' ) );
 		do_action( 'wp_enqueue_scripts' );
-		$this->assertTrue( wp_style_is( 'nzp-style', 'enqueued' ) );
+		$this->assertTrue( wp_style_is( 'korkwand-style', 'enqueued' ) );
 	}
 
 	public function test_style_not_enqueued_early_without_shortcode() {
 		$page = self::factory()->post->create( array( 'post_type' => 'page', 'post_content' => 'Kein Board hier' ) );
 		$this->go_to( get_permalink( $page ) );
 		do_action( 'wp_enqueue_scripts' );
-		$this->assertFalse( wp_style_is( 'nzp-style', 'enqueued' ) );
+		$this->assertFalse( wp_style_is( 'korkwand-style', 'enqueued' ) );
 	}
 
 	public function test_sub_modules_are_versioned_via_import_map() {
@@ -119,22 +119,22 @@ class NZP_Test_Render extends WP_UnitTestCase {
 		wp_script_modules()->print_import_map();
 		$map = ob_get_clean();
 		foreach ( array( 'api', 'geometry', 'dialog', 'lightbox' ) as $name ) {
-			$this->assertMatchesRegularExpression( '#"nzp-' . $name . '":\s*"[^"]*assets\\/js\\/' . $name . '\.js\?ver=' . preg_quote( NZP_VERSION, '#' ) . '"#', $map, $name );
+			$this->assertMatchesRegularExpression( '#"korkwand-' . $name . '":\s*"[^"]*assets\\/js\\/' . $name . '\.js\?ver=' . preg_quote( KORKWAND_VERSION, '#' ) . '"#', $map, $name );
 		}
-		$src = file_get_contents( NZP_DIR . 'assets/js/pinnwand.js' );
+		$src = file_get_contents( KORKWAND_DIR . 'assets/js/korkwand.js' );
 		$this->assertStringNotContainsString( "from './", $src );
-		$this->assertStringContainsString( "from 'nzp-api'", $src );
+		$this->assertStringContainsString( "from 'korkwand-api'", $src );
 	}
 
 	public function test_block_is_registered_and_renders() {
-		$this->assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'nz/pinnwand' ) );
-		$html = do_blocks( '<!-- wp:nz/pinnwand {"board":"test"} /-->' );
+		$this->assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'korkwand/board' ) );
+		$html = do_blocks( '<!-- wp:korkwand/board {"board":"test"} /-->' );
 		$this->assertStringContainsString( 'data-board="test"', $html );
 	}
 
 	public function test_block_output_has_wrapper_and_alignment_class() {
-		$html = do_blocks( '<!-- wp:nz/pinnwand {"board":"test","align":"wide"} /-->' );
-		$this->assertStringContainsString( 'wp-block-nz-pinnwand', $html );
+		$html = do_blocks( '<!-- wp:korkwand/board {"board":"test","align":"wide"} /-->' );
+		$this->assertStringContainsString( 'wp-block-korkwand-board', $html );
 		$this->assertStringContainsString( 'alignwide', $html );
 		$this->assertStringContainsString( 'data-board="test"', $html );
 	}
@@ -143,8 +143,8 @@ class NZP_Test_Render extends WP_UnitTestCase {
 		$att = self::factory()->attachment->create_object( array( 'file' => 'a.jpg', 'post_mime_type' => 'image/jpeg', 'post_type' => 'attachment' ) );
 		Pins::create( $this->board, $this->user, array( 'type' => 'image', 'text' => 'Unterschrift', 'attachment_id' => $att ) );
 		$html = Render::board( 'test' );
-		$this->assertStringContainsString( 'nzp-pin--image', $html );
-		$this->assertStringContainsString( 'class="nzp-lightbox"', $html );
+		$this->assertStringContainsString( 'korkwand-pin--image', $html );
+		$this->assertStringContainsString( 'class="korkwand-lightbox"', $html );
 		$this->assertStringContainsString( 'loading="lazy"', $html );
 		$this->assertStringContainsString( 'alt="Unterschrift"', $html );
 		$this->assertStringContainsString( '<figcaption>Unterschrift</figcaption>', $html );

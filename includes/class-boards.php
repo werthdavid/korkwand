@@ -1,10 +1,10 @@
 <?php
-namespace NZ\Pinnwand;
+namespace Korkwand;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Zugriff auf Pinnwände (Terms der Taxonomie `pinboard`) und deren Einstellungen.
+ * Zugriff auf Pinnwände (Terms der Taxonomie `korkwand_board`) und deren Einstellungen.
  */
 final class Boards {
 
@@ -25,7 +25,7 @@ final class Boards {
 		if ( '' === $slug ) {
 			return null;
 		}
-		$term = get_term_by( 'slug', $slug, 'pinboard' );
+		$term = get_term_by( 'slug', $slug, 'korkwand_board' );
 		return $term instanceof \WP_Term ? $term : null;
 	}
 

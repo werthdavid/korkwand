@@ -1,11 +1,11 @@
 <?php
-namespace NZ\Pinnwand;
+namespace Korkwand;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Rate-Limit fuer neue Zettel: max. 10 pro Nutzer in einem gleitenden 3600-s-Fenster.
- * Zustand: Transient `nzp_rl_{user_id}` mit den Zeitstempeln der letzten Stunde.
+ * Zustand: Transient `korkwand_rl_{user_id}` mit den Zeitstempeln der letzten Stunde.
  * Hinweis: Lesen/Schreiben ist nicht atomar; bei exakt gleichzeitigen Requests kann das Limit
  * knapp ueberschritten werden (fuer diesen Zweck akzeptiert).
  */
@@ -18,7 +18,7 @@ final class RateLimit {
 	 * Registriert einen Versuch. false, wenn das Limit bereits erreicht ist (Versuch wird dann nicht gezaehlt).
 	 */
 	public static function hit( int $user_id ): bool {
-		$key = 'nzp_rl_' . $user_id;
+		$key = 'korkwand_rl_' . $user_id;
 		$now = time();
 		$raw = get_transient( $key );
 		$log = array();

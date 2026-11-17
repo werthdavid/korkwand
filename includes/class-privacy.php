@@ -1,5 +1,5 @@
 <?php
-namespace NZ\Pinnwand;
+namespace Korkwand;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -16,16 +16,16 @@ final class Privacy {
 	}
 
 	public static function add_exporter( $exporters ) {
-		$exporters['nz-pinnwand'] = array(
-			'exporter_friendly_name' => __( 'Pinnwand', 'nz-pinnwand' ),
+		$exporters['korkwand'] = array(
+			'exporter_friendly_name' => __( 'Pinnwand', 'korkwand' ),
 			'callback'               => array( self::class, 'exporter' ),
 		);
 		return $exporters;
 	}
 
 	public static function add_eraser( $erasers ) {
-		$erasers['nz-pinnwand'] = array(
-			'eraser_friendly_name' => __( 'Pinnwand', 'nz-pinnwand' ),
+		$erasers['korkwand'] = array(
+			'eraser_friendly_name' => __( 'Pinnwand', 'korkwand' ),
 			'callback'             => array( self::class, 'eraser' ),
 		);
 		return $erasers;
@@ -42,7 +42,7 @@ final class Privacy {
 		$page  = max( 1, $page );
 		$posts = get_posts(
 			array(
-				'post_type'        => 'pin',
+				'post_type'        => 'korkwand_pin',
 				'post_status'      => array_merge( array_values( get_post_stati() ), array( 'trash' ) ),
 				'author'           => $user->ID,
 				'posts_per_page'   => self::PAGE_SIZE,
@@ -59,14 +59,14 @@ final class Privacy {
 			$thumb = (int) get_post_thumbnail_id( $pin->ID );
 			$url   = $thumb ? (string) wp_get_attachment_url( $thumb ) : '';
 			$items[] = array(
-				'group_id'    => 'nz-pinnwand',
-				'group_label' => __( 'Pinnwand', 'nz-pinnwand' ),
+				'group_id'    => 'korkwand',
+				'group_label' => __( 'Pinnwand', 'korkwand' ),
 				'item_id'     => 'pin-' . $pin->ID,
 				'data'        => array(
-					array( 'name' => __( 'Titel', 'nz-pinnwand' ), 'value' => wp_specialchars_decode( $pin->post_title, ENT_QUOTES ) ),
-					array( 'name' => __( 'Text', 'nz-pinnwand' ), 'value' => wp_specialchars_decode( $pin->post_content, ENT_QUOTES ) ),
-					array( 'name' => __( 'Datum', 'nz-pinnwand' ), 'value' => $pin->post_date_gmt . ' UTC' ),
-					array( 'name' => __( 'Bild', 'nz-pinnwand' ), 'value' => $url ),
+					array( 'name' => __( 'Titel', 'korkwand' ), 'value' => wp_specialchars_decode( $pin->post_title, ENT_QUOTES ) ),
+					array( 'name' => __( 'Text', 'korkwand' ), 'value' => wp_specialchars_decode( $pin->post_content, ENT_QUOTES ) ),
+					array( 'name' => __( 'Datum', 'korkwand' ), 'value' => $pin->post_date_gmt . ' UTC' ),
+					array( 'name' => __( 'Bild', 'korkwand' ), 'value' => $url ),
 				),
 			);
 		}
@@ -92,7 +92,7 @@ final class Privacy {
 					$done = false; // Es kann noch Loeschbares uebrig sein: naechste Charge.
 				} else {
 					$retained   = true; // Rest ist nicht loeschbar.
-					$messages[] = __( 'Einige Zettel konnten nicht gelöscht werden.', 'nz-pinnwand' );
+					$messages[] = __( 'Einige Zettel konnten nicht gelöscht werden.', 'korkwand' );
 				}
 			}
 		}

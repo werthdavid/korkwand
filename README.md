@@ -6,14 +6,14 @@ Voraussetzungen: WordPress ab 6.5, PHP ab 8.1.
 ## Einbinden
 
 - **Pinnwand anlegen:** im Admin unter *Pinnwand → Pinnwände* (Taxonomie). Pro Pinnwand: Lebensdauer in Tagen (0 = nie), Höhe, maximale Zettelzahl, E-Mail-Benachrichtigung.
-- **Shortcode:** `[pinnwand board="slug"]` in eine Seite oder einen Beitrag einfügen.
-- **Block:** „Pinnwand“ (`nz/pinnwand`) im Block-Editor einfügen und die Pinnwand auswählen.
+- **Shortcode:** `[korkwand board="slug"]` in eine Seite oder einen Beitrag einfügen.
+- **Block:** „Pinnwand“ (`korkwand/board`) im Block-Editor einfügen und die Pinnwand auswählen.
 - Unbekannte Pinnwand: Gäste sehen nichts, Administratoren einen Hinweis.
 
 ## Rollen und Rechte
 
-- **Zettel anheften** (`pinnwand_post`): Abonnent, Mitarbeiter, Autor, Redakteur, Administrator. Gäste können nur ansehen.
-- **Moderieren** (`pinnwand_moderate`): Redakteur und Administrator. Sie können fremde Zettel ändern, löschen und anheften („Sticky“, läuft nie ab).
+- **Zettel anheften** (`korkwand_post`): Abonnent, Mitarbeiter, Autor, Redakteur, Administrator. Gäste können nur ansehen.
+- **Moderieren** (`korkwand_moderate`): Redakteur und Administrator. Sie können fremde Zettel ändern, löschen und anheften („Sticky“, läuft nie ab).
 - Jeder Nutzer ändert und löscht nur eigene Zettel. Pro Nutzer sind höchstens 10 neue Zettel pro Stunde möglich.
 - Zettel werden nur im Frontend angelegt. Im Admin (*Pinnwand*) lassen sie sich prüfen, bearbeiten, in den Papierkorb legen und löschen.
 - Gäste sehen nie Autorennamen.
@@ -39,4 +39,4 @@ Die Zettel eines Nutzers sind in den WordPress-Werkzeugen für Datenexport und -
 ## Entwicklung und Release
 
 - Tests: `npm run test:php` (benötigt `wp-env`), `npm run test:js`.
-- Release-ZIP: `npm run build:zip` erzeugt `dist/nz-pinnwand.zip` ohne Entwicklungsdateien (siehe `.distignore`; benötigt `rsync` und `zip`).
+- Release-ZIP: `npm run build:zip` erzeugt `dist/korkwand.zip` ohne Entwicklungsdateien (siehe `.distignore`; benötigt `rsync` und `zip`).

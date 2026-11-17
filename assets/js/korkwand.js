@@ -1,9 +1,9 @@
-// nz-pinnwand Frontend: Skalierung, Drag & Drop, Zettelmenue, Anlegen/Bearbeiten/Loeschen, Lightbox.
+// korkwand Frontend: Skalierung, Drag & Drop, Zettelmenue, Anlegen/Bearbeiten/Loeschen, Lightbox.
 // Nutzer-Inhalte werden ausschliesslich per textContent/createElement gerendert (nie innerHTML).
-import { scaleFor, toLogical, clamp } from 'nzp-geometry';
-import { listPins, createPin, updatePin, deletePin, SessionExpiredError } from 'nzp-api';
-import { openPinDialog } from 'nzp-dialog';
-import { openLightbox } from 'nzp-lightbox';
+import { scaleFor, toLogical, clamp } from 'korkwand-geometry';
+import { listPins, createPin, updatePin, deletePin, SessionExpiredError } from 'korkwand-api';
+import { openPinDialog } from 'korkwand-dialog';
+import { openLightbox } from 'korkwand-lightbox';
 
 const LIST_BREAKPOINT = 480;
 const DRAG_THRESHOLD = 4;
@@ -14,7 +14,7 @@ const LONG_PRESS_MS = 300;
 function renderPin(p, loggedIn) {
 	const isImage = p.type === 'image' && p.image;
 	const a = document.createElement('article');
-	a.className = 'nzp-pin nzp-pin--' + (isImage ? 'image' : 'postit') + (p.sticky ? ' nzp-pin--sticky' : '');
+	a.className = 'korkwand-pin korkwand-pin--' + (isImage ? 'image' : 'postit') + (p.sticky ? ' korkwand-pin--sticky' : '');
 	a.dataset.id = String(p.id);
 	a.dataset.x = String(p.x);
 	a.dataset.y = String(p.y);
@@ -26,7 +26,7 @@ function renderPin(p, loggedIn) {
 
 	if (isImage) {
 		const link = document.createElement('a');
-		link.className = 'nzp-lightbox';
+		link.className = 'korkwand-lightbox';
 		link.href = p.image.full;
 		const img = document.createElement('img');
 		img.src = p.image.thumb;
@@ -54,7 +54,7 @@ function renderPin(p, loggedIn) {
 	}
 	if (loggedIn && p.author) {
 		const au = document.createElement('span');
-		au.className = 'nzp-author';
+		au.className = 'korkwand-author';
 		au.textContent = p.author;
 		a.appendChild(au);
 	}
@@ -63,10 +63,10 @@ function renderPin(p, loggedIn) {
 }
 
 function addMenuButton(article) {
-	if (article.querySelector(':scope > .nzp-menu-btn')) return;
+	if (article.querySelector(':scope > .korkwand-menu-btn')) return;
 	const b = document.createElement('button');
 	b.type = 'button';
-	b.className = 'nzp-menu-btn';
+	b.className = 'korkwand-menu-btn';
 	b.setAttribute('aria-label', 'Zettel-Menü öffnen');
 	b.setAttribute('aria-haspopup', 'true');
 	b.textContent = '⋯';
@@ -81,10 +81,10 @@ class Board {
 		this.slug = root.dataset.board;
 		this.height = parseInt(root.dataset.height, 10) || 700;
 		this.canPost = root.dataset.canPost === '1';
-		this.board = root.querySelector('.nzp-board');
-		this.canvas = root.querySelector('.nzp-canvas');
+		this.board = root.querySelector('.korkwand-board');
+		this.canvas = root.querySelector('.korkwand-canvas');
 		this.scale = 1;
-		this.loggedIn = this.canPost || !!root.querySelector('.nzp-author');
+		this.loggedIn = this.canPost || !!root.querySelector('.korkwand-author');
 		this.drag = null;
 		this.suppressClickUntil = 0;
 		this.noticeTimer = 0;
@@ -92,9 +92,9 @@ class Board {
 		this.layout();
 		new ResizeObserver(() => this.layout()).observe(root);
 
-		this.canvas.querySelectorAll('.nzp-pin[data-can-edit="1"]').forEach(addMenuButton);
+		this.canvas.querySelectorAll('.korkwand-pin[data-can-edit="1"]').forEach(addMenuButton);
 
-		const add = root.querySelector('.nzp-add');
+		const add = root.querySelector('.korkwand-add');
 		if (add) add.addEventListener('click', () => this.openCreate(add));
 
 		root.addEventListener('click', (e) => this.onClick(e), true);
@@ -116,15 +116,15 @@ class Board {
 		const list = this.inList;
 		// Skalierte Ansicht: kein Scrollen (overflow:hidden per CSS). Klasse vor dem Messen setzen,
 		// damit clientWidth keine Scrollbar abzieht.
-		this.root.classList.toggle('nzp--scaled', !list);
+		this.root.classList.toggle('korkwand--scaled', !list);
 		if (list) {
 			this.scale = 1;
-			this.root.style.removeProperty('--nzp-scale');
+			this.root.style.removeProperty('--korkwand-scale');
 			this.board.style.height = '';
 			return;
 		}
 		this.scale = scaleFor(this.board.clientWidth);
-		this.root.style.setProperty('--nzp-scale', String(this.scale));
+		this.root.style.setProperty('--korkwand-scale', String(this.scale));
 		const cs = getComputedStyle(this.board);
 		const extra = cs.boxSizing === 'border-box'
 			? parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth)
@@ -135,12 +135,12 @@ class Board {
 	/* ------------------------------ Hinweise ------------------------------ */
 
 	notice(msg, persistent = false) {
-		let n = this.root.querySelector('.nzp-notice');
+		let n = this.root.querySelector('.korkwand-notice');
 		if (!n) {
 			n = document.createElement('div');
-			n.className = 'nzp-notice';
+			n.className = 'korkwand-notice';
 			n.setAttribute('role', 'alert');
-			this.root.querySelector('.nzp-toolbar').after(n);
+			this.root.querySelector('.korkwand-toolbar').after(n);
 		}
 		n.textContent = msg;
 		clearTimeout(this.noticeTimer);
@@ -159,16 +159,16 @@ class Board {
 			e.stopPropagation();
 			return;
 		}
-		const menuBtn = e.target.closest('.nzp-menu-btn');
+		const menuBtn = e.target.closest('.korkwand-menu-btn');
 		if (menuBtn) {
 			e.preventDefault();
 			this.openMenu(menuBtn);
 			return;
 		}
-		const link = e.target.closest('a.nzp-lightbox');
+		const link = e.target.closest('a.korkwand-lightbox');
 		if (link && this.canvas.contains(link)) {
 			e.preventDefault();
-			const cap = link.closest('.nzp-pin').querySelector('figcaption');
+			const cap = link.closest('.korkwand-pin').querySelector('figcaption');
 			openLightbox(link.href, cap ? cap.textContent : '', link);
 		}
 	}
@@ -177,8 +177,8 @@ class Board {
 
 	onPointerDown(e) {
 		if (this.drag || this.inList) return;
-		const pin = e.target.closest('.nzp-pin[data-can-edit="1"]');
-		if (!pin || e.target.closest('.nzp-menu-btn') || !this.canvas.contains(pin)) return;
+		const pin = e.target.closest('.korkwand-pin[data-can-edit="1"]');
+		if (!pin || e.target.closest('.korkwand-menu-btn') || !this.canvas.contains(pin)) return;
 		if (e.pointerType === 'mouse' && e.button !== 0) return;
 
 		const d = {
@@ -218,7 +218,7 @@ class Board {
 		const d = this.drag;
 		if (!d || d.active) return;
 		d.active = true;
-		d.pin.classList.add('nzp-pin--dragging');
+		d.pin.classList.add('korkwand-pin--dragging');
 		try { d.pin.setPointerCapture(d.pointerId); } catch (err) { /* Pointer evtl. schon weg */ }
 		if (d.touch && navigator.vibrate) navigator.vibrate(10);
 	}
@@ -255,7 +255,7 @@ class Board {
 		document.removeEventListener('pointerup', d.onUp);
 		document.removeEventListener('pointercancel', d.onCancel);
 		document.removeEventListener('contextmenu', d.onContext);
-		d.pin.classList.remove('nzp-pin--dragging');
+		d.pin.classList.remove('korkwand-pin--dragging');
 		try { d.pin.releasePointerCapture(d.pointerId); } catch (err) { /* ignore */ }
 		this.drag = null;
 		return d;
@@ -306,7 +306,7 @@ class Board {
 			this.closeMenu();
 			if (same) return;
 		}
-		const article = btn.closest('.nzp-pin');
+		const article = btn.closest('.korkwand-pin');
 		const id = article.dataset.id;
 		let pin;
 		try {
@@ -317,7 +317,7 @@ class Board {
 		if (!pin) return this.notice('Dieser Zettel existiert nicht mehr.');
 
 		const menu = document.createElement('div');
-		menu.className = 'nzp-menu';
+		menu.className = 'korkwand-menu';
 		menu.setAttribute('role', 'menu');
 		const items = [
 			['Bearbeiten', () => this.openEdit(pin, btn)],
@@ -372,7 +372,7 @@ class Board {
 	/* ------------------------------ Aktionen ------------------------------ */
 
 	replaceArticle(p) {
-		const old = this.canvas.querySelector(`.nzp-pin[data-id="${p.id}"]`);
+		const old = this.canvas.querySelector(`.korkwand-pin[data-id="${p.id}"]`);
 		const fresh = renderPin(p, this.loggedIn);
 		if (old) old.replaceWith(fresh);
 		else this.canvas.appendChild(fresh);
@@ -414,7 +414,7 @@ class Board {
 		if (!window.confirm('Diesen Zettel wirklich löschen?')) return;
 		try {
 			await deletePin(pin.id);
-			const art = this.canvas.querySelector(`.nzp-pin[data-id="${pin.id}"]`);
+			const art = this.canvas.querySelector(`.korkwand-pin[data-id="${pin.id}"]`);
 			if (art) art.remove();
 		} catch (err) {
 			this.fail(err);
@@ -431,9 +431,9 @@ class Board {
 }
 
 function init() {
-	document.querySelectorAll('.nzp').forEach((root) => {
-		if (root.dataset.nzpInit) return;
-		root.dataset.nzpInit = '1';
+	document.querySelectorAll('.korkwand').forEach((root) => {
+		if (root.dataset.korkwandInit) return;
+		root.dataset.korkwandInit = '1';
 		new Board(root);
 	});
 }

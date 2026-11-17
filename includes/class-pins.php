@@ -1,5 +1,5 @@
 <?php
-namespace NZ\Pinnwand;
+namespace Korkwand;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -24,7 +24,7 @@ final class Pins {
 	public static function create( \WP_Term $board, int $user_id, array $data ) {
 		$type = isset( $data['type'] ) && is_string( $data['type'] ) ? $data['type'] : '';
 		if ( ! in_array( $type, self::TYPES, true ) ) {
-			return self::invalid( __( 'Ungültiger Zettel-Typ.', 'nz-pinnwand' ) );
+			return self::invalid( __( 'Ungültiger Zettel-Typ.', 'korkwand' ) );
 		}
 
 		$text  = self::clean_text( $data['text'] ?? '' );
@@ -33,7 +33,7 @@ final class Pins {
 			$title = self::clean_title( $data['title'] ?? '' );
 			$err   = self::validate_title( $title ) ?? self::validate_text( $text, self::MAX_POSTIT );
 		} else {
-			$title = __( 'Bild', 'nz-pinnwand' );
+			$title = __( 'Bild', 'korkwand' );
 			$thumb = isset( $data['attachment_id'] ) ? absint( $data['attachment_id'] ) : 0;
 			$err   = self::validate_attachment( $thumb ) ?? self::validate_text( $text, self::MAX_CAPTION );
 		}
@@ -53,7 +53,7 @@ final class Pins {
 
 		$post_id = self::write_post(
 			array(
-				'post_type'    => 'pin',
+				'post_type'    => 'korkwand_pin',
 				'post_status'  => 'publish',
 				'post_author'  => $user_id,
 				'post_title'   => $title,
@@ -64,12 +64,12 @@ final class Pins {
 			return $post_id;
 		}
 
-		update_post_meta( $post_id, '_pin_type', $type );
-		update_post_meta( $post_id, '_pin_x', $x );
-		update_post_meta( $post_id, '_pin_y', $y );
-		update_post_meta( $post_id, '_pin_rotation', random_int( -6, 6 ) );
-		update_post_meta( $post_id, '_pin_sticky', 0 );
-		wp_set_object_terms( $post_id, array( $board->term_id ), 'pinboard' );
+		update_post_meta( $post_id, '_korkwand_type', $type );
+		update_post_meta( $post_id, '_korkwand_x', $x );
+		update_post_meta( $post_id, '_korkwand_y', $y );
+		update_post_meta( $post_id, '_korkwand_rotation', random_int( -6, 6 ) );
+		update_post_meta( $post_id, '_korkwand_sticky', 0 );
+		wp_set_object_terms( $post_id, array( $board->term_id ), 'korkwand_board' );
 		if ( $thumb ) {
 			set_post_thumbnail( $post_id, $thumb );
 			// Unzugeordnetes Bild dem Zettel zuordnen (Mediathek-Bilder mit Elternbeitrag bleiben unveraendert).
@@ -120,15 +120,15 @@ final class Pins {
 
 		if ( isset( $data['x'] ) || isset( $data['y'] ) ) {
 			$height = self::board_height( $pin );
-			$x      = isset( $data['x'] ) ? (int) $data['x'] : (int) get_post_meta( $pin->ID, '_pin_x', true );
-			$y      = isset( $data['y'] ) ? (int) $data['y'] : (int) get_post_meta( $pin->ID, '_pin_y', true );
+			$x      = isset( $data['x'] ) ? (int) $data['x'] : (int) get_post_meta( $pin->ID, '_korkwand_x', true );
+			$y      = isset( $data['y'] ) ? (int) $data['y'] : (int) get_post_meta( $pin->ID, '_korkwand_y', true );
 			list( $x, $y ) = self::clamp_position( $x, $y, $height );
-			update_post_meta( $pin->ID, '_pin_x', $x );
-			update_post_meta( $pin->ID, '_pin_y', $y );
+			update_post_meta( $pin->ID, '_korkwand_x', $x );
+			update_post_meta( $pin->ID, '_korkwand_y', $y );
 		}
 
 		if ( array_key_exists( 'sticky', $data ) && Permissions::can_moderate( $user_id ) ) {
-			update_post_meta( $pin->ID, '_pin_sticky', rest_sanitize_boolean( $data['sticky'] ) ? 1 : 0 );
+			update_post_meta( $pin->ID, '_korkwand_sticky', rest_sanitize_boolean( $data['sticky'] ) ? 1 : 0 );
 		}
 
 		clean_post_cache( $pin->ID );
@@ -160,7 +160,7 @@ final class Pins {
 		$s     = Boards::settings( $board );
 		$limit = $s['max_pins'];
 		$base  = array(
-			'post_type'              => 'pin',
+			'post_type'              => 'korkwand_pin',
 			'post_status'            => 'publish',
 			'orderby'                => 'date',
 			'order'                  => 'DESC',
@@ -169,7 +169,7 @@ final class Pins {
 			'update_post_term_cache' => false,
 			'tax_query'              => array(
 				array(
-					'taxonomy' => 'pinboard',
+					'taxonomy' => 'korkwand_board',
 					'field'    => 'term_id',
 					'terms'    => array( $board->term_id ),
 				),
@@ -181,7 +181,7 @@ final class Pins {
 				'posts_per_page' => $limit,
 				'meta_query'     => array(
 					array(
-						'key'   => '_pin_sticky',
+						'key'   => '_korkwand_sticky',
 						'value' => '1',
 					),
 				),
@@ -198,11 +198,11 @@ final class Pins {
 			'meta_query'     => array(
 				'relation' => 'OR',
 				array(
-					'key'     => '_pin_sticky',
+					'key'     => '_korkwand_sticky',
 					'compare' => 'NOT EXISTS',
 				),
 				array(
-					'key'   => '_pin_sticky',
+					'key'   => '_korkwand_sticky',
 					'value' => '1',
 					'compare' => '!=',
 				),
@@ -248,9 +248,9 @@ final class Pins {
 			'type'         => $type,
 			'title'        => self::decode( (string) $pin->post_title ),
 			'text'         => self::decode( (string) $pin->post_content ),
-			'x'            => (int) get_post_meta( $pin->ID, '_pin_x', true ),
-			'y'            => (int) get_post_meta( $pin->ID, '_pin_y', true ),
-			'rotation'     => (int) get_post_meta( $pin->ID, '_pin_rotation', true ),
+			'x'            => (int) get_post_meta( $pin->ID, '_korkwand_x', true ),
+			'y'            => (int) get_post_meta( $pin->ID, '_korkwand_y', true ),
+			'rotation'     => (int) get_post_meta( $pin->ID, '_korkwand_rotation', true ),
 			'sticky'       => self::is_sticky( $pin ),
 			'image'        => 'image' === $type ? self::image_of( $pin ) : null,
 			'can_edit'     => Permissions::can_edit( $viewer_id, $pin ),
@@ -266,7 +266,7 @@ final class Pins {
 	/* ---------------------------------------------------------------- */
 
 	private static function invalid( string $message ): \WP_Error {
-		return new \WP_Error( 'nzp_invalid', $message, array( 'status' => 400 ) );
+		return new \WP_Error( 'korkwand_invalid', $message, array( 'status' => 400 ) );
 	}
 
 	/**
@@ -291,7 +291,7 @@ final class Pins {
 	private static function validate_title( string $title ): ?\WP_Error {
 		$len = mb_strlen( self::decode( $title ) );
 		if ( $len < 1 || $len > self::MAX_TITLE ) {
-			return self::invalid( __( 'Der Titel muss 1 bis 60 Zeichen lang sein.', 'nz-pinnwand' ) );
+			return self::invalid( __( 'Der Titel muss 1 bis 60 Zeichen lang sein.', 'korkwand' ) );
 		}
 		return null;
 	}
@@ -299,14 +299,14 @@ final class Pins {
 	private static function validate_text( string $text, int $max ): ?\WP_Error {
 		if ( mb_strlen( self::decode( $text ) ) > $max ) {
 			/* translators: %d: maximale Zeichenzahl */
-			return self::invalid( sprintf( __( 'Der Text darf höchstens %d Zeichen lang sein.', 'nz-pinnwand' ), $max ) );
+			return self::invalid( sprintf( __( 'Der Text darf höchstens %d Zeichen lang sein.', 'korkwand' ), $max ) );
 		}
 		return null;
 	}
 
 	private static function validate_attachment( int $id ): ?\WP_Error {
 		if ( $id <= 0 || 'attachment' !== get_post_type( $id ) || ! wp_attachment_is_image( $id ) ) {
-			return self::invalid( __( 'Ein gültiges Bild ist erforderlich.', 'nz-pinnwand' ) );
+			return self::invalid( __( 'Ein gültiges Bild ist erforderlich.', 'korkwand' ) );
 		}
 		return null;
 	}
@@ -331,16 +331,16 @@ final class Pins {
 	}
 
 	private static function type_of( \WP_Post $pin ): string {
-		$type = get_post_meta( $pin->ID, '_pin_type', true );
+		$type = get_post_meta( $pin->ID, '_korkwand_type', true );
 		return in_array( $type, self::TYPES, true ) ? $type : 'postit';
 	}
 
 	private static function is_sticky( \WP_Post $pin ): bool {
-		return (bool) (int) get_post_meta( $pin->ID, '_pin_sticky', true );
+		return (bool) (int) get_post_meta( $pin->ID, '_korkwand_sticky', true );
 	}
 
 	private static function board_of( \WP_Post $pin ): ?\WP_Term {
-		$terms = wp_get_object_terms( $pin->ID, 'pinboard' );
+		$terms = wp_get_object_terms( $pin->ID, 'korkwand_board' );
 		return ( ! is_wp_error( $terms ) && $terms && $terms[0] instanceof \WP_Term ) ? $terms[0] : null;
 	}
 

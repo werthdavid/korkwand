@@ -1,5 +1,5 @@
 <?php
-namespace NZ\Pinnwand;
+namespace Korkwand;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -8,25 +8,25 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Admin {
 
-	private const NONCE_ACTION = 'nzp_board_settings';
-	private const NONCE_FIELD  = 'nzp_board_nonce';
-	private const OPTION       = 'nzp_delete_data_on_uninstall';
+	private const NONCE_ACTION = 'korkwand_board_settings';
+	private const NONCE_FIELD  = 'korkwand_board_nonce';
+	private const OPTION       = 'korkwand_delete_data_on_uninstall';
 
 	public static function register(): void {
-		add_filter( 'manage_pin_posts_columns', array( self::class, 'columns' ) );
-		add_action( 'manage_pin_posts_custom_column', array( self::class, 'column' ), 10, 2 );
-		add_filter( 'manage_edit-pinboard_columns', array( self::class, 'board_columns' ) );
-		add_filter( 'manage_pinboard_custom_column', array( self::class, 'board_column' ), 10, 3 );
-		add_action( 'pinboard_add_form_fields', array( self::class, 'add_fields' ) );
-		add_action( 'pinboard_edit_form_fields', array( self::class, 'edit_fields' ) );
-		add_action( 'created_pinboard', array( self::class, 'save_term' ) );
-		add_action( 'edited_pinboard', array( self::class, 'save_term' ) );
+		add_filter( 'manage_korkwand_pin_posts_columns', array( self::class, 'columns' ) );
+		add_action( 'manage_korkwand_pin_posts_custom_column', array( self::class, 'column' ), 10, 2 );
+		add_filter( 'manage_edit-korkwand_board_columns', array( self::class, 'board_columns' ) );
+		add_filter( 'manage_korkwand_board_custom_column', array( self::class, 'board_column' ), 10, 3 );
+		add_action( 'korkwand_board_add_form_fields', array( self::class, 'add_fields' ) );
+		add_action( 'korkwand_board_edit_form_fields', array( self::class, 'edit_fields' ) );
+		add_action( 'created_korkwand_board', array( self::class, 'save_term' ) );
+		add_action( 'edited_korkwand_board', array( self::class, 'save_term' ) );
 		add_action( 'admin_menu', array( self::class, 'menu' ) );
 	}
 
 	public static function register_settings(): void {
 		register_setting(
-			'nzp_settings',
+			'korkwand_settings',
 			self::OPTION,
 			array(
 				'type'              => 'string',
@@ -41,9 +41,9 @@ final class Admin {
 	 * @return array<string,string>
 	 */
 	public static function columns( array $cols ): array {
-		$cols['nzp_type']    = __( 'Typ', 'nz-pinnwand' );
-		$cols['nzp_sticky']  = __( 'Sticky', 'nz-pinnwand' );
-		$cols['nzp_expires'] = __( 'Läuft ab am', 'nz-pinnwand' );
+		$cols['korkwand_type']    = __( 'Typ', 'korkwand' );
+		$cols['korkwand_sticky']  = __( 'Sticky', 'korkwand' );
+		$cols['korkwand_expires'] = __( 'Läuft ab am', 'korkwand' );
 		return $cols;
 	}
 
@@ -53,18 +53,18 @@ final class Admin {
 			return;
 		}
 		switch ( $col ) {
-			case 'nzp_type':
-				echo 'image' === get_post_meta( $post_id, '_pin_type', true )
-					? esc_html__( 'Bild', 'nz-pinnwand' )
-					: esc_html__( 'Post-it', 'nz-pinnwand' );
+			case 'korkwand_type':
+				echo 'image' === get_post_meta( $post_id, '_korkwand_type', true )
+					? esc_html__( 'Bild', 'korkwand' )
+					: esc_html__( 'Post-it', 'korkwand' );
 				break;
-			case 'nzp_sticky':
-				echo (int) get_post_meta( $post_id, '_pin_sticky', true )
-					? esc_html__( 'Ja', 'nz-pinnwand' )
+			case 'korkwand_sticky':
+				echo (int) get_post_meta( $post_id, '_korkwand_sticky', true )
+					? esc_html__( 'Ja', 'korkwand' )
 					: '–';
 				break;
-			case 'nzp_expires':
-				$terms = wp_get_object_terms( $post_id, 'pinboard' );
+			case 'korkwand_expires':
+				$terms = wp_get_object_terms( $post_id, 'korkwand_board' );
 				if ( is_wp_error( $terms ) || ! $terms || ! $terms[0] instanceof \WP_Term ) {
 					echo '–';
 					break;
@@ -72,7 +72,7 @@ final class Admin {
 				$exp = Pins::expires_at( $pin, $terms[0] );
 				echo $exp
 					? esc_html( wp_date( get_option( 'date_format' ), $exp->getTimestamp() ) )
-					: esc_html__( 'nie', 'nz-pinnwand' );
+					: esc_html__( 'nie', 'korkwand' );
 				break;
 		}
 	}
@@ -82,19 +82,19 @@ final class Admin {
 	 * @return array<string,string>
 	 */
 	public static function board_columns( array $cols ): array {
-		$cols['nzp_shortcode'] = __( 'Shortcode', 'nz-pinnwand' );
+		$cols['korkwand_shortcode'] = __( 'Shortcode', 'korkwand' );
 		return $cols;
 	}
 
 	public static function board_column( string $content, string $col, int $term_id ): string {
-		if ( 'nzp_shortcode' !== $col ) {
+		if ( 'korkwand_shortcode' !== $col ) {
 			return $content;
 		}
-		$term = get_term( $term_id, 'pinboard' );
+		$term = get_term( $term_id, 'korkwand_board' );
 		if ( ! $term instanceof \WP_Term ) {
 			return $content;
 		}
-		return '<code>' . esc_html( '[pinnwand board="' . $term->slug . '"]' ) . '</code>';
+		return '<code>' . esc_html( '[korkwand board="' . $term->slug . '"]' ) . '</code>';
 	}
 
 	public static function add_fields( $taxonomy = '' ): void {
@@ -107,22 +107,22 @@ final class Admin {
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
 		?>
 		<div class="form-field">
-			<label for="nzp-lifetime"><?php esc_html_e( 'Laufzeit in Tagen', 'nz-pinnwand' ); ?></label>
-			<input type="number" name="lifetime_days" id="nzp-lifetime" min="0" max="3650" value="<?php echo esc_attr( (string) $s['lifetime_days'] ); ?>">
-			<p><?php esc_html_e( '0 = Zettel laufen nie ab.', 'nz-pinnwand' ); ?></p>
+			<label for="korkwand-lifetime"><?php esc_html_e( 'Laufzeit in Tagen', 'korkwand' ); ?></label>
+			<input type="number" name="lifetime_days" id="korkwand-lifetime" min="0" max="3650" value="<?php echo esc_attr( (string) $s['lifetime_days'] ); ?>">
+			<p><?php esc_html_e( '0 = Zettel laufen nie ab.', 'korkwand' ); ?></p>
 		</div>
 		<div class="form-field">
-			<label for="nzp-height"><?php esc_html_e( 'Höhe in Pixel', 'nz-pinnwand' ); ?></label>
-			<input type="number" name="height" id="nzp-height" min="300" max="3000" value="<?php echo esc_attr( (string) $s['height'] ); ?>">
+			<label for="korkwand-height"><?php esc_html_e( 'Höhe in Pixel', 'korkwand' ); ?></label>
+			<input type="number" name="height" id="korkwand-height" min="300" max="3000" value="<?php echo esc_attr( (string) $s['height'] ); ?>">
 		</div>
 		<div class="form-field">
-			<label for="nzp-max-pins"><?php esc_html_e( 'Maximale Anzahl Zettel', 'nz-pinnwand' ); ?></label>
-			<input type="number" name="max_pins" id="nzp-max-pins" min="1" max="200" value="<?php echo esc_attr( (string) $s['max_pins'] ); ?>">
+			<label for="korkwand-max-pins"><?php esc_html_e( 'Maximale Anzahl Zettel', 'korkwand' ); ?></label>
+			<input type="number" name="max_pins" id="korkwand-max-pins" min="1" max="200" value="<?php echo esc_attr( (string) $s['max_pins'] ); ?>">
 		</div>
 		<div class="form-field">
-			<label for="nzp-notify">
-				<input type="checkbox" name="notify" id="nzp-notify" value="1">
-				<?php esc_html_e( 'E-Mail bei neuem Zettel', 'nz-pinnwand' ); ?>
+			<label for="korkwand-notify">
+				<input type="checkbox" name="notify" id="korkwand-notify" value="1">
+				<?php esc_html_e( 'E-Mail bei neuem Zettel', 'korkwand' ); ?>
 			</label>
 		</div>
 		<?php
@@ -133,26 +133,26 @@ final class Admin {
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
 		?>
 		<tr class="form-field">
-			<th scope="row"><label for="nzp-lifetime"><?php esc_html_e( 'Laufzeit in Tagen', 'nz-pinnwand' ); ?></label></th>
+			<th scope="row"><label for="korkwand-lifetime"><?php esc_html_e( 'Laufzeit in Tagen', 'korkwand' ); ?></label></th>
 			<td>
-				<input type="number" name="lifetime_days" id="nzp-lifetime" min="0" max="3650" value="<?php echo esc_attr( (string) $s['lifetime_days'] ); ?>">
-				<p class="description"><?php esc_html_e( '0 = Zettel laufen nie ab.', 'nz-pinnwand' ); ?></p>
+				<input type="number" name="lifetime_days" id="korkwand-lifetime" min="0" max="3650" value="<?php echo esc_attr( (string) $s['lifetime_days'] ); ?>">
+				<p class="description"><?php esc_html_e( '0 = Zettel laufen nie ab.', 'korkwand' ); ?></p>
 			</td>
 		</tr>
 		<tr class="form-field">
-			<th scope="row"><label for="nzp-height"><?php esc_html_e( 'Höhe in Pixel', 'nz-pinnwand' ); ?></label></th>
-			<td><input type="number" name="height" id="nzp-height" min="300" max="3000" value="<?php echo esc_attr( (string) $s['height'] ); ?>"></td>
+			<th scope="row"><label for="korkwand-height"><?php esc_html_e( 'Höhe in Pixel', 'korkwand' ); ?></label></th>
+			<td><input type="number" name="height" id="korkwand-height" min="300" max="3000" value="<?php echo esc_attr( (string) $s['height'] ); ?>"></td>
 		</tr>
 		<tr class="form-field">
-			<th scope="row"><label for="nzp-max-pins"><?php esc_html_e( 'Maximale Anzahl Zettel', 'nz-pinnwand' ); ?></label></th>
-			<td><input type="number" name="max_pins" id="nzp-max-pins" min="1" max="200" value="<?php echo esc_attr( (string) $s['max_pins'] ); ?>"></td>
+			<th scope="row"><label for="korkwand-max-pins"><?php esc_html_e( 'Maximale Anzahl Zettel', 'korkwand' ); ?></label></th>
+			<td><input type="number" name="max_pins" id="korkwand-max-pins" min="1" max="200" value="<?php echo esc_attr( (string) $s['max_pins'] ); ?>"></td>
 		</tr>
 		<tr class="form-field">
-			<th scope="row"><?php esc_html_e( 'E-Mail bei neuem Zettel', 'nz-pinnwand' ); ?></th>
+			<th scope="row"><?php esc_html_e( 'E-Mail bei neuem Zettel', 'korkwand' ); ?></th>
 			<td>
-				<label for="nzp-notify">
-					<input type="checkbox" name="notify" id="nzp-notify" value="1" <?php checked( $s['notify'] ); ?>>
-					<?php esc_html_e( 'Benachrichtigung senden', 'nz-pinnwand' ); ?>
+				<label for="korkwand-notify">
+					<input type="checkbox" name="notify" id="korkwand-notify" value="1" <?php checked( $s['notify'] ); ?>>
+					<?php esc_html_e( 'Benachrichtigung senden', 'korkwand' ); ?>
 				</label>
 			</td>
 		</tr>
@@ -169,7 +169,7 @@ final class Admin {
 			return;
 		}
 		$term = get_term( $term_id );
-		if ( ! $term instanceof \WP_Term || 'pinboard' !== $term->taxonomy ) {
+		if ( ! $term instanceof \WP_Term || 'korkwand_board' !== $term->taxonomy ) {
 			return;
 		}
 		$raw = array( 'notify' => '0' );
@@ -183,11 +183,11 @@ final class Admin {
 
 	public static function menu(): void {
 		add_submenu_page(
-			'edit.php?post_type=pin',
-			__( 'Einstellungen', 'nz-pinnwand' ),
-			__( 'Einstellungen', 'nz-pinnwand' ),
+			'edit.php?post_type=korkwand_pin',
+			__( 'Einstellungen', 'korkwand' ),
+			__( 'Einstellungen', 'korkwand' ),
 			'manage_options',
-			'nzp-settings',
+			'korkwand-settings',
 			array( self::class, 'settings_page' )
 		);
 	}
@@ -199,17 +199,17 @@ final class Admin {
 		$value = get_option( self::OPTION, '1' );
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Pinnwand – Einstellungen', 'nz-pinnwand' ); ?></h1>
+			<h1><?php esc_html_e( 'Pinnwand – Einstellungen', 'korkwand' ); ?></h1>
 			<form method="post" action="options.php">
-				<?php settings_fields( 'nzp_settings' ); ?>
+				<?php settings_fields( 'korkwand_settings' ); ?>
 				<table class="form-table" role="presentation">
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Deinstallation', 'nz-pinnwand' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Deinstallation', 'korkwand' ); ?></th>
 						<td>
 							<input type="hidden" name="<?php echo esc_attr( self::OPTION ); ?>" value="0">
 							<label>
 								<input type="checkbox" name="<?php echo esc_attr( self::OPTION ); ?>" value="1" <?php checked( '1', $value ); ?>>
-								<?php esc_html_e( 'Beim Löschen des Plugins alle Zettel und Bilder entfernen', 'nz-pinnwand' ); ?>
+								<?php esc_html_e( 'Beim Löschen des Plugins alle Zettel und Bilder entfernen', 'korkwand' ); ?>
 							</label>
 						</td>
 					</tr>

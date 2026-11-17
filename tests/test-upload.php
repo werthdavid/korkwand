@@ -2,9 +2,9 @@
 /**
  * Tests fuer den Bild-Upload.
  */
-use NZ\Pinnwand\Upload;
+use Korkwand\Upload;
 
-class NZP_Test_Upload extends WP_UnitTestCase {
+class Korkwand_Test_Upload extends WP_UnitTestCase {
 
 	private int $user;
 
@@ -58,7 +58,7 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 	public function test_upload_is_flagged_as_plugin_upload() {
 		$id = Upload::handle( $this->file_from( DIR_TESTDATA . '/images/test-image.png', 'a.png', 'image/png' ), $this->user );
 		$this->assertIsInt( $id );
-		$this->assertSame( '1', get_post_meta( $id, '_nzp_upload', true ) );
+		$this->assertSame( '1', get_post_meta( $id, '_korkwand_upload', true ) );
 		$this->cleanup( $id );
 	}
 
@@ -87,7 +87,7 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 		$before = $this->attachment_count();
 		$r      = Upload::handle( $this->file_from( __DIR__ . '/fixtures/fake.jpg', 'fake.jpg', 'image/jpeg' ), $this->user );
 		$this->assertWPError( $r );
-		$this->assertSame( 'nzp_upload', $r->get_error_code() );
+		$this->assertSame( 'korkwand_upload', $r->get_error_code() );
 		$this->assertSame( 400, $r->get_error_data()['status'] );
 		$this->assertSame( $before, $this->attachment_count() );
 	}
@@ -96,14 +96,14 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 		$before = $this->attachment_count();
 		$r      = Upload::handle( $this->file_from( __DIR__ . '/fixtures/image.svg', 'image.svg', 'image/svg+xml' ), $this->user );
 		$this->assertWPError( $r );
-		$this->assertSame( 'nzp_upload', $r->get_error_code() );
+		$this->assertSame( 'korkwand_upload', $r->get_error_code() );
 		$this->assertSame( $before, $this->attachment_count() );
 	}
 
 	public function test_rejects_svg_renamed_to_png() {
 		$r = Upload::handle( $this->file_from( __DIR__ . '/fixtures/image.svg', 'image.png', 'image/png' ), $this->user );
 		$this->assertWPError( $r );
-		$this->assertSame( 'nzp_upload', $r->get_error_code() );
+		$this->assertSame( 'korkwand_upload', $r->get_error_code() );
 	}
 
 	public function test_rejects_over_8mb() {
@@ -112,7 +112,7 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 		$file['size'] = 8388609;
 		$r            = Upload::handle( $file, $this->user );
 		$this->assertWPError( $r );
-		$this->assertSame( 'nzp_upload', $r->get_error_code() );
+		$this->assertSame( 'korkwand_upload', $r->get_error_code() );
 		$this->assertSame( 400, $r->get_error_data()['status'] );
 		$this->assertSame( $before, $this->attachment_count() );
 	}
@@ -122,7 +122,7 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 		$file['error'] = UPLOAD_ERR_INI_SIZE;
 		$r             = Upload::handle( $file, $this->user );
 		$this->assertWPError( $r );
-		$this->assertSame( 'nzp_upload', $r->get_error_code() );
+		$this->assertSame( 'korkwand_upload', $r->get_error_code() );
 	}
 
 	public function test_rejects_gif() {
@@ -156,7 +156,7 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 			$before_files = $this->upload_files();
 			$r            = Upload::handle( $file, $this->user );
 			$this->assertWPError( $r, $name );
-			$this->assertSame( 'nzp_upload', $r->get_error_code() );
+			$this->assertSame( 'korkwand_upload', $r->get_error_code() );
 			$this->assertSame( 400, $r->get_error_data()['status'] );
 			$this->assertSame( $before_att, $this->attachment_count() );
 			$this->assertSame( $before_files, $this->upload_files(), 'Nichts in uploads/ zurueckgelassen' );
@@ -171,7 +171,7 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 		$file = array( 'name' => 'big.png', 'type' => 'image/png', 'tmp_name' => $tmp, 'error' => 0, 'size' => filesize( $tmp ) );
 		$r    = Upload::handle( $file, $this->user );
 		$this->assertWPError( $r );
-		$this->assertSame( 'nzp_upload', $r->get_error_code() );
+		$this->assertSame( 'korkwand_upload', $r->get_error_code() );
 		$this->assertSame( 400, $r->get_error_data()['status'] );
 	}
 
@@ -182,7 +182,7 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 		$r            = Upload::handle( $this->file_from( DIR_TESTDATA . '/images/test-image.png', 'ok.png', 'image/png' ), $this->user );
 		remove_filter( 'wp_insert_post_empty_content', '__return_true' );
 		$this->assertWPError( $r );
-		$this->assertSame( 'nzp_upload', $r->get_error_code() );
+		$this->assertSame( 'korkwand_upload', $r->get_error_code() );
 		$this->assertSame( 400, $r->get_error_data()['status'] );
 		$this->assertSame( $before_att, $this->attachment_count() );
 		$this->assertSame( $before_files, $this->upload_files(), 'Verschobene Datei wurde geloescht' );
@@ -224,7 +224,7 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 		$file = $this->file_from( DIR_TESTDATA . '/images/test-image.png', 'Max Mustermann Urlaub 2026.png', 'image/png' );
 		$id   = Upload::handle( $file, $this->user );
 		$this->assertIsInt( $id );
-		$this->assertMatchesRegularExpression( '/^pinnwand-[A-Za-z0-9]{12}(-\d+)?\.png$/', basename( get_attached_file( $id ) ) );
+		$this->assertMatchesRegularExpression( '/^korkwand-[A-Za-z0-9]{12}(-\d+)?\.png$/', basename( get_attached_file( $id ) ) );
 		$this->assertSame( 'Pinnwand-Bild', get_post( $id )->post_title );
 		$this->assertStringNotContainsString( 'Mustermann', wp_json_encode( get_post( $id ) ) . get_attached_file( $id ) . wp_json_encode( wp_get_attachment_metadata( $id ) ) );
 		$this->cleanup( $id );
@@ -233,7 +233,7 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 	public function test_jpeg_gets_jpg_extension_after_rename() {
 		$id = Upload::handle( $this->file_from( DIR_TESTDATA . '/images/test-image.jpg', 'IMG_0001.JPEG', 'image/jpeg' ), $this->user );
 		$this->assertIsInt( $id );
-		$this->assertMatchesRegularExpression( '/^pinnwand-[A-Za-z0-9]{12}\.jpg$/', basename( get_attached_file( $id ) ) );
+		$this->assertMatchesRegularExpression( '/^korkwand-[A-Za-z0-9]{12}\.jpg$/', basename( get_attached_file( $id ) ) );
 		$this->cleanup( $id );
 	}
 

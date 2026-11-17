@@ -1,1 +1,0 @@
-Place `patrick-hand.woff2` here (Patrick Hand, SIL Open Font License 1.1; source: google/fonts repository, ofl/patrickhand). The file is optional: without it the CSS falls back to "Comic Sans MS", cursive.

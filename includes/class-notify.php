@@ -1,5 +1,5 @@
 <?php
-namespace NZ\Pinnwand;
+namespace Korkwand;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -16,12 +16,12 @@ final class Notify {
 
 		$body = sprintf(
 			/* translators: 1: Zettel-Titel, 2: Anzeigename, 3: Link */
-			__( "Es wurde ein neuer Zettel angelegt.\n\nTitel: %1\$s\nVon: %2\$s\nBearbeiten: %3\$s\n", 'nz-pinnwand' ),
+			__( "Es wurde ein neuer Zettel angelegt.\n\nTitel: %1\$s\nVon: %2\$s\nBearbeiten: %3\$s\n", 'korkwand' ),
 			$data['title'],
 			$name,
 			$link
 		);
 
-		wp_mail( (string) get_option( 'admin_email' ), __( 'Neuer Zettel auf der Pinnwand', 'nz-pinnwand' ), $body );
+		wp_mail( (string) get_option( 'admin_email' ), __( 'Neuer Zettel auf der Pinnwand', 'korkwand' ), $body );
 	}
 }

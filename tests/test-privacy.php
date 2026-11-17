@@ -2,33 +2,33 @@
 /**
  * Tests fuer Datenschutz-Exporter und -Eraser.
  */
-use NZ\Pinnwand\Privacy;
+use Korkwand\Privacy;
 
-class NZP_Test_Privacy extends WP_UnitTestCase {
+class Korkwand_Test_Privacy extends WP_UnitTestCase {
 
 	private \WP_Term $board;
 	private int $user;
 
 	public function set_up() {
 		parent::set_up();
-		$id          = self::factory()->term->create( array( 'taxonomy' => 'pinboard', 'name' => 'Test' ) );
-		$this->board = get_term( $id, 'pinboard' );
+		$id          = self::factory()->term->create( array( 'taxonomy' => 'korkwand_board', 'name' => 'Test' ) );
+		$this->board = get_term( $id, 'korkwand_board' );
 		$this->user  = self::factory()->user->create( array( 'role' => 'subscriber', 'user_email' => 'anna@example.test' ) );
 	}
 
 	private function pin( string $title, string $text = '' ): int {
 		$id = self::factory()->post->create(
-			array( 'post_type' => 'pin', 'post_status' => 'publish', 'post_title' => $title, 'post_content' => $text, 'post_author' => $this->user )
+			array( 'post_type' => 'korkwand_pin', 'post_status' => 'publish', 'post_title' => $title, 'post_content' => $text, 'post_author' => $this->user )
 		);
-		update_post_meta( $id, '_pin_type', 'postit' );
+		update_post_meta( $id, '_korkwand_type', 'postit' );
 		return $id;
 	}
 
 	private function image_pin(): array {
 		$att = self::factory()->attachment->create_object( array( 'file' => 'p.jpg', 'post_mime_type' => 'image/jpeg', 'post_type' => 'attachment', 'post_author' => $this->user ) );
 		$id  = $this->pin( 'Bild' );
-		update_post_meta( $id, '_pin_type', 'image' );
-		update_post_meta( $att, '_nzp_upload', 1 );
+		update_post_meta( $id, '_korkwand_type', 'image' );
+		update_post_meta( $att, '_korkwand_upload', 1 );
 		set_post_thumbnail( $id, $att );
 		return array( $id, $att );
 	}
@@ -36,10 +36,10 @@ class NZP_Test_Privacy extends WP_UnitTestCase {
 	public function test_registered() {
 		$ex = apply_filters( 'wp_privacy_personal_data_exporters', array() );
 		$er = apply_filters( 'wp_privacy_personal_data_erasers', array() );
-		$this->assertSame( 'Pinnwand', $ex['nz-pinnwand']['exporter_friendly_name'] );
-		$this->assertSame( 'Pinnwand', $er['nz-pinnwand']['eraser_friendly_name'] );
-		$this->assertIsCallable( $ex['nz-pinnwand']['callback'] );
-		$this->assertIsCallable( $er['nz-pinnwand']['callback'] );
+		$this->assertSame( 'Pinnwand', $ex['korkwand']['exporter_friendly_name'] );
+		$this->assertSame( 'Pinnwand', $er['korkwand']['eraser_friendly_name'] );
+		$this->assertIsCallable( $ex['korkwand']['callback'] );
+		$this->assertIsCallable( $er['korkwand']['callback'] );
 	}
 
 	public function test_exporter_lists_pins() {
@@ -50,7 +50,7 @@ class NZP_Test_Privacy extends WP_UnitTestCase {
 		$this->assertTrue( $r['done'] );
 		$this->assertCount( 2, $r['data'] );
 		$first = $r['data'][0];
-		$this->assertSame( 'nz-pinnwand', $first['group_id'] );
+		$this->assertSame( 'korkwand', $first['group_id'] );
 		$this->assertSame( 'Pinnwand', $first['group_label'] );
 		$flat = array();
 		foreach ( $r['data'] as $item ) {

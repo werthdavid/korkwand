@@ -15,7 +15,7 @@ function el(tag, props = {}, ...children) {
 
 // Effektives Upload-Limit (vom Server: min(8 MB, Host-Limit)).
 function maxBytes() {
-	const n = Number(window.NZP && window.NZP.maxBytes);
+	const n = Number(window.Korkwand && window.Korkwand.maxBytes);
 	return n > 0 ? Math.min(n, DEFAULT_MAX_BYTES) : DEFAULT_MAX_BYTES;
 }
 
@@ -25,9 +25,9 @@ function maxLabel() {
 }
 
 function field(labelText, control) {
-	const id = 'nzp-f-' + Math.random().toString(36).slice(2, 8);
+	const id = 'korkwand-f-' + Math.random().toString(36).slice(2, 8);
 	control.id = id;
-	return el('div', { className: 'nzp-field' }, el('label', { htmlFor: id, text: labelText }), control);
+	return el('div', { className: 'korkwand-field' }, el('label', { htmlFor: id, text: labelText }), control);
 }
 
 /**
@@ -36,22 +36,22 @@ function field(labelText, control) {
  */
 export function openPinDialog({ pin = null, trigger = null, onSubmit }) {
 	const editing = !!pin;
-	const dlg = el('dialog', { className: 'nzp-dialog' });
-	dlg.setAttribute('aria-labelledby', 'nzp-dlg-title');
+	const dlg = el('dialog', { className: 'korkwand-dialog' });
+	dlg.setAttribute('aria-labelledby', 'korkwand-dlg-title');
 
 	const form = el('form', { method: 'dialog', noValidate: false });
-	const title = el('h2', { id: 'nzp-dlg-title', text: editing ? 'Zettel bearbeiten' : 'Neuer Zettel' });
-	const error = el('p', { className: 'nzp-dialog-error', role: 'alert' });
+	const title = el('h2', { id: 'korkwand-dlg-title', text: editing ? 'Zettel bearbeiten' : 'Neuer Zettel' });
+	const error = el('p', { className: 'korkwand-dialog-error', role: 'alert' });
 	error.hidden = true;
 
 	let type = editing ? pin.type : 'postit';
 
 	// Typwahl (nur beim Anlegen)
-	const typeBox = el('fieldset', { className: 'nzp-type' }, el('legend', { text: 'Art des Zettels' }));
+	const typeBox = el('fieldset', { className: 'korkwand-type' }, el('legend', { text: 'Art des Zettels' }));
 	for (const [val, label] of [['postit', 'Post-it'], ['image', 'Bild']]) {
-		const rid = 'nzp-type-' + val;
-		const r = el('input', { type: 'radio', id: rid, name: 'nzp-type', value: val, checked: val === type });
-		typeBox.append(el('label', { htmlFor: rid, className: 'nzp-type-label' }, r, el('span', { text: ' ' + label })));
+		const rid = 'korkwand-type-' + val;
+		const r = el('input', { type: 'radio', id: rid, name: 'korkwand-type', value: val, checked: val === type });
+		typeBox.append(el('label', { htmlFor: rid, className: 'korkwand-type-label' }, r, el('span', { text: ' ' + label })));
 		r.addEventListener('change', () => { type = val; sync(); });
 	}
 	typeBox.hidden = editing;
@@ -76,10 +76,10 @@ export function openPinDialog({ pin = null, trigger = null, onSubmit }) {
 	}
 	sync();
 
-	const submit = el('button', { type: 'submit', className: 'nzp-btn nzp-btn--primary', text: editing ? 'Speichern' : 'Anheften' });
-	const cancel = el('button', { type: 'button', className: 'nzp-btn', text: 'Abbrechen' });
+	const submit = el('button', { type: 'submit', className: 'korkwand-btn korkwand-btn--primary', text: editing ? 'Speichern' : 'Anheften' });
+	const cancel = el('button', { type: 'button', className: 'korkwand-btn', text: 'Abbrechen' });
 	cancel.addEventListener('click', () => dlg.close());
-	form.append(title, typeBox, titleRow, textRow, fileRow, capRow, error, el('div', { className: 'nzp-dialog-actions' }, cancel, submit));
+	form.append(title, typeBox, titleRow, textRow, fileRow, capRow, error, el('div', { className: 'korkwand-dialog-actions' }, cancel, submit));
 	dlg.append(form);
 
 	function showError(msg) {

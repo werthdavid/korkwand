@@ -1,5 +1,5 @@
 <?php
-namespace NZ\Pinnwand;
+namespace Korkwand;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -25,27 +25,27 @@ final class Plugin {
 	 * (Aktivierungs-Hook laeuft bei Updates nicht).
 	 */
 	public static function maybe_upgrade(): void {
-		if ( get_option( 'nzp_version' ) === NZP_VERSION ) {
+		if ( get_option( 'korkwand_version' ) === KORKWAND_VERSION ) {
 			return;
 		}
 		Permissions::install_caps();
-		if ( ! wp_next_scheduled( 'nzp_daily_cleanup' ) ) {
-			wp_schedule_event( time(), 'daily', 'nzp_daily_cleanup' );
+		if ( ! wp_next_scheduled( 'korkwand_daily_cleanup' ) ) {
+			wp_schedule_event( time(), 'daily', 'korkwand_daily_cleanup' );
 		}
-		update_option( 'nzp_version', NZP_VERSION, false );
+		update_option( 'korkwand_version', KORKWAND_VERSION, false );
 	}
 
 	public static function activate(): void {
 		Model::register();
 		Permissions::install_caps();
-		if ( ! wp_next_scheduled( 'nzp_daily_cleanup' ) ) {
-			wp_schedule_event( time(), 'daily', 'nzp_daily_cleanup' );
+		if ( ! wp_next_scheduled( 'korkwand_daily_cleanup' ) ) {
+			wp_schedule_event( time(), 'daily', 'korkwand_daily_cleanup' );
 		}
-		update_option( 'nzp_version', NZP_VERSION, false );
+		update_option( 'korkwand_version', KORKWAND_VERSION, false );
 		flush_rewrite_rules();
 	}
 
 	public static function deactivate(): void {
-		wp_clear_scheduled_hook( 'nzp_daily_cleanup' );
+		wp_clear_scheduled_hook( 'korkwand_daily_cleanup' );
 	}
 }

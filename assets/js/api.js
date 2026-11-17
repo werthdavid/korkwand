@@ -1,4 +1,4 @@
-// REST-Client fuer pinnwand/v1. Fehler: ApiError (mit German message) oder SessionExpiredError.
+// REST-Client fuer korkwand/v1. Fehler: ApiError (mit German message) oder SessionExpiredError.
 export class SessionExpiredError extends Error {
 	constructor() {
 		super('Sitzung abgelaufen – bitte Seite neu laden.');
@@ -16,7 +16,7 @@ export class ApiError extends Error {
 }
 
 async function request(path, options = {}) {
-	const cfg = window.NZP || {};
+	const cfg = window.Korkwand || {};
 	const headers = { 'X-WP-Nonce': cfg.nonce || '', Accept: 'application/json' };
 	if (options.json !== undefined) {
 		headers['Content-Type'] = 'application/json';
@@ -30,7 +30,7 @@ async function request(path, options = {}) {
 			body: options.json !== undefined ? JSON.stringify(options.json) : options.body,
 		});
 	} catch (e) {
-		throw new ApiError('Netzwerkfehler – bitte Verbindung prüfen.', 'nzp_network', 0);
+		throw new ApiError('Netzwerkfehler – bitte Verbindung prüfen.', 'korkwand_network', 0);
 	}
 	let data = null;
 	try {

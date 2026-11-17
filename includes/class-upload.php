@@ -3,7 +3,7 @@
  * Validierter Bild-Upload (JPEG/PNG/WebP, max. 8 MB) mit Entfernen der Metadaten.
  */
 
-namespace NZ\Pinnwand;
+namespace Korkwand;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -22,7 +22,7 @@ class Upload {
 	}
 
 	private static function error( string $message ): \WP_Error {
-		return new \WP_Error( 'nzp_upload', $message, array( 'status' => 400 ) );
+		return new \WP_Error( 'korkwand_upload', $message, array( 'status' => 400 ) );
 	}
 
 	/**
@@ -34,7 +34,7 @@ class Upload {
 			return;
 		}
 		$id = (int) get_queried_object_id();
-		if ( $id > 0 && get_post_meta( $id, '_nzp_upload', true ) ) {
+		if ( $id > 0 && get_post_meta( $id, '_korkwand_upload', true ) ) {
 			global $wp_query;
 			$wp_query->set_404();
 			status_header( 404 );
@@ -56,7 +56,7 @@ class Upload {
 	/** Fehlermeldung "Bild zu gross" mit dem effektiven Limit. */
 	public static function too_large_error(): \WP_Error {
 		/* translators: %s: maximale Groesse in MB */
-		return self::error( sprintf( __( 'Das Bild ist zu groß (maximal %s MB).', 'nz-pinnwand' ), self::max_label() ) );
+		return self::error( sprintf( __( 'Das Bild ist zu groß (maximal %s MB).', 'korkwand' ), self::max_label() ) );
 	}
 
 	/** Uebersetzt einen PHP-Upload-Fehlercode (UPLOAD_ERR_*) in einen WP_Error. */
@@ -64,7 +64,7 @@ class Upload {
 		if ( UPLOAD_ERR_INI_SIZE === $code || UPLOAD_ERR_FORM_SIZE === $code ) {
 			return self::too_large_error();
 		}
-		return self::error( __( 'Der Upload ist fehlgeschlagen. Bitte versuche es erneut.', 'nz-pinnwand' ) );
+		return self::error( __( 'Der Upload ist fehlgeschlagen. Bitte versuche es erneut.', 'korkwand' ) );
 	}
 
 	/**
@@ -72,7 +72,7 @@ class Upload {
 	 *
 	 * @param array $file    Eintrag im $_FILES-Format.
 	 * @param int   $user_id Autor des Attachments.
-	 * @return int|\WP_Error Attachment-ID oder Fehler (Code nzp_upload, Status 400).
+	 * @return int|\WP_Error Attachment-ID oder Fehler (Code korkwand_upload, Status 400).
 	 */
 	public static function handle( array $file, int $user_id ) {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -88,13 +88,13 @@ class Upload {
 			return self::upload_error( (int) ( $file['error'] ?? UPLOAD_ERR_NO_FILE ) );
 		}
 		if ( '' === $tmp || ! is_file( $tmp ) ) {
-			return self::error( __( 'Es wurde keine Datei hochgeladen.', 'nz-pinnwand' ) );
+			return self::error( __( 'Es wurde keine Datei hochgeladen.', 'korkwand' ) );
 		}
 		$size = max( (int) ( $file['size'] ?? 0 ), (int) filesize( $tmp ) );
 		if ( $size > self::max_bytes() ) {
 			return self::too_large_error();
 		}
-		$type_msg = __( 'Nur JPEG-, PNG- und WebP-Bilder sind erlaubt.', 'nz-pinnwand' );
+		$type_msg = __( 'Nur JPEG-, PNG- und WebP-Bilder sind erlaubt.', 'korkwand' );
 
 		$check = wp_check_filetype_and_ext( $tmp, $name, $mimes );
 		if ( empty( $check['type'] ) || ! in_array( $check['type'], $mimes, true ) ) {
@@ -105,7 +105,7 @@ class Upload {
 			return self::error( $type_msg );
 		}
 		if ( (int) $info[0] * (int) $info[1] > self::MAX_PIXELS ) {
-			return self::error( __( 'Die Bildabmessungen sind zu groß.', 'nz-pinnwand' ) );
+			return self::error( __( 'Die Bildabmessungen sind zu groß.', 'korkwand' ) );
 		}
 
 		// 2. Metadaten im Temp-Verzeichnis entfernen (Re-Encode), bevor die Datei oeffentlich erreichbar wird.
@@ -115,7 +115,7 @@ class Upload {
 			if ( $clean ) {
 				wp_delete_file( $clean );
 			}
-			return self::error( __( 'Das Bild konnte nicht verarbeitet werden.', 'nz-pinnwand' ) );
+			return self::error( __( 'Das Bild konnte nicht verarbeitet werden.', 'korkwand' ) );
 		}
 		$file['tmp_name'] = $clean;
 		$file['size']     = (int) filesize( $clean );
@@ -126,7 +126,7 @@ class Upload {
 			'image/webp' => 'webp',
 		);
 		$ext          = $exts[ $check['type'] ];
-		$file['name'] = 'pinnwand-' . wp_generate_password( 12, false ) . '.' . $ext;
+		$file['name'] = 'korkwand-' . wp_generate_password( 12, false ) . '.' . $ext;
 
 		// 3. Bereinigte Datei in die Mediathek verschieben.
 		$moved = wp_handle_sideload(
@@ -148,7 +148,7 @@ class Upload {
 			array(
 				'post_author'    => $user_id,
 				'post_mime_type' => $mime,
-				'post_title'     => __( 'Pinnwand-Bild', 'nz-pinnwand' ),
+				'post_title'     => __( 'Pinnwand-Bild', 'korkwand' ),
 				'post_status'    => 'inherit',
 			),
 			$path,
@@ -157,9 +157,9 @@ class Upload {
 		);
 		if ( is_wp_error( $id ) || ! $id ) {
 			wp_delete_file( $path );
-			return self::error( __( 'Das Bild konnte nicht gespeichert werden.', 'nz-pinnwand' ) );
+			return self::error( __( 'Das Bild konnte nicht gespeichert werden.', 'korkwand' ) );
 		}
-		update_post_meta( $id, '_nzp_upload', 1 );
+		update_post_meta( $id, '_korkwand_upload', 1 );
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $path ) );
 
 		return (int) $id;

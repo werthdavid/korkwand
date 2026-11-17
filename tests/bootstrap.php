@@ -1,33 +1,33 @@
 <?php
 /**
- * PHPUnit-Bootstrap fuer nz-pinnwand.
+ * PHPUnit-Bootstrap fuer korkwand.
  */
 
-$nzp_tests_dir = getenv( 'WP_TESTS_DIR' );
-if ( ! $nzp_tests_dir ) {
-	$nzp_tests_dir = '/wordpress-phpunit';
+$korkwand_tests_dir = getenv( 'WP_TESTS_DIR' );
+if ( ! $korkwand_tests_dir ) {
+	$korkwand_tests_dir = '/wordpress-phpunit';
 }
 
-$nzp_polyfills = dirname( __DIR__ ) . '/vendor/yoast/phpunit-polyfills';
-if ( ! getenv( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) && is_dir( $nzp_polyfills ) ) {
-	putenv( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH=' . $nzp_polyfills );
+$korkwand_polyfills = dirname( __DIR__ ) . '/vendor/yoast/phpunit-polyfills';
+if ( ! getenv( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) && is_dir( $korkwand_polyfills ) ) {
+	putenv( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH=' . $korkwand_polyfills );
 }
 
-if ( ! file_exists( $nzp_tests_dir . '/includes/functions.php' ) ) {
-	fwrite( STDERR, "WP-Testbibliothek nicht gefunden unter {$nzp_tests_dir}. WP_TESTS_DIR setzen.\n" );
+if ( ! file_exists( $korkwand_tests_dir . '/includes/functions.php' ) ) {
+	fwrite( STDERR, "WP-Testbibliothek nicht gefunden unter {$korkwand_tests_dir}. WP_TESTS_DIR setzen.\n" );
 	exit( 1 );
 }
 
-require_once $nzp_tests_dir . '/includes/functions.php';
+require_once $korkwand_tests_dir . '/includes/functions.php';
 
 tests_add_filter(
 	'muplugins_loaded',
 	static function () {
-		require dirname( __DIR__ ) . '/nz-pinnwand.php';
+		require dirname( __DIR__ ) . '/korkwand.php';
 	}
 );
 
-require $nzp_tests_dir . '/includes/bootstrap.php';
+require $korkwand_tests_dir . '/includes/bootstrap.php';
 
 // Aktivierung einmalig ausfuehren (Tabellen/Optionen der spaeteren Tasks).
-\NZ\Pinnwand\Plugin::activate();
+\Korkwand\Plugin::activate();

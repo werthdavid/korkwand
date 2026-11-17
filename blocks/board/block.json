@@ -1,17 +1,17 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
-	"name": "nz/pinnwand",
+	"name": "korkwand/board",
 	"title": "Pinnwand",
 	"category": "widgets",
 	"icon": "sticky",
 	"description": "Zeigt eine Pinnwand mit Zetteln und Bildern.",
-	"textdomain": "nz-pinnwand",
+	"textdomain": "korkwand",
 	"attributes": {
 		"board": { "type": "string", "default": "" }
 	},
 	"supports": { "html": false, "align": [ "wide", "full" ] },
-	"editorScript": "nzp-block-editor",
-	"style": "nzp-style",
+	"editorScript": "korkwand-block-editor",
+	"style": "korkwand-style",
 	"render": "file:./render.php"
 }
