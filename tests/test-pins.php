@@ -51,6 +51,22 @@ class NZP_Test_Pins extends WP_UnitTestCase {
 		$this->assertSame( $pin->ID, (int) get_post( $att )->post_parent );
 	}
 
+	public function test_to_array_with_known_board_skips_term_lookup_and_matches() {
+		$pin   = $this->postit();
+		$plain = Pins::to_array( $pin, $this->user );
+		$calls = 0;
+		$count = static function ( $terms ) use ( &$calls ) {
+			++$calls;
+			return $terms;
+		};
+		add_filter( 'get_object_terms', $count );
+		wp_cache_flush();
+		$fast = Pins::to_array( $pin, $this->user, $this->board );
+		remove_filter( 'get_object_terms', $count );
+		$this->assertSame( $plain, $fast );
+		$this->assertSame( 0, $calls );
+	}
+
 	public function test_create_postit_defaults() {
 		$pin = $this->postit();
 		$this->assertInstanceOf( WP_Post::class, $pin );

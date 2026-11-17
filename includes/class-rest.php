@@ -107,7 +107,7 @@ final class Rest {
 		$viewer = get_current_user_id();
 		$pins   = array();
 		foreach ( Pins::visible( $board ) as $pin ) {
-			$pins[] = Pins::to_array( $pin, $viewer );
+			$pins[] = Pins::to_array( $pin, $viewer, $board );
 		}
 		return new \WP_REST_Response(
 			array(
@@ -183,7 +183,7 @@ final class Rest {
 			Notify::new_pin( $pin );
 		}
 
-		$response = new \WP_REST_Response( Pins::to_array( $pin, $uid ), 201 );
+		$response = new \WP_REST_Response( Pins::to_array( $pin, $uid, $board ), 201 );
 		return $response;
 	}
 

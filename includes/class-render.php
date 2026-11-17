@@ -102,7 +102,7 @@ final class Render {
 		$out .= '</div>';
 		$out .= '<div class="nzp-board"><div class="nzp-canvas" style="height:' . $height . 'px">';
 		foreach ( Pins::visible( $board ) as $pin ) {
-			$out .= self::pin( Pins::to_array( $pin, $viewer ), $viewer > 0 );
+			$out .= self::pin( Pins::to_array( $pin, $viewer, $board ), $viewer > 0 );
 		}
 		$out .= '</div></div></div>';
 

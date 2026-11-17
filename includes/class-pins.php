@@ -235,11 +235,12 @@ final class Pins {
 	}
 
 	/**
+	 * @param \WP_Term|null $board Pinnwand des Zettels, wenn der Aufrufer sie kennt (spart eine Term-Abfrage pro Zettel).
 	 * @return array<string, mixed>
 	 */
-	public static function to_array( \WP_Post $pin, int $viewer_id ): array {
+	public static function to_array( \WP_Post $pin, int $viewer_id, ?\WP_Term $board = null ): array {
 		$type  = self::type_of( $pin );
-		$board = self::board_of( $pin );
+		$board = $board ?? self::board_of( $pin );
 		$exp   = $board ? self::expires_at( $pin, $board ) : null;
 
 		$out = array(
