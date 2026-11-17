@@ -180,7 +180,14 @@ final class Render {
 			wp_enqueue_script( 'nzp-config' );
 		}
 
-		wp_register_script_module( 'nzp-script', NZP_URL . 'assets/js/pinnwand.js', array(), NZP_VERSION );
+		// Teilmodule einzeln mit Version registrieren und per Modul-ID importieren: Die Import-Map traegt
+		// ?ver=..., so dass Browser nach Updates keine veralteten Teilmodule aus dem Cache nutzen.
+		$deps = array();
+		foreach ( array( 'api', 'geometry', 'dialog', 'lightbox' ) as $name ) {
+			wp_register_script_module( 'nzp-' . $name, NZP_URL . 'assets/js/' . $name . '.js', array(), NZP_VERSION );
+			$deps[] = 'nzp-' . $name;
+		}
+		wp_register_script_module( 'nzp-script', NZP_URL . 'assets/js/pinnwand.js', $deps, NZP_VERSION );
 		wp_enqueue_script_module( 'nzp-script' );
 	}
 }

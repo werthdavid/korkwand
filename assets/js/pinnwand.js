@@ -1,9 +1,9 @@
 // nz-pinnwand Frontend: Skalierung, Drag & Drop, Zettelmenue, Anlegen/Bearbeiten/Loeschen, Lightbox.
 // Nutzer-Inhalte werden ausschliesslich per textContent/createElement gerendert (nie innerHTML).
-import { scaleFor, toLogical, clamp } from './geometry.js';
-import { listPins, createPin, updatePin, deletePin, SessionExpiredError } from './api.js';
-import { openPinDialog } from './dialog.js';
-import { openLightbox } from './lightbox.js';
+import { scaleFor, toLogical, clamp } from 'nzp-geometry';
+import { listPins, createPin, updatePin, deletePin, SessionExpiredError } from 'nzp-api';
+import { openPinDialog } from 'nzp-dialog';
+import { openLightbox } from 'nzp-lightbox';
 
 const LIST_BREAKPOINT = 480;
 const DRAG_THRESHOLD = 4;

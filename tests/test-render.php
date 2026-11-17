@@ -113,6 +113,19 @@ class NZP_Test_Render extends WP_UnitTestCase {
 		$this->assertFalse( wp_style_is( 'nzp-style', 'enqueued' ) );
 	}
 
+	public function test_sub_modules_are_versioned_via_import_map() {
+		Render::board( 'test' );
+		ob_start();
+		wp_script_modules()->print_import_map();
+		$map = ob_get_clean();
+		foreach ( array( 'api', 'geometry', 'dialog', 'lightbox' ) as $name ) {
+			$this->assertMatchesRegularExpression( '#"nzp-' . $name . '":\s*"[^"]*assets\\/js\\/' . $name . '\.js\?ver=' . preg_quote( NZP_VERSION, '#' ) . '"#', $map, $name );
+		}
+		$src = file_get_contents( NZP_DIR . 'assets/js/pinnwand.js' );
+		$this->assertStringNotContainsString( "from './", $src );
+		$this->assertStringContainsString( "from 'nzp-api'", $src );
+	}
+
 	public function test_block_is_registered_and_renders() {
 		$this->assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'nz/pinnwand' ) );
 		$html = do_blocks( '<!-- wp:nz/pinnwand {"board":"test"} /-->' );
