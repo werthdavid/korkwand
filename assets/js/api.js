@@ -1,7 +1,9 @@
-// REST-Client fuer korkwand/v1. Fehler: ApiError (mit German message) oder SessionExpiredError.
+// REST client for korkwand/v1. Errors: ApiError (message from the server) or SessionExpiredError.
+import { t } from 'korkwand-i18n';
+
 export class SessionExpiredError extends Error {
 	constructor() {
-		super('Sitzung abgelaufen – bitte Seite neu laden.');
+		super(t('sessionExpired'));
 		this.name = 'SessionExpiredError';
 	}
 }
@@ -30,7 +32,7 @@ async function request(path, options = {}) {
 			body: options.json !== undefined ? JSON.stringify(options.json) : options.body,
 		});
 	} catch (e) {
-		throw new ApiError('Netzwerkfehler – bitte Verbindung prüfen.', 'korkwand_network', 0);
+		throw new ApiError(t('networkError'), 'korkwand_network', 0);
 	}
 	let data = null;
 	try {
@@ -43,7 +45,7 @@ async function request(path, options = {}) {
 		if (res.status === 401 || (res.status === 403 && code === 'rest_cookie_invalid_nonce')) {
 			throw new SessionExpiredError();
 		}
-		throw new ApiError((data && data.message) || 'Unbekannter Fehler.', code, res.status);
+		throw new ApiError((data && data.message) || t('unknownError'), code, res.status);
 	}
 	return data;
 }

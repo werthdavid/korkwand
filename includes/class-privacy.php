@@ -17,7 +17,7 @@ final class Privacy {
 
 	public static function add_exporter( $exporters ) {
 		$exporters['korkwand'] = array(
-			'exporter_friendly_name' => __( 'Pinnwand', 'korkwand' ),
+			'exporter_friendly_name' => __( 'Korkwand', 'korkwand' ),
 			'callback'               => array( self::class, 'exporter' ),
 		);
 		return $exporters;
@@ -25,7 +25,7 @@ final class Privacy {
 
 	public static function add_eraser( $erasers ) {
 		$erasers['korkwand'] = array(
-			'eraser_friendly_name' => __( 'Pinnwand', 'korkwand' ),
+			'eraser_friendly_name' => __( 'Korkwand', 'korkwand' ),
 			'callback'             => array( self::class, 'eraser' ),
 		);
 		return $erasers;
@@ -60,13 +60,13 @@ final class Privacy {
 			$url   = $thumb ? (string) wp_get_attachment_url( $thumb ) : '';
 			$items[] = array(
 				'group_id'    => 'korkwand',
-				'group_label' => __( 'Pinnwand', 'korkwand' ),
+				'group_label' => __( 'Korkwand', 'korkwand' ),
 				'item_id'     => 'pin-' . $pin->ID,
 				'data'        => array(
-					array( 'name' => __( 'Titel', 'korkwand' ), 'value' => wp_specialchars_decode( $pin->post_title, ENT_QUOTES ) ),
+					array( 'name' => __( 'Title', 'korkwand' ), 'value' => wp_specialchars_decode( $pin->post_title, ENT_QUOTES ) ),
 					array( 'name' => __( 'Text', 'korkwand' ), 'value' => wp_specialchars_decode( $pin->post_content, ENT_QUOTES ) ),
-					array( 'name' => __( 'Datum', 'korkwand' ), 'value' => $pin->post_date_gmt . ' UTC' ),
-					array( 'name' => __( 'Bild', 'korkwand' ), 'value' => $url ),
+					array( 'name' => __( 'Date', 'korkwand' ), 'value' => $pin->post_date_gmt . ' UTC' ),
+					array( 'name' => __( 'Image', 'korkwand' ), 'value' => $url ),
 				),
 			);
 		}
@@ -92,7 +92,7 @@ final class Privacy {
 					$done = false; // Es kann noch Loeschbares uebrig sein: naechste Charge.
 				} else {
 					$retained   = true; // Rest ist nicht loeschbar.
-					$messages[] = __( 'Einige Zettel konnten nicht gelöscht werden.', 'korkwand' );
+					$messages[] = __( 'Some notes could not be deleted.', 'korkwand' );
 				}
 			}
 		}

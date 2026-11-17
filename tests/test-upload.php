@@ -194,11 +194,11 @@ class Korkwand_Test_Upload extends WP_UnitTestCase {
 			$file['error'] = $code;
 			$r             = Upload::handle( $file, $this->user );
 			$this->assertWPError( $r );
-			$this->assertSame( 'Das Bild ist zu groß (maximal 8 MB).', $r->get_error_message() );
+			$this->assertSame( 'The image is too large (maximum 8 MB).', $r->get_error_message() );
 		}
 		$file          = $this->file_from( DIR_TESTDATA . '/images/test-image.png', 'x.png', 'image/png' );
 		$file['error'] = UPLOAD_ERR_PARTIAL;
-		$this->assertStringContainsString( 'fehlgeschlagen', Upload::handle( $file, $this->user )->get_error_message() );
+		$this->assertStringContainsString( 'failed', Upload::handle( $file, $this->user )->get_error_message() );
 	}
 
 	public function test_effective_limit_is_min_of_8mb_and_host_limit() {
@@ -211,9 +211,9 @@ class Korkwand_Test_Upload extends WP_UnitTestCase {
 		$r            = Upload::handle( $file, $this->user );
 		remove_filter( 'upload_size_limit', $low );
 		$this->assertWPError( $r );
-		$this->assertSame( 'Das Bild ist zu groß (maximal 2 MB).', $r->get_error_message() );
+		$this->assertSame( 'The image is too large (maximum 2 MB).', $r->get_error_message() );
 		add_filter( 'upload_size_limit', static fn() => 1572864 );
-		$this->assertSame( 'Das Bild ist zu groß (maximal ' . number_format_i18n( 1.5, 1 ) . ' MB).', Upload::too_large_error()->get_error_message() );
+		$this->assertSame( 'The image is too large (maximum ' . number_format_i18n( 1.5, 1 ) . ' MB).', Upload::too_large_error()->get_error_message() );
 		remove_all_filters( 'upload_size_limit' );
 		add_filter( 'upload_size_limit', static fn() => 99999999999 );
 		$this->assertSame( 8388608, Upload::max_bytes() );
@@ -225,7 +225,7 @@ class Korkwand_Test_Upload extends WP_UnitTestCase {
 		$id   = Upload::handle( $file, $this->user );
 		$this->assertIsInt( $id );
 		$this->assertMatchesRegularExpression( '/^korkwand-[A-Za-z0-9]{12}(-\d+)?\.png$/', basename( get_attached_file( $id ) ) );
-		$this->assertSame( 'Pinnwand-Bild', get_post( $id )->post_title );
+		$this->assertSame( 'Korkwand image', get_post( $id )->post_title );
 		$this->assertStringNotContainsString( 'Mustermann', wp_json_encode( get_post( $id ) ) . get_attached_file( $id ) . wp_json_encode( wp_get_attachment_metadata( $id ) ) );
 		$this->cleanup( $id );
 	}

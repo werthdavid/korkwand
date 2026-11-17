@@ -4,7 +4,7 @@ namespace Korkwand;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Admin-Bereich: Listenspalten, Pinnwand-Einstellungen, Plugin-Einstellungen.
+ * Admin-Bereich: Listenspalten, Board-Einstellungen, Plugin-Einstellungen.
  */
 final class Admin {
 
@@ -41,9 +41,9 @@ final class Admin {
 	 * @return array<string,string>
 	 */
 	public static function columns( array $cols ): array {
-		$cols['korkwand_type']    = __( 'Typ', 'korkwand' );
+		$cols['korkwand_type']    = __( 'Type', 'korkwand' );
 		$cols['korkwand_sticky']  = __( 'Sticky', 'korkwand' );
-		$cols['korkwand_expires'] = __( 'Läuft ab am', 'korkwand' );
+		$cols['korkwand_expires'] = __( 'Expires on', 'korkwand' );
 		return $cols;
 	}
 
@@ -55,12 +55,12 @@ final class Admin {
 		switch ( $col ) {
 			case 'korkwand_type':
 				echo 'image' === get_post_meta( $post_id, '_korkwand_type', true )
-					? esc_html__( 'Bild', 'korkwand' )
+					? esc_html__( 'Image', 'korkwand' )
 					: esc_html__( 'Post-it', 'korkwand' );
 				break;
 			case 'korkwand_sticky':
 				echo (int) get_post_meta( $post_id, '_korkwand_sticky', true )
-					? esc_html__( 'Ja', 'korkwand' )
+					? esc_html__( 'Yes', 'korkwand' )
 					: '–';
 				break;
 			case 'korkwand_expires':
@@ -72,7 +72,7 @@ final class Admin {
 				$exp = Pins::expires_at( $pin, $terms[0] );
 				echo $exp
 					? esc_html( wp_date( get_option( 'date_format' ), $exp->getTimestamp() ) )
-					: esc_html__( 'nie', 'korkwand' );
+					: esc_html__( 'never', 'korkwand' );
 				break;
 		}
 	}
@@ -107,22 +107,22 @@ final class Admin {
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
 		?>
 		<div class="form-field">
-			<label for="korkwand-lifetime"><?php esc_html_e( 'Laufzeit in Tagen', 'korkwand' ); ?></label>
+			<label for="korkwand-lifetime"><?php esc_html_e( 'Lifetime in days', 'korkwand' ); ?></label>
 			<input type="number" name="lifetime_days" id="korkwand-lifetime" min="0" max="3650" value="<?php echo esc_attr( (string) $s['lifetime_days'] ); ?>">
-			<p><?php esc_html_e( '0 = Zettel laufen nie ab.', 'korkwand' ); ?></p>
+			<p><?php esc_html_e( '0 = notes never expire.', 'korkwand' ); ?></p>
 		</div>
 		<div class="form-field">
-			<label for="korkwand-height"><?php esc_html_e( 'Höhe in Pixel', 'korkwand' ); ?></label>
+			<label for="korkwand-height"><?php esc_html_e( 'Height in pixels', 'korkwand' ); ?></label>
 			<input type="number" name="height" id="korkwand-height" min="300" max="3000" value="<?php echo esc_attr( (string) $s['height'] ); ?>">
 		</div>
 		<div class="form-field">
-			<label for="korkwand-max-pins"><?php esc_html_e( 'Maximale Anzahl Zettel', 'korkwand' ); ?></label>
+			<label for="korkwand-max-pins"><?php esc_html_e( 'Maximum number of notes', 'korkwand' ); ?></label>
 			<input type="number" name="max_pins" id="korkwand-max-pins" min="1" max="200" value="<?php echo esc_attr( (string) $s['max_pins'] ); ?>">
 		</div>
 		<div class="form-field">
 			<label for="korkwand-notify">
 				<input type="checkbox" name="notify" id="korkwand-notify" value="1">
-				<?php esc_html_e( 'E-Mail bei neuem Zettel', 'korkwand' ); ?>
+				<?php esc_html_e( 'Email on new note', 'korkwand' ); ?>
 			</label>
 		</div>
 		<?php
@@ -133,26 +133,26 @@ final class Admin {
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
 		?>
 		<tr class="form-field">
-			<th scope="row"><label for="korkwand-lifetime"><?php esc_html_e( 'Laufzeit in Tagen', 'korkwand' ); ?></label></th>
+			<th scope="row"><label for="korkwand-lifetime"><?php esc_html_e( 'Lifetime in days', 'korkwand' ); ?></label></th>
 			<td>
 				<input type="number" name="lifetime_days" id="korkwand-lifetime" min="0" max="3650" value="<?php echo esc_attr( (string) $s['lifetime_days'] ); ?>">
-				<p class="description"><?php esc_html_e( '0 = Zettel laufen nie ab.', 'korkwand' ); ?></p>
+				<p class="description"><?php esc_html_e( '0 = notes never expire.', 'korkwand' ); ?></p>
 			</td>
 		</tr>
 		<tr class="form-field">
-			<th scope="row"><label for="korkwand-height"><?php esc_html_e( 'Höhe in Pixel', 'korkwand' ); ?></label></th>
+			<th scope="row"><label for="korkwand-height"><?php esc_html_e( 'Height in pixels', 'korkwand' ); ?></label></th>
 			<td><input type="number" name="height" id="korkwand-height" min="300" max="3000" value="<?php echo esc_attr( (string) $s['height'] ); ?>"></td>
 		</tr>
 		<tr class="form-field">
-			<th scope="row"><label for="korkwand-max-pins"><?php esc_html_e( 'Maximale Anzahl Zettel', 'korkwand' ); ?></label></th>
+			<th scope="row"><label for="korkwand-max-pins"><?php esc_html_e( 'Maximum number of notes', 'korkwand' ); ?></label></th>
 			<td><input type="number" name="max_pins" id="korkwand-max-pins" min="1" max="200" value="<?php echo esc_attr( (string) $s['max_pins'] ); ?>"></td>
 		</tr>
 		<tr class="form-field">
-			<th scope="row"><?php esc_html_e( 'E-Mail bei neuem Zettel', 'korkwand' ); ?></th>
+			<th scope="row"><?php esc_html_e( 'Email on new note', 'korkwand' ); ?></th>
 			<td>
 				<label for="korkwand-notify">
 					<input type="checkbox" name="notify" id="korkwand-notify" value="1" <?php checked( $s['notify'] ); ?>>
-					<?php esc_html_e( 'Benachrichtigung senden', 'korkwand' ); ?>
+					<?php esc_html_e( 'Send notification', 'korkwand' ); ?>
 				</label>
 			</td>
 		</tr>
@@ -184,8 +184,8 @@ final class Admin {
 	public static function menu(): void {
 		add_submenu_page(
 			'edit.php?post_type=korkwand_pin',
-			__( 'Einstellungen', 'korkwand' ),
-			__( 'Einstellungen', 'korkwand' ),
+			__( 'Settings', 'korkwand' ),
+			__( 'Settings', 'korkwand' ),
 			'manage_options',
 			'korkwand-settings',
 			array( self::class, 'settings_page' )
@@ -199,17 +199,17 @@ final class Admin {
 		$value = get_option( self::OPTION, '1' );
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Pinnwand – Einstellungen', 'korkwand' ); ?></h1>
+			<h1><?php esc_html_e( 'Korkwand – Settings', 'korkwand' ); ?></h1>
 			<form method="post" action="options.php">
 				<?php settings_fields( 'korkwand_settings' ); ?>
 				<table class="form-table" role="presentation">
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Deinstallation', 'korkwand' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Uninstall', 'korkwand' ); ?></th>
 						<td>
 							<input type="hidden" name="<?php echo esc_attr( self::OPTION ); ?>" value="0">
 							<label>
 								<input type="checkbox" name="<?php echo esc_attr( self::OPTION ); ?>" value="1" <?php checked( '1', $value ); ?>>
-								<?php esc_html_e( 'Beim Löschen des Plugins alle Zettel und Bilder entfernen', 'korkwand' ); ?>
+								<?php esc_html_e( 'Remove all notes and images when the plugin is deleted', 'korkwand' ); ?>
 							</label>
 						</td>
 					</tr>

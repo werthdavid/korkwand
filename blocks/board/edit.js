@@ -13,9 +13,9 @@
 					null,
 					el(
 						wp.components.PanelBody,
-						{ title: __( 'Pinnwand', 'korkwand' ) },
+						{ title: __( 'Korkwand', 'korkwand' ) },
 						el( wp.components.TextControl, {
-							label: __( 'Pinnwand (Slug)', 'korkwand' ),
+							label: __( 'Board (slug)', 'korkwand' ),
 							value: board || '',
 							onChange: function ( value ) {
 								props.setAttributes( { board: value } );
@@ -26,7 +26,7 @@
 				el( 'div', wp.blockEditor.useBlockProps(),
 					board
 						? el( wp.serverSideRender, { block: 'korkwand/board', attributes: props.attributes } )
-						: el( 'p', null, __( 'Bitte rechts den Slug der Pinnwand eintragen.', 'korkwand' ) )
+						: el( 'p', null, __( 'Please enter the board slug in the sidebar.', 'korkwand' ) )
 				)
 			);
 		},

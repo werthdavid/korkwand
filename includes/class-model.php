@@ -13,11 +13,14 @@ final class Model {
 			'korkwand_pin',
 			array(
 				'labels'          => array(
-					'name'          => __( 'Pinnwand', 'korkwand' ),
-					'singular_name' => __( 'Zettel', 'korkwand' ),
-					'menu_name'     => __( 'Pinnwand', 'korkwand' ),
-					'add_new_item'  => __( 'Neuen Zettel hinzufügen', 'korkwand' ),
-					'edit_item'     => __( 'Zettel bearbeiten', 'korkwand' ),
+					'name'          => __( 'Notes', 'korkwand' ),
+					'singular_name' => __( 'Note', 'korkwand' ),
+					'menu_name'     => __( 'Korkwand', 'korkwand' ),
+					'all_items'     => __( 'All Notes', 'korkwand' ),
+					'add_new_item'  => __( 'Add New Note', 'korkwand' ),
+					'edit_item'     => __( 'Edit Note', 'korkwand' ),
+					'search_items'  => __( 'Search Notes', 'korkwand' ),
+					'not_found'     => __( 'No notes found.', 'korkwand' ),
 				),
 				'public'          => false,
 				'show_ui'         => true,
@@ -36,8 +39,8 @@ final class Model {
 			'korkwand_pin',
 			array(
 				'labels'            => array(
-					'name'          => __( 'Pinnwände', 'korkwand' ),
-					'singular_name' => __( 'Pinnwand', 'korkwand' ),
+					'name'          => __( 'Boards', 'korkwand' ),
+					'singular_name' => __( 'Board', 'korkwand' ),
 				),
 				'hierarchical'      => false,
 				'public'            => false,

@@ -4,7 +4,7 @@ namespace Korkwand;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Darstellung: Shortcode [pinnwand], Block korkwand/board und HTML-Markup.
+ * Darstellung: Shortcode [korkwand], Block korkwand/board und HTML-Markup.
  *
  * Skript-Strategie: `korkwand-script` ist ein ES-Modul (wp_register_script_module). Die
  * Konfiguration `Korkwand` wird ueber ein winziges klassisches Handle `korkwand-config`
@@ -50,6 +50,7 @@ final class Render {
 			KORKWAND_VERSION,
 			true
 		);
+		wp_set_script_translations( 'korkwand-block-editor', 'korkwand', KORKWAND_DIR . 'languages' );
 		register_block_type( KORKWAND_DIR . 'blocks/board' );
 	}
 
@@ -68,8 +69,8 @@ final class Render {
 			if ( current_user_can( 'manage_options' ) ) {
 				return '<p class="korkwand-error">' . esc_html(
 					sprintf(
-						/* translators: %s: Pinnwand-Slug */
-						__( 'Pinnwand „%s“ nicht gefunden.', 'korkwand' ),
+						/* translators: %s: board slug */
+						__( 'Board "%s" not found.', 'korkwand' ),
 						$slug
 					)
 				) . '</p>';
@@ -94,10 +95,10 @@ final class Render {
 		);
 		$out .= '<div class="korkwand-toolbar">';
 		if ( $can_post ) {
-			$out .= '<button type="button" class="korkwand-add">' . esc_html__( '+ Zettel', 'korkwand' ) . '</button>';
+			$out .= '<button type="button" class="korkwand-add">' . esc_html__( '+ Add note', 'korkwand' ) . '</button>';
 		} else {
 			$out .= '<span class="korkwand-login-hint"><a href="' . esc_url( self::login_url() ) . '">'
-				. esc_html__( 'Zum Anheften bitte anmelden', 'korkwand' ) . '</a></span>';
+				. esc_html__( 'Log in to pin a note', 'korkwand' ) . '</a></span>';
 		}
 		$out .= '</div>';
 		$out .= '<div class="korkwand-board"><div class="korkwand-canvas" style="height:' . $height . 'px">';
@@ -175,6 +176,8 @@ final class Render {
 				'nonce'    => wp_create_nonce( 'wp_rest' ),
 				'loginUrl' => self::login_url(),
 				'maxBytes' => Upload::max_bytes(),
+				'maxLabel' => Upload::max_label(),
+				'i18n'     => self::js_strings(),
 			);
 			wp_add_inline_script( 'korkwand-config', 'window.Korkwand = ' . wp_json_encode( $config ) . ';' );
 			wp_enqueue_script( 'korkwand-config' );
@@ -183,11 +186,52 @@ final class Render {
 		// Teilmodule einzeln mit Version registrieren und per Modul-ID importieren: Die Import-Map traegt
 		// ?ver=..., so dass Browser nach Updates keine veralteten Teilmodule aus dem Cache nutzen.
 		$deps = array();
-		foreach ( array( 'api', 'geometry', 'dialog', 'lightbox' ) as $name ) {
+		foreach ( array( 'i18n', 'api', 'geometry', 'dialog', 'lightbox' ) as $name ) {
 			wp_register_script_module( 'korkwand-' . $name, KORKWAND_URL . 'assets/js/' . $name . '.js', array(), KORKWAND_VERSION );
 			$deps[] = 'korkwand-' . $name;
 		}
 		wp_register_script_module( 'korkwand-script', KORKWAND_URL . 'assets/js/korkwand.js', $deps, KORKWAND_VERSION );
 		wp_enqueue_script_module( 'korkwand-script' );
+	}
+
+	/**
+	 * Oberflaechen-Texte fuer das Frontend-JavaScript. Script-Module koennen wp_set_script_translations()
+	 * nicht nutzen; deshalb werden die Texte hier uebersetzt und ueber window.Korkwand.i18n uebergeben.
+	 *
+	 * @return array<string,string>
+	 */
+	private static function js_strings(): array {
+		return array(
+			'sessionExpired' => __( 'Session expired – please reload the page.', 'korkwand' ),
+			'networkError'   => __( 'Network error – please check your connection.', 'korkwand' ),
+			'unknownError'   => __( 'Unknown error.', 'korkwand' ),
+			'editNote'       => __( 'Edit note', 'korkwand' ),
+			'newNote'        => __( 'New note', 'korkwand' ),
+			'noteType'       => __( 'Note type', 'korkwand' ),
+			'postit'         => __( 'Post-it', 'korkwand' ),
+			'image'          => __( 'Image', 'korkwand' ),
+			'titleLabel'     => __( 'Title (required, max. 60 characters)', 'korkwand' ),
+			'textLabel'      => __( 'Text (optional, max. 300 characters)', 'korkwand' ),
+			/* translators: %s: maximum upload size in MB */
+			'imageLabel'     => __( 'Image (JPEG, PNG or WebP, max. %s MB)', 'korkwand' ),
+			'captionLabel'   => __( 'Caption (optional, max. 100 characters)', 'korkwand' ),
+			'save'           => __( 'Save', 'korkwand' ),
+			'pin'            => __( 'Pin', 'korkwand' ),
+			'cancel'         => __( 'Cancel', 'korkwand' ),
+			'chooseImage'    => __( 'Please choose an image.', 'korkwand' ),
+			'imageTypeOnly'  => __( 'Only JPEG, PNG or WebP are allowed.', 'korkwand' ),
+			/* translators: %s: maximum upload size in MB */
+			'imageTooLarge'  => __( 'The image is too large (maximum %s MB).', 'korkwand' ),
+			'enterTitle'     => __( 'Please enter a title.', 'korkwand' ),
+			'imageView'      => __( 'Image view', 'korkwand' ),
+			'close'          => __( 'Close', 'korkwand' ),
+			'openMenu'       => __( 'Open note menu', 'korkwand' ),
+			'noteGone'       => __( 'This note no longer exists.', 'korkwand' ),
+			'edit'           => __( 'Edit', 'korkwand' ),
+			'delete'         => __( 'Delete', 'korkwand' ),
+			'sticky'         => __( 'Sticky', 'korkwand' ),
+			'removeSticky'   => __( 'Remove sticky', 'korkwand' ),
+			'confirmDelete'  => __( 'Really delete this note?', 'korkwand' ),
+		);
 	}
 }

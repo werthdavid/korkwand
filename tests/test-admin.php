@@ -36,7 +36,7 @@ class Korkwand_Test_Admin extends WP_UnitTestCase {
 	}
 
 	public function test_columns_registered() {
-		$cols = apply_filters( 'manage_korkwand_pin_posts_columns', array( 'title' => 'Titel' ) );
+		$cols = apply_filters( 'manage_korkwand_pin_posts_columns', array( 'title' => 'Title' ) );
 		$this->assertArrayHasKey( 'korkwand_type', $cols );
 		$this->assertArrayHasKey( 'korkwand_sticky', $cols );
 		$this->assertArrayHasKey( 'korkwand_expires', $cols );
@@ -54,15 +54,15 @@ class Korkwand_Test_Admin extends WP_UnitTestCase {
 		$pin = self::factory()->post->create( array( 'post_type' => 'korkwand_pin' ) );
 		wp_set_object_terms( $pin, array( $term ), 'korkwand_board' );
 		update_post_meta( $pin, '_korkwand_type', 'image' );
-		$this->assertSame( 'Bild', $this->column( 'korkwand_type', $pin ) );
+		$this->assertSame( 'Image', $this->column( 'korkwand_type', $pin ) );
 		$this->assertSame( '–', $this->column( 'korkwand_sticky', $pin ) );
 		$this->assertStringContainsString( wp_date( get_option( 'date_format' ), time() + 10 * DAY_IN_SECONDS ), $this->column( 'korkwand_expires', $pin ) );
 
 		update_post_meta( $pin, '_korkwand_type', 'postit' );
 		update_post_meta( $pin, '_korkwand_sticky', '1' );
 		$this->assertSame( 'Post-it', $this->column( 'korkwand_type', $pin ) );
-		$this->assertSame( 'Ja', $this->column( 'korkwand_sticky', $pin ) );
-		$this->assertSame( 'nie', $this->column( 'korkwand_expires', $pin ) );
+		$this->assertSame( 'Yes', $this->column( 'korkwand_sticky', $pin ) );
+		$this->assertSame( 'never', $this->column( 'korkwand_expires', $pin ) );
 	}
 
 	public function test_expires_column_without_board() {
@@ -156,6 +156,6 @@ class Korkwand_Test_Admin extends WP_UnitTestCase {
 		Admin::settings_page();
 		$html = ob_get_clean();
 		$this->assertStringContainsString( 'name="korkwand_delete_data_on_uninstall"', $html );
-		$this->assertStringContainsString( 'Beim Löschen des Plugins alle Zettel und Bilder entfernen', $html );
+		$this->assertStringContainsString( 'Remove all notes and images when the plugin is deleted', $html );
 	}
 }

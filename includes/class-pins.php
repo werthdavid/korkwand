@@ -24,7 +24,7 @@ final class Pins {
 	public static function create( \WP_Term $board, int $user_id, array $data ) {
 		$type = isset( $data['type'] ) && is_string( $data['type'] ) ? $data['type'] : '';
 		if ( ! in_array( $type, self::TYPES, true ) ) {
-			return self::invalid( __( 'Ungültiger Zettel-Typ.', 'korkwand' ) );
+			return self::invalid( __( 'Invalid note type.', 'korkwand' ) );
 		}
 
 		$text  = self::clean_text( $data['text'] ?? '' );
@@ -33,7 +33,7 @@ final class Pins {
 			$title = self::clean_title( $data['title'] ?? '' );
 			$err   = self::validate_title( $title ) ?? self::validate_text( $text, self::MAX_POSTIT );
 		} else {
-			$title = __( 'Bild', 'korkwand' );
+			$title = __( 'Image', 'korkwand' );
 			$thumb = isset( $data['attachment_id'] ) ? absint( $data['attachment_id'] ) : 0;
 			$err   = self::validate_attachment( $thumb ) ?? self::validate_text( $text, self::MAX_CAPTION );
 		}
@@ -235,7 +235,7 @@ final class Pins {
 	}
 
 	/**
-	 * @param \WP_Term|null $board Pinnwand des Zettels, wenn der Aufrufer sie kennt (spart eine Term-Abfrage pro Zettel).
+	 * @param \WP_Term|null $board Board des Zettels, wenn der Aufrufer sie kennt (spart eine Term-Abfrage pro Zettel).
 	 * @return array<string, mixed>
 	 */
 	public static function to_array( \WP_Post $pin, int $viewer_id, ?\WP_Term $board = null ): array {
@@ -291,22 +291,22 @@ final class Pins {
 	private static function validate_title( string $title ): ?\WP_Error {
 		$len = mb_strlen( self::decode( $title ) );
 		if ( $len < 1 || $len > self::MAX_TITLE ) {
-			return self::invalid( __( 'Der Titel muss 1 bis 60 Zeichen lang sein.', 'korkwand' ) );
+			return self::invalid( __( 'The title must be 1 to 60 characters long.', 'korkwand' ) );
 		}
 		return null;
 	}
 
 	private static function validate_text( string $text, int $max ): ?\WP_Error {
 		if ( mb_strlen( self::decode( $text ) ) > $max ) {
-			/* translators: %d: maximale Zeichenzahl */
-			return self::invalid( sprintf( __( 'Der Text darf höchstens %d Zeichen lang sein.', 'korkwand' ), $max ) );
+			/* translators: %d: maximum number of characters */
+			return self::invalid( sprintf( __( 'The text must not be longer than %d characters.', 'korkwand' ), $max ) );
 		}
 		return null;
 	}
 
 	private static function validate_attachment( int $id ): ?\WP_Error {
 		if ( $id <= 0 || 'attachment' !== get_post_type( $id ) || ! wp_attachment_is_image( $id ) ) {
-			return self::invalid( __( 'Ein gültiges Bild ist erforderlich.', 'korkwand' ) );
+			return self::invalid( __( 'A valid image is required.', 'korkwand' ) );
 		}
 		return null;
 	}

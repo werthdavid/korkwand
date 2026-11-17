@@ -1,4 +1,6 @@
-// Lightbox: <dialog> mit grossem Bild; Esc oder Klick schliesst.
+// Lightbox: <dialog> with a large image; Esc or a click closes it.
+import { t } from 'korkwand-i18n';
+
 let dlg = null;
 let lastTrigger = null;
 
@@ -6,7 +8,7 @@ function ensure() {
 	if (dlg) return dlg;
 	dlg = document.createElement('dialog');
 	dlg.className = 'korkwand-lightbox-dialog';
-	dlg.setAttribute('aria-label', 'Bildansicht');
+	dlg.setAttribute('aria-label', t('imageView'));
 	Object.assign(dlg.style, { padding: '0', border: '0', background: 'transparent', maxWidth: '96vw', maxHeight: '96vh', overflow: 'visible' });
 
 	const img = document.createElement('img');
@@ -16,7 +18,7 @@ function ensure() {
 	const close = document.createElement('button');
 	close.type = 'button';
 	close.textContent = '×';
-	close.setAttribute('aria-label', 'Schließen');
+	close.setAttribute('aria-label', t('close'));
 	Object.assign(close.style, { position: 'absolute', top: '-8px', right: '-8px', width: '36px', height: '36px', borderRadius: '50%', border: '0', fontSize: '22px', cursor: 'pointer' });
 	dlg.append(img, cap, close);
 

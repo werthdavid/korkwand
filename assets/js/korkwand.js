@@ -1,9 +1,10 @@
-// korkwand Frontend: Skalierung, Drag & Drop, Zettelmenue, Anlegen/Bearbeiten/Loeschen, Lightbox.
-// Nutzer-Inhalte werden ausschliesslich per textContent/createElement gerendert (nie innerHTML).
+// Korkwand frontend: scaling, drag & drop, note menu, create/edit/delete, lightbox.
+// User content is rendered exclusively via textContent/createElement (never innerHTML).
 import { scaleFor, toLogical, clamp } from 'korkwand-geometry';
 import { listPins, createPin, updatePin, deletePin, SessionExpiredError } from 'korkwand-api';
 import { openPinDialog } from 'korkwand-dialog';
 import { openLightbox } from 'korkwand-lightbox';
+import { t } from 'korkwand-i18n';
 
 const LIST_BREAKPOINT = 480;
 const DRAG_THRESHOLD = 4;
@@ -67,7 +68,7 @@ function addMenuButton(article) {
 	const b = document.createElement('button');
 	b.type = 'button';
 	b.className = 'korkwand-menu-btn';
-	b.setAttribute('aria-label', 'Zettel-Menü öffnen');
+	b.setAttribute('aria-label', t('openMenu'));
 	b.setAttribute('aria-haspopup', 'true');
 	b.textContent = '⋯';
 	article.appendChild(b);
@@ -148,7 +149,7 @@ class Board {
 	}
 
 	fail(err) {
-		this.notice(err instanceof SessionExpiredError ? err.message : (err && err.message) || 'Unbekannter Fehler.', err instanceof SessionExpiredError);
+		this.notice(err instanceof SessionExpiredError ? err.message : (err && err.message) || t('unknownError'), err instanceof SessionExpiredError);
 	}
 
 	/* ------------------------------ Klicks ------------------------------ */
@@ -314,17 +315,17 @@ class Board {
 		} catch (err) {
 			return this.fail(err);
 		}
-		if (!pin) return this.notice('Dieser Zettel existiert nicht mehr.');
+		if (!pin) return this.notice(t('noteGone'));
 
 		const menu = document.createElement('div');
 		menu.className = 'korkwand-menu';
 		menu.setAttribute('role', 'menu');
 		const items = [
-			['Bearbeiten', () => this.openEdit(pin, btn)],
-			['Löschen', () => this.remove(pin)],
+			[t('edit'), () => this.openEdit(pin, btn)],
+			[t('delete'), () => this.remove(pin)],
 		];
 		if (pin.can_moderate) {
-			items.push([pin.sticky ? 'Sticky entfernen' : 'Sticky', () => this.toggleSticky(pin)]);
+			items.push([pin.sticky ? t('removeSticky') : t('sticky'), () => this.toggleSticky(pin)]);
 		}
 		for (const [label, fn] of items) {
 			const b = document.createElement('button');
@@ -411,7 +412,7 @@ class Board {
 	}
 
 	async remove(pin) {
-		if (!window.confirm('Diesen Zettel wirklich löschen?')) return;
+		if (!window.confirm(t('confirmDelete'))) return;
 		try {
 			await deletePin(pin.id);
 			const art = this.canvas.querySelector(`.korkwand-pin[data-id="${pin.id}"]`);

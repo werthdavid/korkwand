@@ -36,8 +36,8 @@ class Korkwand_Test_Privacy extends WP_UnitTestCase {
 	public function test_registered() {
 		$ex = apply_filters( 'wp_privacy_personal_data_exporters', array() );
 		$er = apply_filters( 'wp_privacy_personal_data_erasers', array() );
-		$this->assertSame( 'Pinnwand', $ex['korkwand']['exporter_friendly_name'] );
-		$this->assertSame( 'Pinnwand', $er['korkwand']['eraser_friendly_name'] );
+		$this->assertSame( 'Korkwand', $ex['korkwand']['exporter_friendly_name'] );
+		$this->assertSame( 'Korkwand', $er['korkwand']['eraser_friendly_name'] );
 		$this->assertIsCallable( $ex['korkwand']['callback'] );
 		$this->assertIsCallable( $er['korkwand']['callback'] );
 	}
@@ -51,17 +51,17 @@ class Korkwand_Test_Privacy extends WP_UnitTestCase {
 		$this->assertCount( 2, $r['data'] );
 		$first = $r['data'][0];
 		$this->assertSame( 'korkwand', $first['group_id'] );
-		$this->assertSame( 'Pinnwand', $first['group_label'] );
+		$this->assertSame( 'Korkwand', $first['group_label'] );
 		$flat = array();
 		foreach ( $r['data'] as $item ) {
 			foreach ( $item['data'] as $d ) {
 				$flat[ $item['item_id'] ][ $d['name'] ] = $d['value'];
 			}
 		}
-		$this->assertSame( 'Hallo', $flat[ 'pin-' . $p ]['Titel'] );
+		$this->assertSame( 'Hallo', $flat[ 'pin-' . $p ]['Title'] );
 		$this->assertSame( 'Welt', $flat[ 'pin-' . $p ]['Text'] );
-		$this->assertNotEmpty( $flat[ 'pin-' . $p ]['Datum'] );
-		$this->assertSame( wp_get_attachment_url( $att ), $flat[ 'pin-' . $ip ]['Bild'] );
+		$this->assertNotEmpty( $flat[ 'pin-' . $p ]['Date'] );
+		$this->assertSame( wp_get_attachment_url( $att ), $flat[ 'pin-' . $ip ]['Image'] );
 	}
 
 	public function test_exporter_unknown_email() {
@@ -132,7 +132,7 @@ class Korkwand_Test_Privacy extends WP_UnitTestCase {
 		$this->assertTrue( $r['items_removed'] );
 		$this->assertTrue( $r['items_retained'] );
 		$this->assertTrue( $r['done'] );
-		$this->assertSame( array( 'Einige Zettel konnten nicht gelöscht werden.' ), $r['messages'] );
+		$this->assertSame( array( 'Some notes could not be deleted.' ), $r['messages'] );
 		$this->assertNotNull( get_post( $blocked ) );
 		$this->assertNull( get_post( $other ), 'Pin hinter dem gesperrten wird trotzdem geloescht' );
 	}

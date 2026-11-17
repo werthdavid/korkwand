@@ -72,10 +72,10 @@ final class Rest {
 	public static function can_create() {
 		$uid = get_current_user_id();
 		if ( $uid <= 0 ) {
-			return self::error( 'korkwand_unauthorized', __( 'Bitte melde dich an.', 'korkwand' ), 401 );
+			return self::error( 'korkwand_unauthorized', __( 'Please log in.', 'korkwand' ), 401 );
 		}
 		if ( ! Permissions::can_post( $uid ) ) {
-			return self::error( 'korkwand_forbidden', __( 'Du darfst keine Zettel anlegen.', 'korkwand' ), 403 );
+			return self::error( 'korkwand_forbidden', __( 'You are not allowed to create notes.', 'korkwand' ), 403 );
 		}
 		return true;
 	}
@@ -84,14 +84,14 @@ final class Rest {
 	public static function can_modify( \WP_REST_Request $request ) {
 		$uid = get_current_user_id();
 		if ( $uid <= 0 ) {
-			return self::error( 'korkwand_unauthorized', __( 'Bitte melde dich an.', 'korkwand' ), 401 );
+			return self::error( 'korkwand_unauthorized', __( 'Please log in.', 'korkwand' ), 401 );
 		}
 		$pin = self::find_pin( (int) $request['id'] );
 		if ( is_wp_error( $pin ) ) {
 			return $pin;
 		}
 		if ( ! Permissions::can_edit( $uid, $pin ) ) {
-			return self::error( 'korkwand_forbidden', __( 'Du darfst diesen Zettel nicht ändern.', 'korkwand' ), 403 );
+			return self::error( 'korkwand_forbidden', __( 'You are not allowed to change this note.', 'korkwand' ), 403 );
 		}
 		return true;
 	}
@@ -134,10 +134,10 @@ final class Rest {
 			if ( self::body_dropped( $request ) ) {
 				return Upload::too_large_error();
 			}
-			return self::error( 'korkwand_invalid', __( 'Ungültiger Zettel-Typ.', 'korkwand' ), 400 );
+			return self::error( 'korkwand_invalid', __( 'Invalid note type.', 'korkwand' ), 400 );
 		}
 		if ( ! RateLimit::hit( $uid ) ) {
-			return self::error( 'korkwand_rate_limited', __( 'Zu viele neue Zettel – bitte später erneut versuchen.', 'korkwand' ), 429 );
+			return self::error( 'korkwand_rate_limited', __( 'Too many new notes – please try again later.', 'korkwand' ), 429 );
 		}
 
 		// attachment_id wird bewusst nie vom Client uebernommen.
@@ -159,10 +159,10 @@ final class Rest {
 				return Upload::upload_error( (int) $file['error'] );
 			}
 			if ( ! is_array( $file ) || ! isset( $file['tmp_name'] ) || ! is_string( $file['tmp_name'] ) || '' === $file['tmp_name'] ) {
-				return self::error( 'korkwand_invalid', __( 'Ein Bild ist erforderlich.', 'korkwand' ), 400 );
+				return self::error( 'korkwand_invalid', __( 'An image is required.', 'korkwand' ), 400 );
 			}
 			if ( ! self::is_uploaded_file( $file ) ) {
-				return self::error( 'korkwand_upload', __( 'Es wurde keine Datei hochgeladen.', 'korkwand' ), 400 );
+				return self::error( 'korkwand_upload', __( 'No file was uploaded.', 'korkwand' ), 400 );
 			}
 			$attachment_id = Upload::handle( $file, $uid );
 			if ( is_wp_error( $attachment_id ) ) {
@@ -214,7 +214,7 @@ final class Rest {
 			return $pin;
 		}
 		if ( ! Pins::trash( $pin ) ) {
-			return self::error( 'korkwand_error', __( 'Der Zettel konnte nicht gelöscht werden.', 'korkwand' ), 500 );
+			return self::error( 'korkwand_error', __( 'The note could not be deleted.', 'korkwand' ), 500 );
 		}
 		return new \WP_REST_Response( array( 'deleted' => true ) );
 	}
@@ -222,7 +222,7 @@ final class Rest {
 	/* ------------------------------ Helpers ----------------------------- */
 
 	/**
-	 * Nur veroeffentlichte Zettel mit existierender Pinnwand sind ansprechbar.
+	 * Nur veroeffentlichte Zettel mit existierendem Board sind ansprechbar.
 	 *
 	 * @return \WP_Post|\WP_Error
 	 */
@@ -263,7 +263,7 @@ final class Rest {
 	}
 
 	private static function not_found(): \WP_Error {
-		return self::error( 'korkwand_not_found', __( 'Nicht gefunden.', 'korkwand' ), 404 );
+		return self::error( 'korkwand_not_found', __( 'Not found.', 'korkwand' ), 404 );
 	}
 
 	private static function error( string $code, string $message, int $status ): \WP_Error {

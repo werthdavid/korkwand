@@ -2,10 +2,10 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "korkwand/board",
-	"title": "Pinnwand",
+	"title": "Korkwand",
 	"category": "widgets",
 	"icon": "sticky",
-	"description": "Zeigt eine Pinnwand mit Zetteln und Bildern.",
+	"description": "Displays a Korkwand pinboard with notes and images.",
 	"textdomain": "korkwand",
 	"attributes": {
 		"board": { "type": "string", "default": "" }

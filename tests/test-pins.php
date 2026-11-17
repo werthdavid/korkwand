@@ -121,7 +121,7 @@ class Korkwand_Test_Pins extends WP_UnitTestCase {
 		$att = self::factory()->attachment->create_object( array( 'file' => 'a.jpg', 'post_mime_type' => 'image/jpeg', 'post_type' => 'attachment' ) );
 		$pin = Pins::create( $this->board, $this->user, array( 'type' => 'image', 'text' => 'Unterschrift', 'attachment_id' => $att ) );
 		$this->assertNotWPError( $pin );
-		$this->assertSame( 'Bild', $pin->post_title );
+		$this->assertSame( 'Image', $pin->post_title );
 		$this->assertSame( 'Unterschrift', $pin->post_content );
 		$this->assertSame( $att, (int) get_post_thumbnail_id( $pin->ID ) );
 		$this->assertSame( 'image', get_post_meta( $pin->ID, '_korkwand_type', true ) );
@@ -169,7 +169,7 @@ class Korkwand_Test_Pins extends WP_UnitTestCase {
 		$att = self::factory()->attachment->create_object( array( 'file' => 'a.jpg', 'post_mime_type' => 'image/jpeg', 'post_type' => 'attachment' ) );
 		$pin = Pins::create( $this->board, $this->user, array( 'type' => 'image', 'text' => 'a', 'attachment_id' => $att ) );
 		$r   = Pins::update( $pin, array( 'title' => 'Ignoriert', 'text' => 'b' ), $this->user );
-		$this->assertSame( 'Bild', $r->post_title );
+		$this->assertSame( 'Image', $r->post_title );
 		$this->assertSame( 'b', $r->post_content );
 		$this->assertWPError( Pins::update( $pin, array( 'text' => str_repeat( 'a', 101 ) ), $this->user ) );
 	}

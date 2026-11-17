@@ -1,12 +1,14 @@
 <?php
 /**
- * Plugin Name:       NZ Pinnwand
- * Description:       Pinnwand (Korkwand mit Post-its und Bildern) fuer WordPress.
+ * Plugin Name:       Korkwand
+ * Description:       A cork pinboard for WordPress: members pin post-it notes and photos, guests just look.
  * Version:           0.1.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Text Domain:       korkwand
+ * Domain Path:       /languages
  * License:           GPL-2.0-or-later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  */
 
 defined( 'ABSPATH' ) || exit;

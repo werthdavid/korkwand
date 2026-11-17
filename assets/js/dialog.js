@@ -1,4 +1,6 @@
-// Anlegen-/Bearbeiten-Dialog (<dialog>, showModal). Baut das DOM nur mit createElement/textContent.
+// Create/edit dialog (<dialog>, showModal). Builds the DOM with createElement/textContent only.
+import { t, maxLabel } from 'korkwand-i18n';
+
 const DEFAULT_MAX_BYTES = 8388608;
 const LIMITS = { title: 60, postit: 300, caption: 100 };
 
@@ -13,15 +15,10 @@ function el(tag, props = {}, ...children) {
 	return n;
 }
 
-// Effektives Upload-Limit (vom Server: min(8 MB, Host-Limit)).
+// Effective upload limit in bytes (from the server: min(8 MB, host limit)).
 function maxBytes() {
 	const n = Number(window.Korkwand && window.Korkwand.maxBytes);
 	return n > 0 ? Math.min(n, DEFAULT_MAX_BYTES) : DEFAULT_MAX_BYTES;
-}
-
-function maxLabel() {
-	const mb = Math.round((maxBytes() / 1048576) * 10) / 10;
-	return String(mb).replace('.', ',');
 }
 
 function field(labelText, control) {
@@ -40,15 +37,15 @@ export function openPinDialog({ pin = null, trigger = null, onSubmit }) {
 	dlg.setAttribute('aria-labelledby', 'korkwand-dlg-title');
 
 	const form = el('form', { method: 'dialog', noValidate: false });
-	const title = el('h2', { id: 'korkwand-dlg-title', text: editing ? 'Zettel bearbeiten' : 'Neuer Zettel' });
+	const title = el('h2', { id: 'korkwand-dlg-title', text: editing ? t('editNote') : t('newNote') });
 	const error = el('p', { className: 'korkwand-dialog-error', role: 'alert' });
 	error.hidden = true;
 
 	let type = editing ? pin.type : 'postit';
 
 	// Typwahl (nur beim Anlegen)
-	const typeBox = el('fieldset', { className: 'korkwand-type' }, el('legend', { text: 'Art des Zettels' }));
-	for (const [val, label] of [['postit', 'Post-it'], ['image', 'Bild']]) {
+	const typeBox = el('fieldset', { className: 'korkwand-type' }, el('legend', { text: t('noteType') }));
+	for (const [val, label] of [['postit', t('postit')], ['image', t('image')]]) {
 		const rid = 'korkwand-type-' + val;
 		const r = el('input', { type: 'radio', id: rid, name: 'korkwand-type', value: val, checked: val === type });
 		typeBox.append(el('label', { htmlFor: rid, className: 'korkwand-type-label' }, r, el('span', { text: ' ' + label })));
@@ -61,10 +58,10 @@ export function openPinDialog({ pin = null, trigger = null, onSubmit }) {
 	const captionIn = el('input', { type: 'text', maxLength: LIMITS.caption, value: editing ? pin.text : '' });
 	const fileIn = el('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp' });
 
-	const titleRow = field('Titel (Pflicht, max. 60 Zeichen)', titleIn);
-	const textRow = field('Text (optional, max. 300 Zeichen)', textArea);
-	const fileRow = field(`Bild (JPEG, PNG oder WebP, max. ${maxLabel()} MB)`, fileIn);
-	const capRow = field('Bildunterschrift (optional, max. 100 Zeichen)', captionIn);
+	const titleRow = field(t('titleLabel'), titleIn);
+	const textRow = field(t('textLabel'), textArea);
+	const fileRow = field(t('imageLabel', maxLabel()), fileIn);
+	const capRow = field(t('captionLabel'), captionIn);
 
 	function sync() {
 		const isPostit = type === 'postit';
@@ -76,8 +73,8 @@ export function openPinDialog({ pin = null, trigger = null, onSubmit }) {
 	}
 	sync();
 
-	const submit = el('button', { type: 'submit', className: 'korkwand-btn korkwand-btn--primary', text: editing ? 'Speichern' : 'Anheften' });
-	const cancel = el('button', { type: 'button', className: 'korkwand-btn', text: 'Abbrechen' });
+	const submit = el('button', { type: 'submit', className: 'korkwand-btn korkwand-btn--primary', text: editing ? t('save') : t('pin') });
+	const cancel = el('button', { type: 'button', className: 'korkwand-btn', text: t('cancel') });
 	cancel.addEventListener('click', () => dlg.close());
 	form.append(title, typeBox, titleRow, textRow, fileRow, capRow, error, el('div', { className: 'korkwand-dialog-actions' }, cancel, submit));
 	dlg.append(form);
@@ -92,20 +89,20 @@ export function openPinDialog({ pin = null, trigger = null, onSubmit }) {
 		error.hidden = true;
 		const file = fileIn.files && fileIn.files[0] ? fileIn.files[0] : null;
 		if (type === 'image' && !editing) {
-			if (!file) return showError('Bitte ein Bild auswählen.');
-			if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return showError('Nur JPEG, PNG oder WebP sind erlaubt.');
-			if (file.size > maxBytes()) return showError(`Das Bild ist zu groß (maximal ${maxLabel()} MB).`);
+			if (!file) return showError(t('chooseImage'));
+			if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return showError(t('imageTypeOnly'));
+			if (file.size > maxBytes()) return showError(t('imageTooLarge', maxLabel()));
 		}
 		const values = type === 'postit'
 			? { type, title: titleIn.value.trim(), text: textArea.value, file: null }
 			: { type, title: '', text: captionIn.value, file };
-		if (type === 'postit' && values.title === '') return showError('Bitte einen Titel eingeben.');
+		if (type === 'postit' && values.title === '') return showError(t('enterTitle'));
 		submit.disabled = true;
 		try {
 			await onSubmit(values);
 			dlg.close();
 		} catch (err) {
-			showError(err && err.message ? err.message : 'Unbekannter Fehler.');
+			showError(err && err.message ? err.message : t('unknownError'));
 			submit.disabled = false;
 		}
 	});

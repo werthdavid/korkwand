@@ -1,13 +1,7 @@
-/* korkwand: Korkwand mit Post-its und Bildern. Logische Breite 1000px. */
-@font-face {
-	font-family: "Patrick Hand";
-	src: url(../fonts/patrick-hand.woff2) format("woff2");
-	font-display: swap;
-}
-
+/* Korkwand: cork pinboard with post-it notes and images. Logical width 1000px. */
 .korkwand {
 	--korkwand-scale: 1;
-	--korkwand-hand: "Patrick Hand", "Comic Sans MS", cursive;
+	--korkwand-hand: "Comic Sans MS", "Segoe Print", "Bradley Hand", cursive;
 	--korkwand-cork: #b98a56;
 	container-type: inline-size;
 	margin: 1.5em 0;

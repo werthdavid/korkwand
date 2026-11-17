@@ -15,13 +15,13 @@ final class Notify {
 		$link = admin_url( 'post.php?post=' . (int) $pin->ID . '&action=edit' );
 
 		$body = sprintf(
-			/* translators: 1: Zettel-Titel, 2: Anzeigename, 3: Link */
-			__( "Es wurde ein neuer Zettel angelegt.\n\nTitel: %1\$s\nVon: %2\$s\nBearbeiten: %3\$s\n", 'korkwand' ),
+			/* translators: 1: note title, 2: author display name, 3: edit link */
+			__( "A new note has been created.\n\nTitle: %1\$s\nBy: %2\$s\nEdit: %3\$s\n", 'korkwand' ),
 			$data['title'],
 			$name,
 			$link
 		);
 
-		wp_mail( (string) get_option( 'admin_email' ), __( 'Neuer Zettel auf der Pinnwand', 'korkwand' ), $body );
+		wp_mail( (string) get_option( 'admin_email' ), __( 'New note on the Korkwand', 'korkwand' ), $body );
 	}
 }

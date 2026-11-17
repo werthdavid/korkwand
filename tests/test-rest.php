@@ -133,7 +133,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 		$this->assertSame( 201, $this->req( 'POST', '/boards/mein_board/pins', array( 'type' => 'postit', 'title' => 'x' ) )->get_status() );
 	}
 
-	public function test_dropped_multipart_body_answers_german_too_large_400() {
+	public function test_dropped_multipart_body_answers_too_large_400() {
 		wp_set_current_user( $this->sub );
 		$_SERVER['CONTENT_LENGTH'] = '99999999';
 		$r = new \WP_REST_Request( 'POST', '/korkwand/v1/boards/test/pins' );
@@ -142,7 +142,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 		unset( $_SERVER['CONTENT_LENGTH'] );
 		$this->assertSame( 400, $res->get_status() );
 		$this->assertSame( 'korkwand_upload', $res->get_data()['code'] );
-		$this->assertStringStartsWith( 'Das Bild ist zu groß (maximal ', $res->get_data()['message'] );
+		$this->assertStringStartsWith( 'The image is too large (maximum ', $res->get_data()['message'] );
 	}
 
 	public function test_missing_type_without_dropped_body_is_plain_400_and_costs_no_rate_slot() {
@@ -164,7 +164,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 		$res  = $this->req( 'POST', '/boards/test/pins', array( 'type' => 'image' ), $file );
 		$this->assertSame( 400, $res->get_status() );
 		$this->assertSame( 'korkwand_upload', $res->get_data()['code'] );
-		$this->assertStringStartsWith( 'Das Bild ist zu groß', $res->get_data()['message'] );
+		$this->assertStringStartsWith( 'The image is too large', $res->get_data()['message'] );
 	}
 
 	public function test_create_validation_errors_400_and_bad_type_rejected() {
@@ -296,7 +296,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 		$res = $this->create_as( $this->sub );
 		$this->assertSame( 429, $res->get_status() );
 		$this->assertSame( 'korkwand_rate_limited', $res->get_data()['code'] );
-		$this->assertSame( 'Zu viele neue Zettel – bitte später erneut versuchen.', $res->get_data()['message'] );
+		$this->assertSame( 'Too many new notes – please try again later.', $res->get_data()['message'] );
 		// Anderer Nutzer ist nicht betroffen.
 		$this->assertSame( 201, $this->create_as( $this->other )->get_status() );
 	}
@@ -327,7 +327,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 		$this->assertSame( 201, $this->create_as( $this->sub, array( 'title' => 'Neu hier' ) )->get_status() );
 		$mails = tests_retrieve_phpmailer_instance()->get_sent();
 		$this->assertNotFalse( $mails );
-		$this->assertSame( 'Neuer Zettel auf der Pinnwand', $mails->subject );
+		$this->assertSame( 'New note on the Korkwand', $mails->subject );
 		$this->assertStringContainsString( 'Neu hier', $mails->body );
 		$this->assertStringContainsString( 'Anna Beispiel', $mails->body );
 		$this->assertStringContainsString( 'post.php', $mails->body );

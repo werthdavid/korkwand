@@ -1,12 +1,20 @@
 <?php
 /**
- * Tests fuer Datenmodell und Pinnwand-Einstellungen.
+ * Tests fuer Datenmodell und Board-Einstellungen.
  */
 class Korkwand_Test_Model extends WP_UnitTestCase {
 
 	public function test_cpt_and_taxonomy_registered() {
 		$this->assertTrue( post_type_exists( 'korkwand_pin' ) );
 		$this->assertTrue( taxonomy_exists( 'korkwand_board' ) );
+	}
+
+	public function test_labels_are_english_source_strings() {
+		$obj = get_post_type_object( 'korkwand_pin' );
+		$this->assertSame( 'Notes', $obj->labels->name );
+		$this->assertSame( 'Note', $obj->labels->singular_name );
+		$this->assertSame( 'Korkwand', $obj->labels->menu_name );
+		$this->assertSame( 'Board', get_taxonomy( 'korkwand_board' )->labels->singular_name );
 	}
 
 	public function test_settings_defaults() {

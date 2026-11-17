@@ -47,16 +47,16 @@ class Upload {
 		return max( 1, min( self::MAX_BYTES, (int) wp_max_upload_size() ) );
 	}
 
-	/** Limit in MB als Text, z. B. "8" oder "1,5". */
-	private static function max_label(): string {
+	/** Limit in MB als lokalisierter Text, z. B. "8" oder "1,5". */
+	public static function max_label(): string {
 		$mb = round( self::max_bytes() / 1048576, 1 );
 		return floor( $mb ) === $mb ? (string) (int) $mb : number_format_i18n( $mb, 1 );
 	}
 
 	/** Fehlermeldung "Bild zu gross" mit dem effektiven Limit. */
 	public static function too_large_error(): \WP_Error {
-		/* translators: %s: maximale Groesse in MB */
-		return self::error( sprintf( __( 'Das Bild ist zu groß (maximal %s MB).', 'korkwand' ), self::max_label() ) );
+		/* translators: %s: maximum size in MB */
+		return self::error( sprintf( __( 'The image is too large (maximum %s MB).', 'korkwand' ), self::max_label() ) );
 	}
 
 	/** Uebersetzt einen PHP-Upload-Fehlercode (UPLOAD_ERR_*) in einen WP_Error. */
@@ -64,7 +64,7 @@ class Upload {
 		if ( UPLOAD_ERR_INI_SIZE === $code || UPLOAD_ERR_FORM_SIZE === $code ) {
 			return self::too_large_error();
 		}
-		return self::error( __( 'Der Upload ist fehlgeschlagen. Bitte versuche es erneut.', 'korkwand' ) );
+		return self::error( __( 'The upload failed. Please try again.', 'korkwand' ) );
 	}
 
 	/**
@@ -88,13 +88,13 @@ class Upload {
 			return self::upload_error( (int) ( $file['error'] ?? UPLOAD_ERR_NO_FILE ) );
 		}
 		if ( '' === $tmp || ! is_file( $tmp ) ) {
-			return self::error( __( 'Es wurde keine Datei hochgeladen.', 'korkwand' ) );
+			return self::error( __( 'No file was uploaded.', 'korkwand' ) );
 		}
 		$size = max( (int) ( $file['size'] ?? 0 ), (int) filesize( $tmp ) );
 		if ( $size > self::max_bytes() ) {
 			return self::too_large_error();
 		}
-		$type_msg = __( 'Nur JPEG-, PNG- und WebP-Bilder sind erlaubt.', 'korkwand' );
+		$type_msg = __( 'Only JPEG, PNG and WebP images are allowed.', 'korkwand' );
 
 		$check = wp_check_filetype_and_ext( $tmp, $name, $mimes );
 		if ( empty( $check['type'] ) || ! in_array( $check['type'], $mimes, true ) ) {
@@ -105,7 +105,7 @@ class Upload {
 			return self::error( $type_msg );
 		}
 		if ( (int) $info[0] * (int) $info[1] > self::MAX_PIXELS ) {
-			return self::error( __( 'Die Bildabmessungen sind zu groß.', 'korkwand' ) );
+			return self::error( __( 'The image dimensions are too large.', 'korkwand' ) );
 		}
 
 		// 2. Metadaten im Temp-Verzeichnis entfernen (Re-Encode), bevor die Datei oeffentlich erreichbar wird.
@@ -115,7 +115,7 @@ class Upload {
 			if ( $clean ) {
 				wp_delete_file( $clean );
 			}
-			return self::error( __( 'Das Bild konnte nicht verarbeitet werden.', 'korkwand' ) );
+			return self::error( __( 'The image could not be processed.', 'korkwand' ) );
 		}
 		$file['tmp_name'] = $clean;
 		$file['size']     = (int) filesize( $clean );
@@ -148,7 +148,7 @@ class Upload {
 			array(
 				'post_author'    => $user_id,
 				'post_mime_type' => $mime,
-				'post_title'     => __( 'Pinnwand-Bild', 'korkwand' ),
+				'post_title'     => __( 'Korkwand image', 'korkwand' ),
 				'post_status'    => 'inherit',
 			),
 			$path,
@@ -157,7 +157,7 @@ class Upload {
 		);
 		if ( is_wp_error( $id ) || ! $id ) {
 			wp_delete_file( $path );
-			return self::error( __( 'Das Bild konnte nicht gespeichert werden.', 'korkwand' ) );
+			return self::error( __( 'The image could not be saved.', 'korkwand' ) );
 		}
 		update_post_meta( $id, '_korkwand_upload', 1 );
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $path ) );

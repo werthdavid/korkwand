@@ -86,7 +86,7 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 
 	public function test_login_hint_is_one_linked_sentence() {
 		$html = Render::board( 'test' );
-		$this->assertMatchesRegularExpression( '#<a href="[^"]*wp-login\.php[^"]*">Zum Anheften bitte anmelden</a>#', $html );
+		$this->assertMatchesRegularExpression( '#<a href="[^"]*wp-login\.php[^"]*">Log in to pin a note</a>#', $html );
 		$this->assertStringNotContainsString( 'Anmelden</a>', $html );
 	}
 
@@ -118,12 +118,20 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 		ob_start();
 		wp_script_modules()->print_import_map();
 		$map = ob_get_clean();
-		foreach ( array( 'api', 'geometry', 'dialog', 'lightbox' ) as $name ) {
+		foreach ( array( 'i18n', 'api', 'geometry', 'dialog', 'lightbox' ) as $name ) {
 			$this->assertMatchesRegularExpression( '#"korkwand-' . $name . '":\s*"[^"]*assets\\/js\\/' . $name . '\.js\?ver=' . preg_quote( KORKWAND_VERSION, '#' ) . '"#', $map, $name );
 		}
 		$src = file_get_contents( KORKWAND_DIR . 'assets/js/korkwand.js' );
 		$this->assertStringNotContainsString( "from './", $src );
 		$this->assertStringContainsString( "from 'korkwand-api'", $src );
+	}
+
+	public function test_js_strings_are_passed_in_config_as_english_source_strings() {
+		Render::board( 'test' );
+		$after = implode( '', (array) wp_scripts()->get_data( 'korkwand-config', 'after' ) );
+		$this->assertStringContainsString( '"i18n":{', $after );
+		$this->assertStringContainsString( '"confirmDelete":"Really delete this note?"', $after );
+		$this->assertStringContainsString( '"maxLabel":"' . \Korkwand\Upload::max_label() . '"', $after );
 	}
 
 	public function test_block_is_registered_and_renders() {
