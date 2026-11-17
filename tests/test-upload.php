@@ -219,4 +219,38 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 		$this->assertSame( 8388608, Upload::max_bytes() );
 		remove_all_filters( 'upload_size_limit' );
 	}
+
+	public function test_stored_file_and_title_do_not_reveal_original_name() {
+		$file = $this->file_from( DIR_TESTDATA . '/images/test-image.png', 'Max Mustermann Urlaub 2026.png', 'image/png' );
+		$id   = Upload::handle( $file, $this->user );
+		$this->assertIsInt( $id );
+		$this->assertMatchesRegularExpression( '/^pinnwand-[A-Za-z0-9]{12}(-\d+)?\.png$/', basename( get_attached_file( $id ) ) );
+		$this->assertSame( 'Pinnwand-Bild', get_post( $id )->post_title );
+		$this->assertStringNotContainsString( 'Mustermann', wp_json_encode( get_post( $id ) ) . get_attached_file( $id ) . wp_json_encode( wp_get_attachment_metadata( $id ) ) );
+		$this->cleanup( $id );
+	}
+
+	public function test_jpeg_gets_jpg_extension_after_rename() {
+		$id = Upload::handle( $this->file_from( DIR_TESTDATA . '/images/test-image.jpg', 'IMG_0001.JPEG', 'image/jpeg' ), $this->user );
+		$this->assertIsInt( $id );
+		$this->assertMatchesRegularExpression( '/^pinnwand-[A-Za-z0-9]{12}\.jpg$/', basename( get_attached_file( $id ) ) );
+		$this->cleanup( $id );
+	}
+
+	public function test_plugin_upload_attachment_page_answers_404() {
+		$id = Upload::handle( $this->file_from( DIR_TESTDATA . '/images/test-image.png', 'a.png', 'image/png' ), $this->user );
+		$this->assertTrue( has_action( 'template_redirect', array( Upload::class, 'block_attachment_page' ) ) !== false );
+		$this->go_to( get_attachment_link( $id ) );
+		$this->assertTrue( is_attachment() );
+		Upload::block_attachment_page();
+		$this->assertTrue( is_404() );
+		$this->cleanup( $id );
+	}
+
+	public function test_library_attachment_page_is_left_alone() {
+		$att = self::factory()->attachment->create_object( array( 'file' => 'lib.jpg', 'post_mime_type' => 'image/jpeg', 'post_type' => 'attachment' ) );
+		$this->go_to( get_attachment_link( $att ) );
+		Upload::block_attachment_page();
+		$this->assertFalse( is_404() );
+	}
 }

@@ -25,6 +25,23 @@ class Upload {
 		return new \WP_Error( 'nzp_upload', $message, array( 'status' => 400 ) );
 	}
 
+	/**
+	 * Anhangsseiten von Plugin-Uploads liefern 404 (sonst koennten Gaeste dort Titel/Datei-Metadaten sehen).
+	 * Hook: template_redirect.
+	 */
+	public static function block_attachment_page(): void {
+		if ( ! is_attachment() ) {
+			return;
+		}
+		$id = (int) get_queried_object_id();
+		if ( $id > 0 && get_post_meta( $id, '_nzp_upload', true ) ) {
+			global $wp_query;
+			$wp_query->set_404();
+			status_header( 404 );
+			nocache_headers();
+		}
+	}
+
 	/** Effektives Limit: Plugin-Grenze, begrenzt durch die Host-Einstellungen (upload_max_filesize/post_max_size). */
 	public static function max_bytes(): int {
 		return max( 1, min( self::MAX_BYTES, (int) wp_max_upload_size() ) );
@@ -102,6 +119,14 @@ class Upload {
 		}
 		$file['tmp_name'] = $clean;
 		$file['size']     = (int) filesize( $clean );
+		// Originaldateiname nie veroeffentlichen: neutraler Zufallsname mit gepruefter Endung.
+		$exts         = array(
+			'image/jpeg' => 'jpg',
+			'image/png'  => 'png',
+			'image/webp' => 'webp',
+		);
+		$ext          = $exts[ $check['type'] ];
+		$file['name'] = 'pinnwand-' . wp_generate_password( 12, false ) . '.' . $ext;
 
 		// 3. Bereinigte Datei in die Mediathek verschieben.
 		$moved = wp_handle_sideload(
@@ -123,7 +148,7 @@ class Upload {
 			array(
 				'post_author'    => $user_id,
 				'post_mime_type' => $mime,
-				'post_title'     => sanitize_text_field( pathinfo( $name, PATHINFO_FILENAME ) ),
+				'post_title'     => __( 'Pinnwand-Bild', 'nz-pinnwand' ),
 				'post_status'    => 'inherit',
 			),
 			$path,

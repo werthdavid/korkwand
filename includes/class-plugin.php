@@ -10,6 +10,7 @@ final class Plugin {
 		self::maybe_upgrade();
 		add_action( 'init', array( Model::class, 'register' ) );
 		add_action( 'rest_api_init', array( Rest::class, 'register' ) );
+		add_action( 'template_redirect', array( Upload::class, 'block_attachment_page' ), 1 );
 		Render::register();
 		Cleanup::register();
 		Privacy::register();
