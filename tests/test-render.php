@@ -83,6 +83,35 @@ class NZP_Test_Render extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'nzp-script', ob_get_clean() );
 	}
 
+	public function test_login_hint_is_one_linked_sentence() {
+		$html = Render::board( 'test' );
+		$this->assertMatchesRegularExpression( '#<a href="[^"]*wp-login\.php[^"]*">Zum Anheften bitte anmelden</a>#', $html );
+		$this->assertStringNotContainsString( 'Anmelden</a>', $html );
+	}
+
+	public function test_style_registered_on_init_and_block_uses_it() {
+		Render::register_style();
+		$this->assertTrue( wp_style_is( 'nzp-style', 'registered' ) );
+		$this->assertSame( array( 'nzp-style' ), WP_Block_Type_Registry::get_instance()->get_registered( 'nz/pinnwand' )->style_handles );
+		$json = json_decode( file_get_contents( NZP_DIR . 'blocks/pinnwand/block.json' ), true );
+		$this->assertSame( 'nzp-style', $json['style'] );
+	}
+
+	public function test_style_enqueued_early_on_singular_with_shortcode() {
+		$page = self::factory()->post->create( array( 'post_type' => 'page', 'post_content' => 'Hallo [pinnwand board="test"]' ) );
+		$this->go_to( get_permalink( $page ) );
+		$this->assertFalse( wp_style_is( 'nzp-style', 'enqueued' ) );
+		do_action( 'wp_enqueue_scripts' );
+		$this->assertTrue( wp_style_is( 'nzp-style', 'enqueued' ) );
+	}
+
+	public function test_style_not_enqueued_early_without_shortcode() {
+		$page = self::factory()->post->create( array( 'post_type' => 'page', 'post_content' => 'Kein Board hier' ) );
+		$this->go_to( get_permalink( $page ) );
+		do_action( 'wp_enqueue_scripts' );
+		$this->assertFalse( wp_style_is( 'nzp-style', 'enqueued' ) );
+	}
+
 	public function test_block_is_registered_and_renders() {
 		$this->assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'nz/pinnwand' ) );
 		$html = do_blocks( '<!-- wp:nz/pinnwand {"board":"test"} /-->' );

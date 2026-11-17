@@ -16,9 +16,33 @@ final class Render {
 	public static function register(): void {
 		add_shortcode( 'pinnwand', array( self::class, 'shortcode' ) );
 		add_action( 'init', array( self::class, 'register_block' ) );
+		add_action( 'wp_enqueue_scripts', array( self::class, 'maybe_enqueue_early' ) );
+	}
+
+	/** Stylesheet frueh registrieren (Editor-Vorschau ueber block.json, Frontend-Fallback). */
+	public static function register_style(): void {
+		if ( ! wp_style_is( 'nzp-style', 'registered' ) ) {
+			wp_register_style( 'nzp-style', NZP_URL . 'assets/css/pinnwand.css', array(), NZP_VERSION );
+		}
+	}
+
+	/**
+	 * Klassische Themes: Stylesheet im <head> laden, wenn der Beitrag den Shortcode oder Block enthaelt
+	 * (vermeidet ungestylten Blitz). Das spaete Enqueue beim Rendern bleibt als Fallback bestehen.
+	 */
+	public static function maybe_enqueue_early(): void {
+		if ( ! is_singular() ) {
+			return;
+		}
+		$post = get_post();
+		if ( $post && ( has_shortcode( (string) $post->post_content, 'pinnwand' ) || has_block( 'nz/pinnwand', $post ) ) ) {
+			self::register_style();
+			wp_enqueue_style( 'nzp-style' );
+		}
 	}
 
 	public static function register_block(): void {
+		self::register_style();
 		wp_register_script(
 			'nzp-block-editor',
 			NZP_URL . 'blocks/pinnwand/edit.js',
@@ -72,8 +96,8 @@ final class Render {
 		if ( $can_post ) {
 			$out .= '<button type="button" class="nzp-add">' . esc_html__( '+ Zettel', 'nz-pinnwand' ) . '</button>';
 		} else {
-			$out .= '<span class="nzp-login-hint">' . esc_html__( 'Zum Anheften bitte anmelden', 'nz-pinnwand' )
-				. ' <a href="' . esc_url( self::login_url() ) . '">' . esc_html__( 'Anmelden', 'nz-pinnwand' ) . '</a></span>';
+			$out .= '<span class="nzp-login-hint"><a href="' . esc_url( self::login_url() ) . '">'
+				. esc_html__( 'Zum Anheften bitte anmelden', 'nz-pinnwand' ) . '</a></span>';
 		}
 		$out .= '</div>';
 		$out .= '<div class="nzp-board"><div class="nzp-canvas" style="height:' . $height . 'px">';
@@ -139,7 +163,8 @@ final class Render {
 	}
 
 	private static function enqueue_assets(): void {
-		wp_enqueue_style( 'nzp-style', NZP_URL . 'assets/css/pinnwand.css', array(), NZP_VERSION );
+		self::register_style();
+		wp_enqueue_style( 'nzp-style' );
 
 		if ( ! wp_script_is( 'nzp-config', 'registered' ) ) {
 			wp_register_script( 'nzp-config', false, array(), NZP_VERSION, true );
