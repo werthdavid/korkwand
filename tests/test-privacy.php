@@ -119,4 +119,42 @@ class NZP_Test_Privacy extends WP_UnitTestCase {
 		$r2 = Privacy::eraser( 'anna@example.test', 2 );
 		$this->assertTrue( $r2['done'] );
 	}
+
+	public function test_eraser_reports_undeletable_pin_as_retained_and_still_erases_others() {
+		$blocked = $this->pin( 'Gesperrt' );
+		$other   = $this->pin( 'Frei' );
+		$block   = static fn( $check, $post ) => $post->ID === $blocked ? false : $check;
+		add_filter( 'pre_delete_post', $block, 10, 2 );
+
+		$r = Privacy::eraser( 'anna@example.test', 1 );
+
+		remove_filter( 'pre_delete_post', $block, 10 );
+		$this->assertTrue( $r['items_removed'] );
+		$this->assertTrue( $r['items_retained'] );
+		$this->assertTrue( $r['done'] );
+		$this->assertSame( array( 'Einige Zettel konnten nicht gelöscht werden.' ), $r['messages'] );
+		$this->assertNotNull( get_post( $blocked ) );
+		$this->assertNull( get_post( $other ), 'Pin hinter dem gesperrten wird trotzdem geloescht' );
+	}
+
+	public function test_eraser_with_only_undeletable_pin_terminates() {
+		$blocked = $this->pin( 'Gesperrt' );
+		$block   = static fn( $check, $post ) => $post->ID === $blocked ? false : $check;
+		add_filter( 'pre_delete_post', $block, 10, 2 );
+		$r = Privacy::eraser( 'anna@example.test', 1 );
+		remove_filter( 'pre_delete_post', $block, 10 );
+		$this->assertFalse( $r['items_removed'] );
+		$this->assertTrue( $r['items_retained'] );
+		$this->assertTrue( $r['done'] );
+	}
+
+	public function test_eraser_exactly_one_page_is_done() {
+		for ( $i = 0; $i < 50; $i++ ) {
+			$this->pin( "P$i" );
+		}
+		$r = Privacy::eraser( 'anna@example.test', 1 );
+		$this->assertTrue( $r['items_removed'] );
+		$this->assertTrue( $r['done'] );
+		$this->assertFalse( $r['items_retained'] );
+	}
 }

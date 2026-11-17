@@ -152,34 +152,44 @@ final class Cleanup {
 	}
 
 	/**
-	 * Loescht bis zu $limit Zettel (0 = alle) und gibt die Anzahl zurueck.
+	 * Loescht bis zu $limit Zettel (0 = alle) und gibt die Anzahl zurueck. Nicht loeschbare Zettel
+	 * werden uebersprungen (nicht endlos wiederholt, blockieren aber auch nicht die nachfolgenden).
 	 */
 	public static function delete_batch( int $user_id, int $limit ): int {
-		$count = 0;
+		$count  = 0;
+		$failed = array();
 		do {
 			$per = $limit > 0 ? min( $limit - $count, self::BATCH ) : self::BATCH;
-			$ids = get_posts(
-				array(
-					'post_type'        => 'pin',
-					'post_status'      => array_merge( array_values( get_post_stati() ), array( 'trash' ) ),
-					'author'           => $user_id,
-					'posts_per_page'   => $per,
-					'fields'           => 'ids',
-					'orderby'          => 'ID',
-					'order'            => 'ASC',
-					'no_found_rows'    => true,
-					'suppress_filters' => true,
-				)
-			);
-			$done = 0;
+			$ids = get_posts( self::user_pins_query( $user_id, $per ) + array( 'post__not_in' => $failed ) );
 			foreach ( $ids as $id ) {
 				if ( wp_delete_post( (int) $id, true ) ) {
-					++$done;
+					++$count;
+				} else {
+					$failed[] = (int) $id;
 				}
 			}
-			$count += $done;
-		} while ( $done > 0 && count( $ids ) >= $per && ( 0 === $limit || $count < $limit ) );
+		} while ( count( $ids ) >= $per && ( 0 === $limit || $count < $limit ) );
 		return $count;
+	}
+
+	/** True, wenn der Nutzer noch Zettel (beliebiger Status, auch Papierkorb) besitzt. */
+	public static function user_has_pins( int $user_id ): bool {
+		return (bool) get_posts( self::user_pins_query( $user_id, 1 ) );
+	}
+
+	/** @return array<string,mixed> */
+	private static function user_pins_query( int $user_id, int $per ): array {
+		return array(
+			'post_type'        => 'pin',
+			'post_status'      => array_merge( array_values( get_post_stati() ), array( 'trash' ) ),
+			'author'           => $user_id,
+			'posts_per_page'   => $per,
+			'fields'           => 'ids',
+			'orderby'          => 'ID',
+			'order'            => 'ASC',
+			'no_found_rows'    => true,
+			'suppress_filters' => true,
+		);
 	}
 
 	/**
@@ -198,6 +208,7 @@ final class Cleanup {
 			if ( ! post_type_exists( 'pin' ) || ! taxonomy_exists( 'pinboard' ) ) {
 				Model::register();
 			}
+			$failed = array();
 			do {
 				$ids = get_posts(
 					array(
@@ -207,17 +218,17 @@ final class Cleanup {
 						'fields'           => 'ids',
 						'orderby'          => 'ID',
 						'order'            => 'ASC',
+						'post__not_in'     => $failed,
 						'no_found_rows'    => true,
 						'suppress_filters' => true,
 					)
 				);
-				$done = 0;
 				foreach ( $ids as $id ) {
-					if ( wp_delete_post( (int) $id, true ) ) {
-						++$done;
+					if ( ! wp_delete_post( (int) $id, true ) ) {
+						$failed[] = (int) $id;
 					}
 				}
-			} while ( $done > 0 && count( $ids ) >= self::BATCH );
+			} while ( count( $ids ) >= self::BATCH );
 
 			$terms = get_terms(
 				array(

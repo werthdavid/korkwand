@@ -165,6 +165,48 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 		$this->assertNotNull( get_post( $foreign->ID ) );
 	}
 
+	public function test_delete_batch_skips_undeletable_first_pin_and_deletes_rest() {
+		$ids     = array();
+		for ( $i = 0; $i < 3; $i++ ) {
+			$ids[] = $this->pin_aged( 1 )->ID;
+		}
+		$blocked = $ids[0];
+		$block   = static fn( $check, $post ) => $post->ID === $blocked ? false : $check;
+		add_filter( 'pre_delete_post', $block, 10, 2 );
+		$n = Cleanup::delete_batch( $this->user, 0 );
+		remove_filter( 'pre_delete_post', $block, 10 );
+
+		$this->assertSame( 2, $n );
+		$this->assertNotNull( get_post( $blocked ) );
+		$this->assertNull( get_post( $ids[1] ) );
+		$this->assertNull( get_post( $ids[2] ) );
+	}
+
+	public function test_delete_batch_with_limit_does_not_stop_at_undeletable_first_pin() {
+		$first   = $this->pin_aged( 1 )->ID;
+		$second  = $this->pin_aged( 1 )->ID;
+		$block   = static fn( $check, $post ) => $post->ID === $first ? false : $check;
+		add_filter( 'pre_delete_post', $block, 10, 2 );
+		$n = Cleanup::delete_batch( $this->user, 1 );
+		remove_filter( 'pre_delete_post', $block, 10 );
+		$this->assertSame( 1, $n );
+		$this->assertNull( get_post( $second ) );
+	}
+
+	public function test_uninstall_deletes_pins_behind_an_undeletable_one() {
+		delete_option( 'nzp_delete_data_on_uninstall' );
+		$ids     = array( $this->pin_aged( 1 )->ID, $this->pin_aged( 1 )->ID );
+		$blocked = $ids[0];
+		$block   = static fn( $check, $post ) => $post->ID === $blocked ? false : $check;
+		add_filter( 'pre_delete_post', $block, 10, 2 );
+		Cleanup::uninstall();
+		remove_filter( 'pre_delete_post', $block, 10 );
+		$this->assertNull( get_post( $ids[1] ) );
+		\NZ\Pinnwand\Permissions::install_caps();
+		Plugin::activate();
+		wp_delete_post( $blocked, true );
+	}
+
 	public function test_wpmu_delete_user_hook_registered() {
 		$this->assertNotFalse( has_action( 'wpmu_delete_user', array( Cleanup::class, 'delete_user_pins' ) ) );
 		$this->assertNotFalse( has_action( 'delete_user', array( Cleanup::class, 'delete_user_pins' ) ) );

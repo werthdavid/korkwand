@@ -80,16 +80,27 @@ final class Privacy {
 	 * @return array{items_removed:bool,items_retained:bool,messages:array<int,string>,done:bool}
 	 */
 	public static function eraser( string $email, int $page = 1 ): array {
-		$removed = 0;
-		$user    = get_user_by( 'email', $email );
+		$removed  = 0;
+		$retained = false;
+		$messages = array();
+		$done     = true;
+		$user     = get_user_by( 'email', $email );
 		if ( $user ) {
 			$removed = Cleanup::delete_batch( (int) $user->ID, self::PAGE_SIZE );
+			if ( Cleanup::user_has_pins( (int) $user->ID ) ) {
+				if ( $removed >= self::PAGE_SIZE ) {
+					$done = false; // Es kann noch Loeschbares uebrig sein: naechste Charge.
+				} else {
+					$retained   = true; // Rest ist nicht loeschbar.
+					$messages[] = __( 'Einige Zettel konnten nicht gelöscht werden.', 'nz-pinnwand' );
+				}
+			}
 		}
 		return array(
 			'items_removed'  => $removed > 0,
-			'items_retained' => false,
-			'messages'       => array(),
-			'done'           => $removed < self::PAGE_SIZE,
+			'items_retained' => $retained,
+			'messages'       => $messages,
+			'done'           => $done,
 		);
 	}
 }
