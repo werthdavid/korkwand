@@ -1,0 +1,13 @@
+{
+	"name": "nz-pinnwand",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"env:start": "wp-env start",
+		"test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/nz-pinnwand vendor/bin/phpunit",
+		"test:js": "node --test tests/js/"
+	},
+	"devDependencies": {
+		"@wordpress/env": "^10.0.0"
+	}
+}
