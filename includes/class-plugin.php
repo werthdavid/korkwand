@@ -11,6 +11,7 @@ final class Plugin {
 
 	public static function activate(): void {
 		Model::register();
+		Permissions::install_caps();
 		flush_rewrite_rules();
 	}
 
