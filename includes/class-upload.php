@@ -109,6 +109,7 @@ class Upload {
 			wp_delete_file( $path );
 			return self::error( __( 'Das Bild konnte nicht gespeichert werden.', 'nz-pinnwand' ) );
 		}
+		update_post_meta( $id, '_nzp_upload', 1 );
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $path ) );
 
 		return (int) $id;

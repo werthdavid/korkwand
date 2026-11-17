@@ -92,7 +92,9 @@ final class Cleanup {
 	}
 
 	/**
-	 * Beim endgueltigen Loeschen eines Zettels dessen Bild entfernen (nur wenn exklusiv genutzt).
+	 * Beim endgueltigen Loeschen eines Zettels dessen Bild entfernen. Geloescht werden nur
+	 * Attachments aus dem Plugin-Upload (Meta `_nzp_upload`), die sonst nirgends verwendet werden.
+	 * Mediathek-Bilder bleiben unangetastet.
 	 */
 	public static function delete_attachment( $post_id ): void {
 		$post_id = (int) $post_id;
@@ -104,17 +106,18 @@ final class Cleanup {
 			return;
 		}
 		$att = get_post( $thumb );
-		if ( ! $att || 'attachment' !== $att->post_type ) {
+		if ( ! $att || 'attachment' !== $att->post_type || ! get_post_meta( $thumb, '_nzp_upload', true ) ) {
 			return;
 		}
 		$parent = (int) $att->post_parent;
 		if ( 0 !== $parent && $parent !== $post_id ) {
 			return;
 		}
+		// Anderweitig als Beitragsbild verwendet (beliebiger Typ, alle Stati inkl. Papierkorb)?
 		$others = get_posts(
 			array(
-				'post_type'        => 'pin',
-				'post_status'      => 'any',
+				'post_type'        => array_values( get_post_types() ),
+				'post_status'      => array_merge( array_values( get_post_stati() ), array( 'trash' ) ),
 				'posts_per_page'   => 1,
 				'fields'           => 'ids',
 				'post__not_in'     => array( $post_id ),

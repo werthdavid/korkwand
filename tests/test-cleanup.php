@@ -37,7 +37,8 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 		return get_post( $id );
 	}
 
-	private function image_pin( ?int $user = null ): array {
+	/** $plugin_upload = Attachment stammt aus dem Plugin-Upload (Meta _nzp_upload), sonst Mediathek-Bild. */
+	private function image_pin( ?int $user = null, bool $plugin_upload = true ): array {
 		$user = $user ?? $this->user;
 		$att  = self::factory()->attachment->create_object(
 			array(
@@ -56,6 +57,9 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 		);
 		wp_set_object_terms( $id, array( $this->board->term_id ), 'pinboard' );
 		update_post_meta( $id, '_pin_type', 'image' );
+		if ( $plugin_upload ) {
+			update_post_meta( $att, '_nzp_upload', 1 );
+		}
 		set_post_thumbnail( $id, $att );
 		return array( $id, $att );
 	}
@@ -92,6 +96,31 @@ class NZP_Test_Cleanup extends WP_UnitTestCase {
 		wp_delete_post( $pin, true );
 		$this->assertNull( get_post( $pin ) );
 		$this->assertNull( get_post( $att ) );
+	}
+
+	public function test_force_delete_pin_keeps_media_library_image_without_upload_flag() {
+		list( $pin, $att ) = $this->image_pin( null, false );
+		wp_delete_post( $pin, true );
+		$this->assertNull( get_post( $pin ) );
+		$this->assertNotNull( get_post( $att ), 'Mediathek-Bild ohne _nzp_upload darf nicht geloescht werden' );
+	}
+
+	public function test_force_delete_pin_keeps_image_shared_with_trashed_pin() {
+		list( $pin, $att ) = $this->image_pin();
+		$other             = self::factory()->post->create( array( 'post_type' => 'pin', 'post_author' => $this->user ) );
+		set_post_thumbnail( $other, $att );
+		wp_trash_post( $other );
+		wp_delete_post( $pin, true );
+		$this->assertNotNull( get_post( $att ) );
+	}
+
+	public function test_force_delete_pin_keeps_image_used_as_thumbnail_of_a_post() {
+		list( $pin, $att ) = $this->image_pin();
+		$post              = self::factory()->post->create( array( 'post_type' => 'post' ) );
+		set_post_thumbnail( $post, $att );
+		wp_trash_post( $post );
+		wp_delete_post( $pin, true );
+		$this->assertNotNull( get_post( $att ) );
 	}
 
 	public function test_force_delete_pin_keeps_image_used_by_other_pin() {

@@ -45,6 +45,12 @@ class NZP_Test_Pins extends WP_UnitTestCase {
 		return get_post( $id );
 	}
 
+	public function test_create_image_pin_becomes_parent_of_unattached_attachment() {
+		$att = self::factory()->attachment->create_object( array( 'file' => 'a.jpg', 'post_mime_type' => 'image/jpeg', 'post_type' => 'attachment' ) );
+		$pin = Pins::create( $this->board, $this->user, array( 'type' => 'image', 'text' => 'u', 'attachment_id' => $att ) );
+		$this->assertSame( $pin->ID, (int) get_post( $att )->post_parent );
+	}
+
 	public function test_create_postit_defaults() {
 		$pin = $this->postit();
 		$this->assertInstanceOf( WP_Post::class, $pin );

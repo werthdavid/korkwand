@@ -72,6 +72,15 @@ final class Pins {
 		wp_set_object_terms( $post_id, array( $board->term_id ), 'pinboard' );
 		if ( $thumb ) {
 			set_post_thumbnail( $post_id, $thumb );
+			// Unzugeordnetes Bild dem Zettel zuordnen (Mediathek-Bilder mit Elternbeitrag bleiben unveraendert).
+			if ( 0 === (int) wp_get_post_parent_id( $thumb ) ) {
+				wp_update_post(
+					array(
+						'ID'          => $thumb,
+						'post_parent' => $post_id,
+					)
+				);
+			}
 		}
 
 		return get_post( $post_id );

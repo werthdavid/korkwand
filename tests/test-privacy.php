@@ -28,6 +28,7 @@ class NZP_Test_Privacy extends WP_UnitTestCase {
 		$att = self::factory()->attachment->create_object( array( 'file' => 'p.jpg', 'post_mime_type' => 'image/jpeg', 'post_type' => 'attachment', 'post_author' => $this->user ) );
 		$id  = $this->pin( 'Bild' );
 		update_post_meta( $id, '_pin_type', 'image' );
+		update_post_meta( $att, '_nzp_upload', 1 );
 		set_post_thumbnail( $id, $att );
 		return array( $id, $att );
 	}

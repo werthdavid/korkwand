@@ -55,6 +55,13 @@ class NZP_Test_Upload extends WP_UnitTestCase {
 		$this->cleanup( $id );
 	}
 
+	public function test_upload_is_flagged_as_plugin_upload() {
+		$id = Upload::handle( $this->file_from( DIR_TESTDATA . '/images/test-image.png', 'a.png', 'image/png' ), $this->user );
+		$this->assertIsInt( $id );
+		$this->assertSame( '1', get_post_meta( $id, '_nzp_upload', true ) );
+		$this->cleanup( $id );
+	}
+
 	public function test_jpeg_orientation_is_applied_before_stripping() {
 		$file = $this->file_from( DIR_TESTDATA . '/images/test-image-rotated-90ccw.jpg', 'hoch.jpg', 'image/jpeg' );
 		$src  = getimagesize( $file['tmp_name'] );
