@@ -55,7 +55,7 @@ class Upload {
 
 	/** Error message "Image too large" with the effective limit. */
 	public static function too_large_error(): \WP_Error {
-		/* translators: %s: maximum size in MB */
+		/* translators: %s: maximum upload size in MB */
 		return self::error( sprintf( __( 'The image is too large (maximum %s MB).', 'korkwand' ), self::max_label() ) );
 	}
 
