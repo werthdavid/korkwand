@@ -178,3 +178,89 @@
 		animation: none !important;
 	}
 }
+
+/* ---- Interaktion (JS) ---- */
+.nzp-pin[data-can-edit="1"] { cursor: grab; }
+.nzp-pin--dragging {
+	z-index: 20;
+	cursor: grabbing;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
+	box-shadow: 6px 12px 22px rgba(0, 0, 0, .55);
+}
+.nzp-pin[data-can-edit="1"] img { -webkit-touch-callout: none; }
+
+.nzp-menu-btn {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, .75);
+	color: #222;
+	font-size: 20px;
+	line-height: 1;
+	cursor: pointer;
+}
+.nzp-menu-btn:hover { background: #fff; }
+
+.nzp-menu {
+	position: absolute;
+	z-index: 100000;
+	display: flex;
+	flex-direction: column;
+	min-width: 10em;
+	padding: 4px;
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	background: #fff;
+	color: #222;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, .3);
+}
+.nzp-menu button {
+	padding: .5em .8em;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+.nzp-menu button:hover,
+.nzp-menu button:focus-visible { background: #e8f0fe; outline: 2px solid #0b57d0; outline-offset: -2px; }
+
+.nzp-notice {
+	margin: 0 0 .75em;
+	padding: .5em 1em;
+	border-left: 4px solid #b32d2e;
+	background: #fcf0f1;
+	color: #1d2327;
+}
+
+.nzp-dialog {
+	width: min(92vw, 28em);
+	padding: 1.25em;
+	border: 0;
+	border-radius: 8px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, .4);
+}
+.nzp-dialog h2 { margin: 0 0 .75em; font-size: 1.25em; }
+.nzp-dialog fieldset { margin: 0 0 .75em; padding: 0; border: 0; }
+.nzp-dialog fieldset label { margin-right: 1em; }
+.nzp-field { margin-bottom: .75em; }
+.nzp-field[hidden], .nzp-dialog [hidden] { display: none; }
+.nzp-field label { display: block; margin-bottom: .2em; font-weight: 600; }
+.nzp-field input[type="text"],
+.nzp-field textarea { box-sizing: border-box; width: 100%; font: inherit; padding: .4em; }
+.nzp-dialog-error { margin: 0 0 .75em; padding: .5em; border-left: 4px solid #b32d2e; background: #fcf0f1; }
+.nzp-dialog-actions { display: flex; justify-content: flex-end; gap: .5em; }
+.nzp-btn { font: inherit; padding: .4em 1em; border: 1px solid #888; border-radius: 4px; background: #f4f4f4; color: #222; cursor: pointer; }
+.nzp-btn--primary { border-color: #3b6e3b; background: #3b6e3b; color: #fff; }
+.nzp-btn:disabled { opacity: .6; cursor: progress; }
+.nzp-dialog button:focus-visible,
+.nzp-dialog input:focus-visible,
+.nzp-dialog textarea:focus-visible { outline: 3px solid #0b57d0; outline-offset: 2px; }
