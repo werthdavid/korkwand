@@ -22,8 +22,10 @@ final class Model {
 				'public'          => false,
 				'show_ui'         => true,
 				'show_in_rest'    => false,
-				'supports'        => array( 'title', 'editor', 'author', 'thumbnail' ),
+				'supports'        => array( 'title', 'author', 'thumbnail' ),
 				'capability_type' => array( 'pin', 'pins' ),
+				// Zettel entstehen nur im Frontend; im Backend lassen sie sich pruefen, bearbeiten, loeschen.
+				'capabilities'    => array( 'create_posts' => 'do_not_allow' ),
 				'map_meta_cap'    => true,
 				'menu_icon'       => 'dashicons-sticky',
 			)

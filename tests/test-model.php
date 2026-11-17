@@ -52,4 +52,25 @@ class NZP_Test_Model extends WP_UnitTestCase {
 		$id = $this->factory()->term->create( array( 'taxonomy' => 'pinboard', 'slug' => 'kueche' ) );
 		$this->assertSame( $id, \NZ\Pinnwand\Boards::get( 'kueche' )->term_id );
 	}
+
+	public function test_pins_cannot_be_created_in_admin_but_can_be_managed() {
+		\NZ\Pinnwand\Permissions::install_caps();
+		$obj = get_post_type_object( 'pin' );
+		$this->assertSame( 'do_not_allow', $obj->cap->create_posts );
+		$this->assertSame( array( 'title', 'author', 'thumbnail' ), array_keys( array_filter( get_all_post_type_supports( 'pin' ) ) ) );
+
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		$admin  = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$pin    = self::factory()->post->create( array( 'post_type' => 'pin', 'post_status' => 'publish', 'post_author' => $admin ) );
+		foreach ( array( $editor, $admin ) as $uid ) {
+			wp_set_current_user( $uid );
+			$this->assertFalse( current_user_can( $obj->cap->create_posts ), 'Kein Anlegen im Backend' );
+			$this->assertTrue( current_user_can( 'edit_post', $pin ) );
+			$this->assertTrue( current_user_can( 'delete_post', $pin ) );
+			$this->assertTrue( current_user_can( 'read_post', $pin ) );
+		}
+		wp_set_current_user( $editor );
+		$this->assertNotFalse( wp_trash_post( $pin ) );
+		$this->assertNotFalse( wp_delete_post( $pin, true ) );
+	}
 }
