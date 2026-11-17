@@ -202,7 +202,9 @@ final class Rest {
 		if ( is_wp_error( $pin ) ) {
 			return $pin;
 		}
-		Pins::trash( $pin );
+		if ( ! Pins::trash( $pin ) ) {
+			return self::error( 'nzp_error', __( 'Der Zettel konnte nicht gelöscht werden.', 'nz-pinnwand' ), 500 );
+		}
 		return new \WP_REST_Response( array( 'deleted' => true ) );
 	}
 

@@ -294,4 +294,13 @@ class NZP_Test_Pins extends WP_UnitTestCase {
 		$pin = $this->postit();
 		$this->assertNotWPError( Pins::update( $pin, array( 'text' => str_repeat( '<', 300 ) ), $this->user ) );
 	}
+
+	public function test_trash_returns_false_when_trashing_is_blocked() {
+		$pin = $this->postit();
+		$this->assertTrue( Pins::trash( $pin ) );
+		$pin2 = $this->postit();
+		add_filter( 'pre_trash_post', '__return_false' );
+		$this->assertFalse( Pins::trash( $pin2 ) );
+		$this->assertSame( 'publish', get_post_status( $pin2->ID ) );
+	}
 }

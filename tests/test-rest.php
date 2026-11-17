@@ -295,4 +295,14 @@ class NZP_Test_Rest extends WP_UnitTestCase {
 		$this->assertSame( 201, $this->create_as( $this->sub )->get_status() );
 		$this->assertFalse( tests_retrieve_phpmailer_instance()->get_sent() );
 	}
+
+	public function test_delete_reports_500_when_trash_fails() {
+		$pin = $this->pin_of( $this->sub );
+		wp_set_current_user( $this->sub );
+		add_filter( 'pre_trash_post', '__return_false' );
+		$res = $this->req( 'DELETE', '/pins/' . $pin->ID );
+		$this->assertSame( 500, $res->get_status() );
+		$this->assertSame( 'nzp_error', $res->get_data()['code'] );
+		$this->assertSame( 'publish', get_post_status( $pin->ID ) );
+	}
 }

@@ -136,8 +136,9 @@ final class Pins {
 		);
 	}
 
-	public static function trash( \WP_Post $pin ): void {
-		wp_trash_post( $pin->ID );
+	/** True nur, wenn der Zettel tatsaechlich im Papierkorb gelandet ist. */
+	public static function trash( \WP_Post $pin ): bool {
+		return wp_trash_post( $pin->ID ) instanceof \WP_Post;
 	}
 
 	/**
