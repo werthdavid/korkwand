@@ -99,4 +99,30 @@ class NZP_Test_Render extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'alt="Unterschrift"', $html );
 		$this->assertStringContainsString( '<figcaption>Unterschrift</figcaption>', $html );
 	}
+
+	private function redirect_to( string $url ): string {
+		parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $q );
+		return (string) ( $q['redirect_to'] ?? '' );
+	}
+
+	public function test_login_url_uses_queried_permalink() {
+		$page = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$this->go_to( get_permalink( $page ) );
+		$this->assertSame( get_permalink( $page ), $this->redirect_to( Render::login_url() ) );
+		$this->assertStringContainsString( rawurlencode( get_permalink( $page ) ), Render::board( 'test' ) );
+	}
+
+	public function test_login_url_no_doubled_subdirectory() {
+		update_option( 'home', 'http://example.org/wordpress' );
+		update_option( 'siteurl', 'http://example.org/wordpress' );
+		$_SERVER['REQUEST_URI'] = '/wordpress/foo/';
+		$this->assertStringNotContainsString( '/wordpress/wordpress', Render::login_url() );
+		$this->assertStringNotContainsString( '/wordpress/wordpress', rawurldecode( Render::board( 'test' ) ) );
+	}
+
+	public function test_login_url_falls_back_to_home() {
+		$this->go_to( '/' );
+		$this->assertSame( 0, (int) get_queried_object_id() );
+		$this->assertSame( home_url( '/' ), $this->redirect_to( Render::login_url() ) );
+	}
 }

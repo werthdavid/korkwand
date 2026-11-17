@@ -125,8 +125,17 @@ final class Render {
 		return $out . '</article>';
 	}
 
-	private static function login_url(): string {
-		return wp_login_url( home_url( add_query_arg( array(), false ) ) );
+	/**
+	 * Login-URL mit Rueckkehr zur aktuellen Seite (Permalink des abgefragten Objekts, sonst Startseite).
+	 * Liest bewusst weder REQUEST_URI noch HTTP_HOST (Unterverzeichnis-Installationen, REST-Kontext).
+	 */
+	public static function login_url(): string {
+		$id     = (int) get_queried_object_id();
+		$target = $id ? get_permalink( $id ) : false;
+		if ( ! is_string( $target ) || '' === $target ) {
+			$target = home_url( '/' );
+		}
+		return wp_login_url( $target );
 	}
 
 	private static function enqueue_assets(): void {
