@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests fuer den Admin-Bereich.
+ * Tests for the admin area.
  */
 use Korkwand\Admin;
 use Korkwand\Boards;
@@ -11,7 +11,7 @@ class Korkwand_Test_Admin extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		// Hooks werden in Plugin::boot() nur im Admin registriert.
+		// Hooks are registered only in the admin in Plugin::boot().
 		Admin::register();
 		$this->admin = self::factory()->user->create( array( 'role' => 'administrator' ) );
 	}

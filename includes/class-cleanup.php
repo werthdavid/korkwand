@@ -4,7 +4,7 @@ namespace Korkwand;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Aufraeumen: Ablauf, Nutzerloeschung (DSGVO), Bild-Bereinigung, Deinstallation.
+ * Cleanup: expiry, user deletion (GDPR), image cleanup, uninstall.
  */
 final class Cleanup {
 
@@ -18,7 +18,7 @@ final class Cleanup {
 	}
 
 	/**
-	 * Abgelaufene, nicht angeheftete Zettel in den Papierkorb. Rueckgabe: Anzahl.
+	 * Moves expired, non-pinned notes to the trash. Returns the number moved.
 	 */
 	public static function trash_expired(): int {
 		$boards = get_terms(
@@ -83,7 +83,7 @@ final class Cleanup {
 					if ( $pin && Pins::trash( $pin ) ) {
 						++$count;
 					} else {
-						$failed[] = (int) $id; // Nicht endlos wiederholen.
+						$failed[] = (int) $id; // Do not retry endlessly.
 					}
 				}
 			} while ( count( $ids ) >= self::BATCH );
@@ -92,9 +92,9 @@ final class Cleanup {
 	}
 
 	/**
-	 * Beim endgueltigen Loeschen eines Zettels dessen Bild entfernen. Geloescht werden nur
-	 * Attachments aus dem Plugin-Upload (Meta `_korkwand_upload`), die sonst nirgends verwendet werden.
-	 * Mediathek-Bilder bleiben unangetastet.
+	 * When a note is permanently deleted, remove its image. Only attachments from the plugin upload
+	 * (meta `_korkwand_upload`) that are not used anywhere else are deleted.
+	 * Media library images are left untouched.
 	 */
 	public static function delete_attachment( $post_id ): void {
 		$post_id = (int) $post_id;
@@ -113,7 +113,7 @@ final class Cleanup {
 		if ( 0 !== $parent && $parent !== $post_id ) {
 			return;
 		}
-		// Anderweitig als Beitragsbild verwendet (beliebiger Typ, alle Stati inkl. Papierkorb)?
+		// Used elsewhere as a featured image (any type, all statuses incl. trash)?
 		$others = get_posts(
 			array(
 				'post_type'        => array_values( get_post_types() ),
@@ -138,8 +138,8 @@ final class Cleanup {
 	}
 
 	/**
-	 * Alle Zettel eines Nutzers (auch im Papierkorb) endgueltig loeschen, auch bei Reassign.
-	 * Rueckgabe: Anzahl geloeschter Zettel.
+	 * Permanently delete all notes of a user (including trashed ones), also on reassign.
+	 * Returns the number of deleted notes.
 	 */
 	public static function delete_user_pins( $user_id ): int {
 		$user_id = (int) $user_id;
@@ -152,8 +152,8 @@ final class Cleanup {
 	}
 
 	/**
-	 * Loescht bis zu $limit Zettel (0 = alle) und gibt die Anzahl zurueck. Nicht loeschbare Zettel
-	 * werden uebersprungen (nicht endlos wiederholt, blockieren aber auch nicht die nachfolgenden).
+	 * Deletes up to $limit notes (0 = all) and returns the count. Notes that cannot be deleted
+	 * are skipped (not retried endlessly, but they do not block the following ones either).
 	 */
 	public static function delete_batch( int $user_id, int $limit ): int {
 		$count  = 0;
@@ -172,7 +172,7 @@ final class Cleanup {
 		return $count;
 	}
 
-	/** True, wenn der Nutzer noch Zettel (beliebiger Status, auch Papierkorb) besitzt. */
+	/** True if the user still owns notes (any status, including trash). */
 	public static function user_has_pins( int $user_id ): bool {
 		return (bool) get_posts( self::user_pins_query( $user_id, 1 ) );
 	}
@@ -193,7 +193,7 @@ final class Cleanup {
 	}
 
 	/**
-	 * Deinstallation (aus uninstall.php).
+	 * Uninstall (called from uninstall.php).
 	 */
 	public static function uninstall(): void {
 		global $wpdb;
@@ -201,7 +201,7 @@ final class Cleanup {
 		$purge = get_option( 'korkwand_delete_data_on_uninstall', '1' );
 
 		if ( '1' === (string) $purge ) {
-			// Hooks sind bei der Deinstallation nicht registriert: Bild-Bereinigung sicherstellen.
+			// Hooks are not registered during uninstall: make sure the image cleanup runs.
 			if ( ! has_action( 'before_delete_post', array( self::class, 'delete_attachment' ) ) ) {
 				add_action( 'before_delete_post', array( self::class, 'delete_attachment' ) );
 			}
@@ -249,7 +249,7 @@ final class Cleanup {
 		delete_option( 'korkwand_delete_data_on_uninstall' );
 		delete_option( 'korkwand_version' );
 
-		// Rate-Limit-Transients (inkl. Timeout-Eintraege).
+		// Rate-limit transients (incl. timeout entries).
 		$like = $wpdb->esc_like( '_transient_korkwand_rl_' ) . '%';
 		$tmo  = $wpdb->esc_like( '_transient_timeout_korkwand_rl_' ) . '%';
 		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s", $like, $tmo ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery

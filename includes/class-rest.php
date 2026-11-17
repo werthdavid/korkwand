@@ -4,8 +4,8 @@ namespace Korkwand;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * REST-API `korkwand/v1`. Hier liegt die Autorisierungsgrenze: jede Schreiboperation wird geprueft.
- * Authentifizierung: WordPress-Cookie + X-WP-Nonce (ohne gueltige Nonce gilt der Nutzer als Gast).
+ * REST API `korkwand/v1`. This is the authorization boundary: every write operation is checked.
+ * Authentication: WordPress cookie + X-WP-Nonce (without a valid nonce the user counts as a guest).
  */
 final class Rest {
 
@@ -127,8 +127,8 @@ final class Rest {
 		if ( ! $board ) {
 			return self::not_found();
 		}
-		// `type` ist bewusst nicht "required": Wird der Body vom Host verworfen (post_max_size), meldet
-		// WordPress sonst nur "Missing parameter(s): type".
+		// `type` is deliberately not "required": if the host discards the body (post_max_size), WordPress
+		// would otherwise only report "Missing parameter(s): type".
 		$type = (string) $request['type'];
 		if ( ! in_array( $type, array( 'postit', 'image' ), true ) ) {
 			if ( self::body_dropped( $request ) ) {
@@ -140,7 +140,7 @@ final class Rest {
 			return self::error( 'korkwand_rate_limited', __( 'Too many new notes – please try again later.', 'korkwand' ), 429 );
 		}
 
-		// attachment_id wird bewusst nie vom Client uebernommen.
+		// attachment_id is deliberately never taken from the client.
 		$data = array(
 			'type' => (string) $request['type'],
 			'text' => $request['text'] ?? '',
@@ -222,7 +222,7 @@ final class Rest {
 	/* ------------------------------ Helpers ----------------------------- */
 
 	/**
-	 * Nur veroeffentlichte Zettel mit existierendem Board sind ansprechbar.
+	 * Only published notes with an existing board are addressable.
 	 *
 	 * @return \WP_Post|\WP_Error
 	 */
@@ -239,10 +239,10 @@ final class Rest {
 	}
 
 	/**
-	 * Prueft, ob die Datei ein echter HTTP-Upload ist (verhindert, dass beliebige Serverpfade
-	 * als tmp_name verarbeitet werden). Filter `korkwand_is_uploaded_file` (Standard: is_uploaded_file)
-	 * existiert nur als Test-Naht, da PHPUnit keine echten Uploads erzeugen kann; in Produktion
-	 * nicht ueberschreiben.
+	 * Checks whether the file is a real HTTP upload (prevents arbitrary server paths
+	 * is processed as tmp_name). Filter `korkwand_is_uploaded_file` (default: is_uploaded_file)
+	 * exists only as a test seam, since PHPUnit cannot produce real uploads; do not
+	 * override it in production.
 	 *
 	 * @param array<string,mixed> $file
 	 */
@@ -251,8 +251,8 @@ final class Rest {
 	}
 
 	/**
-	 * True, wenn ein multipart-Request Inhalt angekuendigt hat, PHP ihn aber verworfen hat
-	 * (post_max_size ueberschritten: $_POST und $_FILES sind leer).
+	 * True if a multipart request announced content but PHP discarded it
+	 * (post_max_size exceeded: $_POST and $_FILES are empty).
 	 */
 	private static function body_dropped( \WP_REST_Request $request ): bool {
 		$content_type = (string) $request->get_header( 'content_type' );

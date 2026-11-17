@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests fuer den Bild-Upload.
+ * Tests for the image upload.
  */
 use Korkwand\Upload;
 
@@ -13,7 +13,7 @@ class Korkwand_Test_Upload extends WP_UnitTestCase {
 		$this->user = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 	}
 
-	/** Kopiert eine Fixture in eine Temp-Datei (wp_handle_sideload verschiebt sie). */
+	/** Copies a fixture to a temp file (wp_handle_sideload moves it). */
 	private function file_from( string $source, string $name, ?string $type = null ): array {
 		$tmp = wp_tempnam( $name );
 		copy( $source, $tmp );
@@ -68,7 +68,7 @@ class Korkwand_Test_Upload extends WP_UnitTestCase {
 		$id   = Upload::handle( $file, $this->user );
 		$this->assertIsInt( $id );
 		$size = getimagesize( get_attached_file( $id ) );
-		// EXIF-Orientation 6 (90 Grad): Breite und Hoehe vertauscht.
+		// EXIF orientation 6 (90 degrees): width and height swapped.
 		$this->assertSame( $src[1], $size[0] );
 		$this->assertSame( $src[0], $size[1] );
 		$this->cleanup( $id );
@@ -164,7 +164,7 @@ class Korkwand_Test_Upload extends WP_UnitTestCase {
 	}
 
 	public function test_rejects_too_many_pixels() {
-		// PNG-Header mit 6000x5000 (30 MP) ohne Bilddaten; scheitert vor jedem Decode.
+		// PNG header with 6000x5000 (30 MP) without image data; fails before any decode.
 		$png  = "\x89PNG\r\n\x1a\n" . pack( 'N', 13 ) . 'IHDR' . pack( 'NNCCCCC', 6000, 5000, 8, 2, 0, 0, 0 ) . pack( 'N', 0 );
 		$tmp  = wp_tempnam( 'big.png' );
 		file_put_contents( $tmp, $png );

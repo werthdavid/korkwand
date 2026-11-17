@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests fuer Aufraeumen, Nutzerloeschung und Deinstallation.
+ * Tests for cleanup, user deletion and uninstall.
  */
 use Korkwand\Cleanup;
 use Korkwand\Pins;
@@ -37,7 +37,7 @@ class Korkwand_Test_Cleanup extends WP_UnitTestCase {
 		return get_post( $id );
 	}
 
-	/** $plugin_upload = Attachment stammt aus dem Plugin-Upload (Meta _korkwand_upload), sonst Mediathek-Bild. */
+	/** $plugin_upload = attachment comes from the plugin upload (meta _korkwand_upload), otherwise a media library image. */
 	private function image_pin( ?int $user = null, bool $plugin_upload = true ): array {
 		$user = $user ?? $this->user;
 		$att  = self::factory()->attachment->create_object(

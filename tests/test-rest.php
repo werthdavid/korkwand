@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests fuer die REST-API (Autorisierungsgrenze des Plugins).
+ * Tests for the REST API (authorization boundary of the plugin).
  */
 use Korkwand\Pins;
 
@@ -25,7 +25,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 		$this->other  = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		$this->editor = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( 0 );
-		// wp-env-Host "localhost" ergibt eine ungueltige Default-Absenderadresse (wordpress@localhost).
+		// wp-env host "localhost" yields an invalid default sender address (wordpress@localhost).
 		add_filter( 'wp_mail_from', static fn() => 'wordpress@example.org' );
 		reset_phpmailer_instance();
 	}
@@ -180,7 +180,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 	}
 
 	public function test_image_upload_requires_genuine_upload() {
-		// Ohne Filter: tmp_name ist kein echter HTTP-Upload (is_uploaded_file false).
+		// Without the filter: tmp_name is not a real HTTP upload (is_uploaded_file false).
 		$before = $this->attachment_count();
 		wp_set_current_user( $this->sub );
 		$res = $this->req( 'POST', '/boards/test/pins', array( 'type' => 'image', 'text' => 'c' ), $this->image_file() );
@@ -297,7 +297,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 		$this->assertSame( 429, $res->get_status() );
 		$this->assertSame( 'korkwand_rate_limited', $res->get_data()['code'] );
 		$this->assertSame( 'Too many new notes – please try again later.', $res->get_data()['message'] );
-		// Anderer Nutzer ist nicht betroffen.
+		// Other user is not affected.
 		$this->assertSame( 201, $this->create_as( $this->other )->get_status() );
 	}
 
@@ -317,7 +317,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 			$this->assertTrue( \Korkwand\RateLimit::hit( 42 ) );
 		}
 		$this->assertFalse( \Korkwand\RateLimit::hit( 42 ) );
-		// Alte Zeitstempel verfallen.
+		// Old timestamps expire.
 		set_transient( 'korkwand_rl_43', array_fill( 0, 10, time() - 3700 ), 3600 );
 		$this->assertTrue( \Korkwand\RateLimit::hit( 43 ) );
 	}

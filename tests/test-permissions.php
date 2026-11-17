@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests fuer Rechte.
+ * Tests for permissions.
  */
 class Korkwand_Test_Permissions extends WP_UnitTestCase {
 

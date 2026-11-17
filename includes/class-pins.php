@@ -4,8 +4,8 @@ namespace Korkwand;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Domaenen-Service fuer Zettel (Post Type `pin`): anlegen, aendern, abfragen, serialisieren.
- * Autorisierung (ausser `sticky`) liegt beim Aufrufer (REST via Permissions).
+ * Domain service for notes (post type `korkwand_pin`): create, update, query, serialize.
+ * Authorization (except `sticky`) is up to the caller (REST via Permissions).
  */
 final class Pins {
 
@@ -72,7 +72,7 @@ final class Pins {
 		wp_set_object_terms( $post_id, array( $board->term_id ), 'korkwand_board' );
 		if ( $thumb ) {
 			set_post_thumbnail( $post_id, $thumb );
-			// Unzugeordnetes Bild dem Zettel zuordnen (Mediathek-Bilder mit Elternbeitrag bleiben unveraendert).
+			// Assign an unassigned image to the note (media library images with a parent post stay unchanged).
 			if ( 0 === (int) wp_get_post_parent_id( $thumb ) ) {
 				wp_update_post(
 					array(
@@ -87,7 +87,7 @@ final class Pins {
 	}
 
 	/**
-	 * @param array<string, mixed> $data x, y, title, text, sticky. Typ und Bild sind unveraenderlich.
+	 * @param array<string, mixed> $data x, y, title, text, sticky. Type and image are immutable.
 	 * @return \WP_Post|\WP_Error
 	 */
 	public static function update( \WP_Post $pin, array $data, int $user_id ) {
@@ -145,14 +145,14 @@ final class Pins {
 		);
 	}
 
-	/** True nur, wenn der Zettel tatsaechlich im Papierkorb gelandet ist. */
+	/** True only if the note has actually ended up in the trash. */
 	public static function trash( \WP_Post $pin ): bool {
 		return wp_trash_post( $pin->ID ) instanceof \WP_Post;
 	}
 
 	/**
-	 * Sichtbare Zettel: Sticky zuerst, dann neueste; insgesamt max. `max_pins`.
-	 * Ablauf-Vergleich ueber post_date_gmt gegen UTC.
+	 * Visible notes: sticky first, then newest; at most `max_pins` in total.
+	 * Expiry comparison via post_date_gmt against UTC.
 	 *
 	 * @return \WP_Post[]
 	 */
@@ -235,7 +235,7 @@ final class Pins {
 	}
 
 	/**
-	 * @param \WP_Term|null $board Board des Zettels, wenn der Aufrufer sie kennt (spart eine Term-Abfrage pro Zettel).
+	 * @param \WP_Term|null $board Board of the note if the caller knows it (saves one term query per note).
 	 * @return array<string, mixed>
 	 */
 	public static function to_array( \WP_Post $pin, int $viewer_id, ?\WP_Term $board = null ): array {
@@ -270,8 +270,8 @@ final class Pins {
 	}
 
 	/**
-	 * sanitize_*_field speichert "<" als "&lt;". Ausgabe und Laengenpruefung arbeiten auf dem
-	 * decodierten Text; Escaping (esc_html) passiert beim Rendern.
+	 * sanitize_*_field stores "<" as "&lt;". Output and length checks operate on the
+	 * decoded text; escaping (esc_html) happens at render time.
 	 */
 	private static function decode( string $value ): string {
 		return wp_specialchars_decode( $value, ENT_QUOTES );
@@ -283,7 +283,7 @@ final class Pins {
 
 	private static function clean_text( $value ): string {
 		$text = is_scalar( $value ) ? (string) $value : '';
-		// Multipart liefert CRLF: auf LF normalisieren, damit die Zeichenzaehlung stimmt.
+		// Multipart delivers CRLF: normalize to LF so that character counting is correct.
 		$text = str_replace( array( "\r\n", "\r" ), "\n", $text );
 		return trim( sanitize_textarea_field( $text ) );
 	}
@@ -312,8 +312,8 @@ final class Pins {
 	}
 
 	/**
-	 * Speichert Klartext unveraendert: kses-Filter werden kurz entfernt (Text ist bereits bereinigt
-	 * und wird nur escaped ausgegeben).
+	 * Stores plain text unchanged: kses filters are removed briefly (the text is already sanitized
+	 * and is only output escaped).
 	 *
 	 * @param array<string, mixed> $postarr
 	 * @return int|\WP_Error

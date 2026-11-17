@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests fuer Datenmodell und Board-Einstellungen.
+ * Tests for the data model and board settings.
  */
 class Korkwand_Test_Model extends WP_UnitTestCase {
 

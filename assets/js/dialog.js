@@ -29,7 +29,7 @@ function field(labelText, control) {
 
 /**
  * @param {{pin?: object, trigger?: Element, onSubmit: (v: {type:string,title:string,text:string,file:?File}) => Promise<void>}} opts
- * pin gesetzt = Bearbeiten (Typ fest), sonst Anlegen.
+ * pin set = edit (type fixed), otherwise create.
  */
 export function openPinDialog({ pin = null, trigger = null, onSubmit }) {
 	const editing = !!pin;
@@ -43,7 +43,7 @@ export function openPinDialog({ pin = null, trigger = null, onSubmit }) {
 
 	let type = editing ? pin.type : 'postit';
 
-	// Typwahl (nur beim Anlegen)
+	// Type selection (only when creating)
 	const typeBox = el('fieldset', { className: 'korkwand-type' }, el('legend', { text: t('noteType') }));
 	for (const [val, label] of [['postit', t('postit')], ['image', t('image')]]) {
 		const rid = 'korkwand-type-' + val;

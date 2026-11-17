@@ -4,7 +4,7 @@ namespace Korkwand;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Admin-Bereich: Listenspalten, Board-Einstellungen, Plugin-Einstellungen.
+ * Admin area: list columns, board settings, plugin settings.
  */
 final class Admin {
 

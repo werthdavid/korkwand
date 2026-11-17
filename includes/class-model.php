@@ -4,7 +4,7 @@ namespace Korkwand;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Registriert Post Type `pin`, Taxonomie `korkwand_board` sowie Post-/Term-Meta.
+ * Registers the post type `korkwand_pin`, the taxonomy `korkwand_board` and post/term meta.
  */
 final class Model {
 
@@ -27,7 +27,7 @@ final class Model {
 				'show_in_rest'    => false,
 				'supports'        => array( 'title', 'author', 'thumbnail' ),
 				'capability_type' => array( 'korkwand_pin', 'korkwand_pins' ),
-				// Zettel entstehen nur im Frontend; im Backend lassen sie sich pruefen, bearbeiten, loeschen.
+				// Notes are created only in the front end; in the back end they can be reviewed, edited and deleted.
 				'capabilities'    => array( 'create_posts' => 'do_not_allow' ),
 				'map_meta_cap'    => true,
 				'menu_icon'       => 'dashicons-sticky',
@@ -109,7 +109,7 @@ final class Model {
 	}
 
 	/**
-	 * Rotation: Ganzzahl, geklemmt auf -6..6.
+	 * Rotation: integer, clamped to -6..6.
 	 *
 	 * @param mixed $value Rohwert.
 	 */

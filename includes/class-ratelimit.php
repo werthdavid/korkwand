@@ -4,10 +4,10 @@ namespace Korkwand;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Rate-Limit fuer neue Zettel: max. 10 pro Nutzer in einem gleitenden 3600-s-Fenster.
- * Zustand: Transient `korkwand_rl_{user_id}` mit den Zeitstempeln der letzten Stunde.
- * Hinweis: Lesen/Schreiben ist nicht atomar; bei exakt gleichzeitigen Requests kann das Limit
- * knapp ueberschritten werden (fuer diesen Zweck akzeptiert).
+ * Rate limit for new notes: max. 10 per user in a sliding 3600 s window.
+ * State: transient `korkwand_rl_{user_id}` with the timestamps of the last hour.
+ * Note: reading/writing is not atomic; with exactly simultaneous requests the limit may
+ * be slightly exceeded (accepted for this purpose).
  */
 final class RateLimit {
 
@@ -15,7 +15,7 @@ final class RateLimit {
 	public const WINDOW = 3600;
 
 	/**
-	 * Registriert einen Versuch. false, wenn das Limit bereits erreicht ist (Versuch wird dann nicht gezaehlt).
+	 * Registers an attempt. false if the limit has already been reached (the attempt is then not counted).
 	 */
 	public static function hit( int $user_id ): bool {
 		$key = 'korkwand_rl_' . $user_id;

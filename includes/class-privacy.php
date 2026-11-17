@@ -4,7 +4,7 @@ namespace Korkwand;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Integration in die WordPress-Datenschutzwerkzeuge (Export/Loeschung personenbezogener Daten).
+ * Integration with the WordPress privacy tools (export/erasure of personal data).
  */
 final class Privacy {
 
@@ -61,7 +61,7 @@ final class Privacy {
 			$items[] = array(
 				'group_id'    => 'korkwand',
 				'group_label' => __( 'Korkwand', 'korkwand' ),
-				'item_id'     => 'pin-' . $pin->ID,
+				'item_id'     => 'korkwand-note-' . $pin->ID,
 				'data'        => array(
 					array( 'name' => __( 'Title', 'korkwand' ), 'value' => wp_specialchars_decode( $pin->post_title, ENT_QUOTES ) ),
 					array( 'name' => __( 'Text', 'korkwand' ), 'value' => wp_specialchars_decode( $pin->post_content, ENT_QUOTES ) ),
@@ -74,8 +74,8 @@ final class Privacy {
 	}
 
 	/**
-	 * Loescht pro Aufruf bis zu 50 Zettel. Da geloeschte Zettel aus der Abfrage verschwinden,
-	 * wird unabhaengig von $page stets die naechste Charge geladen.
+	 * Erases up to 50 notes per call. Since erased notes disappear from the query,
+	 * the next batch is always loaded regardless of $page.
 	 *
 	 * @return array{items_removed:bool,items_retained:bool,messages:array<int,string>,done:bool}
 	 */
@@ -89,9 +89,9 @@ final class Privacy {
 			$removed = Cleanup::delete_batch( (int) $user->ID, self::PAGE_SIZE );
 			if ( Cleanup::user_has_pins( (int) $user->ID ) ) {
 				if ( $removed >= self::PAGE_SIZE ) {
-					$done = false; // Es kann noch Loeschbares uebrig sein: naechste Charge.
+					$done = false; // There may still be erasable items left: next batch.
 				} else {
-					$retained   = true; // Rest ist nicht loeschbar.
+					$retained   = true; // The rest cannot be erased.
 					$messages[] = __( 'Some notes could not be deleted.', 'korkwand' );
 				}
 			}

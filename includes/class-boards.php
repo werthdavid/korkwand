@@ -4,7 +4,7 @@ namespace Korkwand;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Zugriff auf Pinnwände (Terms der Taxonomie `korkwand_board`) und deren Einstellungen.
+ * Access to boards (terms of the `korkwand_board` taxonomy) and their settings.
  */
 final class Boards {
 
@@ -46,7 +46,7 @@ final class Boards {
 	}
 
 	/**
-	 * Speichert bereinigte und geklemmte Einstellungen; fehlende Schlüssel bleiben unverändert.
+	 * Stores sanitized and clamped settings; missing keys remain unchanged.
 	 *
 	 * @param int                  $term_id Term-ID.
 	 * @param array<string, mixed> $raw     Rohdaten (z. B. $_POST).

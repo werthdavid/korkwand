@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests fuer Shortcode, Block und Markup.
+ * Tests for shortcode, block and markup.
  */
 use Korkwand\Pins;
 use Korkwand\Render;
@@ -17,7 +17,7 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 		$this->board = get_term( $id, 'korkwand_board' );
 		$this->user  = self::factory()->user->create( array( 'role' => 'subscriber', 'display_name' => 'Anna Beispiel' ) );
 		$pin = Pins::create( $this->board, $this->user, array( 'type' => 'postit', 'title' => 'Hallo', 'text' => 'Text' ) );
-		// Gespeicherte Form wie nach sanitize_*_field (HTML-Entities), Ausgabe muss escapen.
+		// Stored form as after sanitize_*_field (HTML entities); output must escape.
 		wp_update_post( array( 'ID' => $pin->ID, 'post_title' => 'Hallo &lt;i&gt;', 'post_content' => "&lt;b&gt;x&lt;/b&gt;\nY" ) );
 		wp_set_current_user( 0 );
 		unset( $GLOBALS['wp_styles'], $GLOBALS['wp_scripts'] );

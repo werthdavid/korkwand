@@ -40,7 +40,7 @@
 	background: #fcf0f1;
 }
 
-/* Ohne JS horizontal scrollbar; JS setzt --korkwand-scale und die Klasse .korkwand--scaled (dann kein Scrollen). */
+/* Without JS horizontally scrollable; JS sets --korkwand-scale and the class .korkwand--scaled (then no scrolling). */
 .korkwand-board {
 	overflow-x: auto;
 	border: 10px solid #6b4423;
@@ -141,7 +141,7 @@
 .korkwand-pin--sticky { box-shadow: 2px 4px 8px rgba(0, 0, 0, .4), 0 0 0 3px rgba(255, 215, 0, .8); }
 .korkwand-pin--sticky:hover { box-shadow: 4px 8px 14px rgba(0, 0, 0, .5), 0 0 0 3px rgba(255, 215, 0, .8); }
 
-/* Mobil: Listenansicht bei Containerbreite < 480px. */
+/* Mobile: list view at container width < 480px. */
 @container (max-width: 479px) {
 	.korkwand-board { overflow-x: visible; }
 
@@ -261,7 +261,7 @@
 .korkwand-dialog input:focus-visible,
 .korkwand-dialog textarea:focus-visible { outline: 3px solid #0b57d0; outline-offset: 2px; }
 
-/* Touch: Long-Press-Drag; iOS-Linkvorschau/Textauswahl auf editierbaren Zetteln unterdruecken. */
+/* Touch: long-press drag; suppress iOS link preview/text selection on editable notes. */
 .korkwand-pin[data-can-edit="1"] {
 	user-select: none;
 	-webkit-user-select: none;

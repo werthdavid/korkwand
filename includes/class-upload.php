@@ -1,6 +1,6 @@
 <?php
 /**
- * Validierter Bild-Upload (JPEG/PNG/WebP, max. 8 MB) mit Entfernen der Metadaten.
+ * Validated image upload (JPEG/PNG/WebP, max. 8 MB) with metadata stripping.
  */
 
 namespace Korkwand;
@@ -26,7 +26,7 @@ class Upload {
 	}
 
 	/**
-	 * Anhangsseiten von Plugin-Uploads liefern 404 (sonst koennten Gaeste dort Titel/Datei-Metadaten sehen).
+	 * Attachment pages of plugin uploads return 404 (otherwise guests could see title/file metadata there).
 	 * Hook: template_redirect.
 	 */
 	public static function block_attachment_page(): void {
@@ -42,24 +42,24 @@ class Upload {
 		}
 	}
 
-	/** Effektives Limit: Plugin-Grenze, begrenzt durch die Host-Einstellungen (upload_max_filesize/post_max_size). */
+	/** Effective limit: plugin cap, bounded by the host settings (upload_max_filesize/post_max_size). */
 	public static function max_bytes(): int {
 		return max( 1, min( self::MAX_BYTES, (int) wp_max_upload_size() ) );
 	}
 
-	/** Limit in MB als lokalisierter Text, z. B. "8" oder "1,5". */
+	/** Limit in MB as localized text, e.g. "8" or "1,5". */
 	public static function max_label(): string {
 		$mb = round( self::max_bytes() / 1048576, 1 );
 		return floor( $mb ) === $mb ? (string) (int) $mb : number_format_i18n( $mb, 1 );
 	}
 
-	/** Fehlermeldung "Bild zu gross" mit dem effektiven Limit. */
+	/** Error message "Image too large" with the effective limit. */
 	public static function too_large_error(): \WP_Error {
 		/* translators: %s: maximum size in MB */
 		return self::error( sprintf( __( 'The image is too large (maximum %s MB).', 'korkwand' ), self::max_label() ) );
 	}
 
-	/** Uebersetzt einen PHP-Upload-Fehlercode (UPLOAD_ERR_*) in einen WP_Error. */
+	/** Translates a PHP upload error code (UPLOAD_ERR_*) into a WP_Error. */
 	public static function upload_error( int $code ): \WP_Error {
 		if ( UPLOAD_ERR_INI_SIZE === $code || UPLOAD_ERR_FORM_SIZE === $code ) {
 			return self::too_large_error();
@@ -68,11 +68,11 @@ class Upload {
 	}
 
 	/**
-	 * Nimmt eine Datei im $_FILES-Format entgegen und legt ein Attachment an.
+	 * Accepts a file in $_FILES format and creates an attachment.
 	 *
 	 * @param array $file    Eintrag im $_FILES-Format.
 	 * @param int   $user_id Autor des Attachments.
-	 * @return int|\WP_Error Attachment-ID oder Fehler (Code korkwand_upload, Status 400).
+	 * @return int|\WP_Error Attachment ID or error (code korkwand_upload, status 400).
 	 */
 	public static function handle( array $file, int $user_id ) {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -83,7 +83,7 @@ class Upload {
 		$tmp   = isset( $file['tmp_name'] ) ? (string) $file['tmp_name'] : '';
 		$name  = isset( $file['name'] ) ? (string) $file['name'] : '';
 
-		// 1. Validierung, bevor irgendetwas verschoben wird.
+		// 1. Validate before anything is moved.
 		if ( ! isset( $file['error'] ) || UPLOAD_ERR_OK !== (int) $file['error'] ) {
 			return self::upload_error( (int) ( $file['error'] ?? UPLOAD_ERR_NO_FILE ) );
 		}
@@ -108,7 +108,7 @@ class Upload {
 			return self::error( __( 'The image dimensions are too large.', 'korkwand' ) );
 		}
 
-		// 2. Metadaten im Temp-Verzeichnis entfernen (Re-Encode), bevor die Datei oeffentlich erreichbar wird.
+		// 2. Strip metadata in the temp directory (re-encode) before the file becomes publicly reachable.
 		wp_raise_memory_limit( 'image' );
 		$clean = wp_tempnam( $name );
 		if ( ! $clean || ! self::reencode( $tmp, $check['type'], $clean ) ) {
@@ -119,7 +119,7 @@ class Upload {
 		}
 		$file['tmp_name'] = $clean;
 		$file['size']     = (int) filesize( $clean );
-		// Originaldateiname nie veroeffentlichen: neutraler Zufallsname mit gepruefter Endung.
+		// Never publish the original filename: neutral random name with a verified extension.
 		$exts         = array(
 			'image/jpeg' => 'jpg',
 			'image/png'  => 'png',
@@ -128,7 +128,7 @@ class Upload {
 		$ext          = $exts[ $check['type'] ];
 		$file['name'] = 'korkwand-' . wp_generate_password( 12, false ) . '.' . $ext;
 
-		// 3. Bereinigte Datei in die Mediathek verschieben.
+		// 3. Move the cleaned file into the media library.
 		$moved = wp_handle_sideload(
 			$file,
 			array(
@@ -143,7 +143,7 @@ class Upload {
 		$path = $moved['file'];
 		$mime = (string) $moved['type'];
 
-		// 4. Attachment anlegen.
+		// 4. Create the attachment.
 		$id = wp_insert_attachment(
 			array(
 				'post_author'    => $user_id,
@@ -165,7 +165,7 @@ class Upload {
 		return (int) $id;
 	}
 
-	/** Kodiert $path per GD neu und schreibt das Ergebnis nach $dest (verwirft EXIF/GPS/ICC/XMP). Gibt false bei Fehler zurueck. */
+	/** Re-encodes $path via GD and writes the result to $dest (discards EXIF/GPS/ICC/XMP). Returns false on error. */
 	private static function reencode( string $path, string $mime, string $dest ): bool {
 		$loaders = array(
 			'image/jpeg' => 'imagecreatefromjpeg',
@@ -210,7 +210,7 @@ class Upload {
 		return (bool) $ok;
 	}
 
-	/** Wendet die EXIF-Orientierung (2, 3, 4, 6, 8) an. */
+	/** Applies the EXIF orientation (2, 3, 4, 6, 8). */
 	private static function orient( \GdImage $img, int $orientation ): \GdImage {
 		switch ( $orientation ) {
 			case 2:
@@ -223,7 +223,7 @@ class Upload {
 				$angle = 180;
 				break;
 			case 6:
-				$angle = 270; // 90 Grad im Uhrzeigersinn.
+				$angle = 270; // 90 degrees clockwise.
 				break;
 			case 8:
 				$angle = 90;

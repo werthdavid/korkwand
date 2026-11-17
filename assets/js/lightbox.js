@@ -22,7 +22,7 @@ function ensure() {
 	Object.assign(close.style, { position: 'absolute', top: '-8px', right: '-8px', width: '36px', height: '36px', borderRadius: '50%', border: '0', fontSize: '22px', cursor: 'pointer' });
 	dlg.append(img, cap, close);
 
-	// Klick irgendwo (Bild, Hintergrund, X) schliesst.
+	// A click anywhere (image, background, X) closes it.
 	dlg.addEventListener('click', () => dlg.close());
 	dlg.addEventListener('close', () => {
 		img.removeAttribute('src');

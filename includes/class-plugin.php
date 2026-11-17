@@ -6,7 +6,7 @@ defined( 'ABSPATH' ) || exit;
 final class Plugin {
 
 	public static function boot(): void {
-		// Laeuft auf plugins_loaded (boot-Hook): Rechte/Cron nach Updates nachziehen.
+		// Runs on plugins_loaded (boot hook): catch up capabilities/cron after updates.
 		self::maybe_upgrade();
 		add_action( 'init', array( Model::class, 'register' ) );
 		add_action( 'rest_api_init', array( Rest::class, 'register' ) );
@@ -21,8 +21,8 @@ final class Plugin {
 	}
 
 	/**
-	 * Upgrade-Routine: installiert Rechte und Cron neu, wenn sich die Plugin-Version geaendert hat
-	 * (Aktivierungs-Hook laeuft bei Updates nicht).
+	 * Upgrade routine: reinstalls capabilities and cron when the plugin version has changed
+	 * (the activation hook does not run on updates).
 	 */
 	public static function maybe_upgrade(): void {
 		if ( get_option( 'korkwand_version' ) === KORKWAND_VERSION ) {

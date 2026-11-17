@@ -4,12 +4,12 @@ namespace Korkwand;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Darstellung: Shortcode [korkwand], Block korkwand/board und HTML-Markup.
+ * Rendering: shortcode [korkwand], block korkwand/board and HTML markup.
  *
- * Skript-Strategie: `korkwand-script` ist ein ES-Modul (wp_register_script_module). Die
- * Konfiguration `Korkwand` wird ueber ein winziges klassisches Handle `korkwand-config`
- * (src=false + wp_add_inline_script) vor dem Modul ausgegeben; Module laufen
- * deferred, `window.Korkwand` ist also beim Start des Moduls gesetzt.
+ * Script strategy: `korkwand-script` is an ES module (wp_register_script_module). The
+ * `Korkwand` configuration is output via a tiny classic handle `korkwand-config`
+ * (src=false + wp_add_inline_script) before the module; modules run
+ * deferred, so `window.Korkwand` is set when the module starts.
  */
 final class Render {
 
@@ -19,7 +19,7 @@ final class Render {
 		add_action( 'wp_enqueue_scripts', array( self::class, 'maybe_enqueue_early' ) );
 	}
 
-	/** Stylesheet frueh registrieren (Editor-Vorschau ueber block.json, Frontend-Fallback). */
+	/** Register the stylesheet early (editor preview via block.json, front-end fallback). */
 	public static function register_style(): void {
 		if ( ! wp_style_is( 'korkwand-style', 'registered' ) ) {
 			wp_register_style( 'korkwand-style', KORKWAND_URL . 'assets/css/korkwand.css', array(), KORKWAND_VERSION );
@@ -27,8 +27,8 @@ final class Render {
 	}
 
 	/**
-	 * Klassische Themes: Stylesheet im <head> laden, wenn der Beitrag den Shortcode oder Block enthaelt
-	 * (vermeidet ungestylten Blitz). Das spaete Enqueue beim Rendern bleibt als Fallback bestehen.
+	 * Classic themes: load the stylesheet in <head> when the post contains the shortcode or block.
+	 * (avoids a flash of unstyled content). The late enqueue at render time remains as a fallback.
 	 */
 	public static function maybe_enqueue_early(): void {
 		if ( ! is_singular() ) {
@@ -111,7 +111,7 @@ final class Render {
 	}
 
 	/**
-	 * @param array<string, mixed> $p Ergebnis von Pins::to_array().
+	 * @param array<string, mixed> $p Result of Pins::to_array().
 	 */
 	private static function pin( array $p, bool $logged_in ): string {
 		$is_image = 'image' === $p['type'] && ! empty( $p['image'] );
@@ -151,8 +151,8 @@ final class Render {
 	}
 
 	/**
-	 * Login-URL mit Rueckkehr zur aktuellen Seite (Permalink des abgefragten Objekts, sonst Startseite).
-	 * Liest bewusst weder REQUEST_URI noch HTTP_HOST (Unterverzeichnis-Installationen, REST-Kontext).
+	 * Login URL that returns to the current page (permalink of the queried object, otherwise the home page).
+	 * Deliberately reads neither REQUEST_URI nor HTTP_HOST (subdirectory installs, REST context).
 	 */
 	public static function login_url(): string {
 		$id     = (int) get_queried_object_id();
@@ -183,8 +183,8 @@ final class Render {
 			wp_enqueue_script( 'korkwand-config' );
 		}
 
-		// Teilmodule einzeln mit Version registrieren und per Modul-ID importieren: Die Import-Map traegt
-		// ?ver=..., so dass Browser nach Updates keine veralteten Teilmodule aus dem Cache nutzen.
+		// Register sub-modules individually with a version and import them by module ID: the import map carries
+		// ?ver=..., so browsers do not use stale sub-modules from the cache after updates.
 		$deps = array();
 		foreach ( array( 'i18n', 'api', 'geometry', 'dialog', 'lightbox' ) as $name ) {
 			wp_register_script_module( 'korkwand-' . $name, KORKWAND_URL . 'assets/js/' . $name . '.js', array(), KORKWAND_VERSION );
@@ -195,8 +195,8 @@ final class Render {
 	}
 
 	/**
-	 * Oberflaechen-Texte fuer das Frontend-JavaScript. Script-Module koennen wp_set_script_translations()
-	 * nicht nutzen; deshalb werden die Texte hier uebersetzt und ueber window.Korkwand.i18n uebergeben.
+	 * UI strings for the front-end JavaScript. Script modules cannot use wp_set_script_translations(),
+	 * so the strings are translated here and passed via window.Korkwand.i18n.
 	 *
 	 * @return array<string,string>
 	 */

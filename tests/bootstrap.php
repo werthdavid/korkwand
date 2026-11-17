@@ -1,6 +1,6 @@
 <?php
 /**
- * PHPUnit-Bootstrap fuer korkwand.
+ * PHPUnit bootstrap for korkwand.
  */
 
 $korkwand_tests_dir = getenv( 'WP_TESTS_DIR' );
@@ -29,5 +29,5 @@ tests_add_filter(
 
 require $korkwand_tests_dir . '/includes/bootstrap.php';
 
-// Aktivierung einmalig ausfuehren (Tabellen/Optionen der spaeteren Tasks).
+// Run activation once (tables/options for the later tasks).
 \Korkwand\Plugin::activate();

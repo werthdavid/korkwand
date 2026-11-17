@@ -6,8 +6,8 @@ defined( 'ABSPATH' ) || exit;
 final class Notify {
 
 	/**
-	 * Mail an den Site-Admin ueber einen neuen Zettel. Nur Klartext; Betreff ist konstant
-	 * (keine Nutzereingaben in Headern).
+	 * Mail to the site admin about a new note. Plain text only; the subject is constant
+	 * (no user input in headers).
 	 */
 	public static function new_pin( \WP_Post $pin ): void {
 		$data = Pins::to_array( $pin, 0 );

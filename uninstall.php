@@ -1,6 +1,6 @@
 <?php
 /**
- * Deinstallation: entfernt Rechte, Cron, Optionen und (Standard) alle Zettel samt Bildern und Pinnwaende.
+ * Uninstall: removes capabilities, cron, options and (by default) all notes including images and boards.
  */
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {

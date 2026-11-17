@@ -1,4 +1,4 @@
-// Reine Geometrie-Helfer (keine DOM-Abhaengigkeit, node:test-bar).
+// Pure geometry helpers (no DOM dependency, testable with node:test).
 export const LOGICAL_WIDTH = 1000;
 export const MAX_X = 800;
 
@@ -10,7 +10,7 @@ export function toLogical(dxPx, dyPx, scale) {
 	return { dx: dxPx / scale, dy: dyPx / scale };
 }
 
-// Gleiche Grenzen wie Pins::clamp_position (PHP).
+// Same limits as Pins::clamp_position (PHP).
 export function clamp(x, y, height) {
 	return {
 		x: Math.max(0, Math.min(MAX_X, Math.round(x))),

@@ -101,8 +101,8 @@ class Board {
 		root.addEventListener('click', (e) => this.onClick(e), true);
 		root.addEventListener('dragstart', (e) => e.preventDefault());
 		root.addEventListener('pointerdown', (e) => this.onPointerDown(e));
-		// Permanente, nicht-passive Touch-Listener: der Browser entscheidet beim touchstart, ob die Geste
-		// abbrechbar ist. Nur waehrend eines aktiven Long-Press-Drags wird das Scrollen unterbunden.
+		// Permanent, non-passive touch listeners: the browser decides at touchstart whether the gesture
+		// can be cancelled. Scrolling is suppressed only during an active long-press drag.
 		root.addEventListener('touchstart', () => {}, { passive: false });
 		root.addEventListener('touchmove', (e) => {
 			if (this.drag && this.drag.active && e.cancelable) e.preventDefault();
@@ -115,8 +115,8 @@ class Board {
 
 	layout() {
 		const list = this.inList;
-		// Skalierte Ansicht: kein Scrollen (overflow:hidden per CSS). Klasse vor dem Messen setzen,
-		// damit clientWidth keine Scrollbar abzieht.
+		// Scaled view: no scrolling (overflow:hidden via CSS). Set the class before measuring,
+		// so that clientWidth does not subtract a scrollbar.
 		this.root.classList.toggle('korkwand--scaled', !list);
 		if (list) {
 			this.scale = 1;
@@ -233,7 +233,7 @@ class Board {
 		if (!d.active) {
 			if (moved <= DRAG_THRESHOLD) return;
 			if (d.touch) {
-				// Vor Ablauf des Long-Press: Nutzer scrollt -> Drag abbrechen.
+				// Before the long press elapses: user is scrolling -> cancel the drag.
 				this.endDrag();
 				return;
 			}
@@ -275,7 +275,7 @@ class Board {
 		const wasActive = d.active;
 		this.endDrag();
 		if (!wasActive) return;
-		this.suppressClickUntil = Date.now() + 80; // Klick nach dem Ziehen nicht auslösen (z.B. Lightbox-Link)
+		this.suppressClickUntil = Date.now() + 80; // Do not trigger a click after dragging (e.g. lightbox link)
 		if (cancelled || (d.x === d.ox && d.y === d.oy)) {
 			this.setPos(d.pin, d.ox, d.oy);
 			return;
@@ -290,7 +290,7 @@ class Board {
 		}
 	}
 
-	/* ------------------------------ Menue ------------------------------ */
+	/* ------------------------------ Menu ------------------------------ */
 
 	closeMenu() {
 		if (!this.menu) return;

@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests fuer Datenschutz-Exporter und -Eraser.
+ * Tests for the privacy exporter and eraser.
  */
 use Korkwand\Privacy;
 
@@ -58,10 +58,10 @@ class Korkwand_Test_Privacy extends WP_UnitTestCase {
 				$flat[ $item['item_id'] ][ $d['name'] ] = $d['value'];
 			}
 		}
-		$this->assertSame( 'Hallo', $flat[ 'pin-' . $p ]['Title'] );
-		$this->assertSame( 'Welt', $flat[ 'pin-' . $p ]['Text'] );
-		$this->assertNotEmpty( $flat[ 'pin-' . $p ]['Date'] );
-		$this->assertSame( wp_get_attachment_url( $att ), $flat[ 'pin-' . $ip ]['Image'] );
+		$this->assertSame( 'Hallo', $flat[ 'korkwand-note-' . $p ]['Title'] );
+		$this->assertSame( 'Welt', $flat[ 'korkwand-note-' . $p ]['Text'] );
+		$this->assertNotEmpty( $flat[ 'korkwand-note-' . $p ]['Date'] );
+		$this->assertSame( wp_get_attachment_url( $att ), $flat[ 'korkwand-note-' . $ip ]['Image'] );
 	}
 
 	public function test_exporter_unknown_email() {

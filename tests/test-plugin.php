@@ -1,6 +1,6 @@
 <?php
 /**
- * Smoke-Test: Plugin ist geladen.
+ * Smoke test: plugin is loaded.
  */
 class Korkwand_Test_Plugin extends WP_UnitTestCase {
 

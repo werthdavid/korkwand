@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests fuer den Pins-Service.
+ * Tests for the Pins service.
  */
 use Korkwand\Pins;
 
@@ -332,7 +332,7 @@ class Korkwand_Test_Pins extends WP_UnitTestCase {
 	}
 
 	public function test_crlf_text_within_limit_after_normalising_is_accepted() {
-		$text = str_repeat( "a\r\n", 100 ); // 199 Zeichen nach Normalisierung, roh 299.
+		$text = str_repeat( "a\r\n", 100 ); // 199 characters after normalization, 299 raw.
 		$pin  = $this->postit( array( 'text' => implode( "\r\n", array( str_repeat( 'a', 99 ), str_repeat( 'a', 99 ), str_repeat( 'a', 100 ) ) ) ) );
 		$this->assertInstanceOf( \WP_Post::class, $pin );
 		$this->assertSame( 300, mb_strlen( get_post( $pin->ID )->post_content ) );
