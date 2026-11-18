@@ -8,7 +8,6 @@
 	"icon": "sticky",
 	"description": "Lists the newest notes of a Korkwand pinboard.",
 	"textdomain": "korkwand",
-	"version": "0.2.0",
 	"license": "GPL-2.0-or-later",
 	"attributes": {
 		"board": { "type": "string", "default": "" },

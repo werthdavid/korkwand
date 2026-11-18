@@ -16,7 +16,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'KORKWAND_VERSION', '0.2.0' );
+// Single source of truth for the version: the plugin header above (set it with `npm run bump <version>`).
+define( 'KORKWAND_VERSION', get_file_data( __FILE__, array( 'Version' => 'Version' ) )['Version'] );
 define( 'KORKWAND_FILE', __FILE__ );
 define( 'KORKWAND_DIR', plugin_dir_path( __FILE__ ) );
 define( 'KORKWAND_URL', plugin_dir_url( __FILE__ ) );

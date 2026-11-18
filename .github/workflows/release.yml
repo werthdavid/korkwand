@@ -55,10 +55,9 @@ jobs:
           set -eu
           VERSION=$(sed -n 's/^[ *]*Version:[[:space:]]*//p' korkwand.php | head -n1 | tr -d '[:space:]')
           STABLE=$(sed -n 's/^Stable tag:[[:space:]]*//p' readme.txt | head -n1 | tr -d '[:space:]')
-          CONST=$(sed -n "s/.*define([[:space:]]*'KORKWAND_VERSION',[[:space:]]*'\([^']*\)'.*/\1/p" korkwand.php | head -n1)
-          echo "Header: $VERSION, Stable tag: $STABLE, KORKWAND_VERSION: $CONST"
-          if [ -z "$VERSION" ] || [ "$VERSION" != "$STABLE" ] || [ "$VERSION" != "$CONST" ]; then
-            echo "::error::Version mismatch between korkwand.php header, KORKWAND_VERSION and readme.txt Stable tag"
+          echo "Header: $VERSION, Stable tag: $STABLE"
+          if [ -z "$VERSION" ] || [ "$VERSION" != "$STABLE" ]; then
+            echo "::error::Version mismatch between korkwand.php header and readme.txt Stable tag - run: npm run bump <version>"
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"

@@ -45,6 +45,16 @@ npm run build:zip
 Creates `dist/korkwand.zip` with the top-level folder `korkwand/`, excluding development files listed in `.distignore`
 (requires `rsync` and `zip`).
 
+## Release
+
+```sh
+npm run bump 0.3.0
+```
+
+Sets the version in the `korkwand.php` header (the only source for `KORKWAND_VERSION` and the asset versions),
+the `readme.txt` Stable tag and `package.json`. Add the changelog entry `= 0.3.0 =` to `readme.txt`, commit and push to
+`main`: the workflow runs the tests and attaches `korkwand-<version>.zip` to the GitHub release `v<version>`.
+
 ## Internationalisation
 
 All user-facing source strings are English with the text domain `korkwand` (`Domain Path: /languages`).

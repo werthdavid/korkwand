@@ -6,7 +6,8 @@
 		"env:start": "wp-env start",
 		"test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/korkwand vendor/bin/phpunit",
 		"test:js": "node --test tests/js/*.test.mjs",
-		"build:zip": "sh scripts/build-zip.sh"
+		"build:zip": "sh scripts/build-zip.sh",
+		"bump": "sh scripts/bump-version.sh"
 	},
 	"devDependencies": {
 		"@wordpress/env": "^10.0.0"

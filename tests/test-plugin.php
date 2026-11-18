@@ -9,6 +9,21 @@ class Korkwand_Test_Plugin extends WP_UnitTestCase {
 		$this->assertTrue( class_exists( \Korkwand\Plugin::class ) );
 	}
 
+	public function test_version_comes_from_plugin_header() {
+		$header = get_file_data( KORKWAND_FILE, array( 'Version' => 'Version' ) )['Version'];
+		$this->assertNotSame( '', $header );
+		$this->assertSame( $header, KORKWAND_VERSION );
+
+		$readme = (string) file_get_contents( KORKWAND_DIR . 'readme.txt' );
+		$this->assertMatchesRegularExpression( '/^Stable tag:\s*' . preg_quote( $header, '/' ) . '\s*$/m', $readme );
+		$this->assertStringContainsString( '= ' . $header . ' =', $readme, 'Changelog entry missing' );
+
+		foreach ( array( 'board', 'latest' ) as $block ) {
+			$meta = json_decode( (string) file_get_contents( KORKWAND_DIR . "blocks/$block/block.json" ), true );
+			$this->assertArrayNotHasKey( 'version', $meta, "blocks/$block/block.json must not carry its own version" );
+		}
+	}
+
 	public function test_no_upgrade_routine_or_version_option() {
 		$this->assertFalse( method_exists( \Korkwand\Plugin::class, 'maybe_upgrade' ) );
 		delete_option( 'korkwand_version' );
