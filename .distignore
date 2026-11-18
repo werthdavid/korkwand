@@ -5,6 +5,7 @@
 .distignore
 .DS_Store
 .superpowers/
+.wordpress-org/
 .wp-env.json
 .phpunit.result.cache
 vendor/
