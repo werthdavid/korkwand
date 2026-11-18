@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       Korkwand
  * Plugin URI:        https://github.com/werthdavid/korkwand
- * Description:       A cork pinboard for WordPress: members pin post-it notes and photos, guests just look.
- * Version:           0.1.0
+ * Description:       A cork pinboard for WordPress: board editors pin post-it notes and photos, everyone else just looks.
+ * Version:           0.2.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            werthdavid
@@ -16,7 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'KORKWAND_VERSION', '0.1.0' );
+define( 'KORKWAND_VERSION', '0.2.0' );
 define( 'KORKWAND_FILE', __FILE__ );
 define( 'KORKWAND_DIR', plugin_dir_path( __FILE__ ) );
 define( 'KORKWAND_URL', plugin_dir_url( __FILE__ ) );

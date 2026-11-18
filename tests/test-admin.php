@@ -65,6 +65,14 @@ class Korkwand_Test_Admin extends WP_UnitTestCase {
 		$this->assertSame( 'never', $this->column( 'korkwand_expires', $pin ) );
 	}
 
+	public function test_zero_lifetime_saved_as_one() {
+		wp_set_current_user( $this->admin );
+		$id = $this->board();
+		$this->post_data( array( 'lifetime_days' => '0' ) );
+		do_action( 'edited_korkwand_board', $id );
+		$this->assertSame( 1, Boards::settings( get_term( $id, 'korkwand_board' ) )['lifetime_days'] );
+	}
+
 	public function test_expires_column_without_board() {
 		$pin = self::factory()->post->create( array( 'post_type' => 'korkwand_pin' ) );
 		$this->assertSame( '–', $this->column( 'korkwand_expires', $pin ) );
@@ -166,6 +174,8 @@ class Korkwand_Test_Admin extends WP_UnitTestCase {
 		Admin::add_fields( 'korkwand_board' );
 		$html = ob_get_clean();
 		$this->assertStringContainsString( 'name="lifetime_days"', $html );
+		$this->assertStringContainsString( 'min="1" max="3650"', $html );
+		$this->assertStringNotContainsString( '0 = notes', $html );
 		$this->assertStringContainsString( 'name="korkwand_board_nonce"', $html );
 		$id = $this->board();
 		ob_start();

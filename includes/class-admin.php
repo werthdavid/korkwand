@@ -109,8 +109,8 @@ final class Admin {
 		?>
 		<div class="form-field">
 			<label for="korkwand-lifetime"><?php esc_html_e( 'Lifetime in days', 'korkwand' ); ?></label>
-			<input type="number" name="lifetime_days" id="korkwand-lifetime" min="0" max="3650" value="<?php echo esc_attr( (string) $s['lifetime_days'] ); ?>">
-			<p><?php esc_html_e( '0 = notes never expire.', 'korkwand' ); ?></p>
+			<input type="number" name="lifetime_days" id="korkwand-lifetime" min="1" max="3650" value="<?php echo esc_attr( (string) $s['lifetime_days'] ); ?>">
+			<p><?php esc_html_e( 'Notes disappear after this many days (1 to 3650). Sticky notes never expire.', 'korkwand' ); ?></p>
 		</div>
 		<div class="form-field">
 			<label for="korkwand-height"><?php esc_html_e( 'Height in pixels', 'korkwand' ); ?></label>
@@ -141,8 +141,8 @@ final class Admin {
 		<tr class="form-field">
 			<th scope="row"><label for="korkwand-lifetime"><?php esc_html_e( 'Lifetime in days', 'korkwand' ); ?></label></th>
 			<td>
-				<input type="number" name="lifetime_days" id="korkwand-lifetime" min="0" max="3650" value="<?php echo esc_attr( (string) $s['lifetime_days'] ); ?>">
-				<p class="description"><?php esc_html_e( '0 = notes never expire.', 'korkwand' ); ?></p>
+				<input type="number" name="lifetime_days" id="korkwand-lifetime" min="1" max="3650" value="<?php echo esc_attr( (string) $s['lifetime_days'] ); ?>">
+				<p class="description"><?php esc_html_e( 'Notes disappear after this many days (1 to 3650). Sticky notes never expire.', 'korkwand' ); ?></p>
 			</td>
 		</tr>
 		<tr class="form-field">

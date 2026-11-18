@@ -15,7 +15,7 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 		\Korkwand\Permissions::install_caps();
 		$id          = self::factory()->term->create( array( 'taxonomy' => 'korkwand_board', 'name' => 'Test', 'slug' => 'test' ) );
 		$this->board = get_term( $id, 'korkwand_board' );
-		$this->user  = self::factory()->user->create( array( 'role' => 'subscriber', 'display_name' => 'Anna Beispiel' ) );
+		$this->user  = self::factory()->user->create( array( 'role' => 'korkwand_editor', 'display_name' => 'Anna Beispiel' ) );
 		$pin = Pins::create( $this->board, $this->user, array( 'type' => 'postit', 'title' => 'Hallo', 'text' => 'Text' ) );
 		// Stored form as after sanitize_*_field (HTML entities); output must escape.
 		wp_update_post( array( 'ID' => $pin->ID, 'post_title' => 'Hallo &lt;i&gt;', 'post_content' => "&lt;b&gt;x&lt;/b&gt;\nY" ) );
@@ -36,16 +36,34 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression( '/--x:\d+px;--y:\d+px;--r:-?\d+deg/', $html );
 	}
 
-	public function test_guest_sees_login_hint_no_author() {
+	public function test_guest_sees_no_controls_no_login_hint_no_author() {
 		$html = Render::board( 'test' );
 		$this->assertStringContainsString( 'data-can-post="0"', $html );
-		$this->assertStringContainsString( 'wp-login.php', $html );
+		$this->assertStringNotContainsString( 'wp-login.php', $html );
+		$this->assertStringNotContainsString( 'login', $html );
+		$this->assertStringNotContainsString( 'korkwand-toolbar', $html );
 		$this->assertStringNotContainsString( 'Anna Beispiel', $html );
 		$this->assertStringNotContainsString( 'korkwand-author', $html );
 		$this->assertStringNotContainsString( 'korkwand-add', $html );
 	}
 
-	public function test_subscriber_sees_add_button_and_author() {
+	public function test_logged_in_subscriber_sees_no_controls() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		$html = Render::board( 'test' );
+		$this->assertStringContainsString( 'data-can-post="0"', $html );
+		$this->assertStringNotContainsString( 'korkwand-add', $html );
+		$this->assertStringNotContainsString( 'korkwand-toolbar', $html );
+		$this->assertStringNotContainsString( 'wp-login.php', $html );
+		$this->assertStringContainsString( 'data-can-edit="0"', $html );
+	}
+
+	public function test_guest_latest_list_has_no_author() {
+		$html = \Korkwand\Latest::render( array() );
+		$this->assertStringNotContainsString( 'Anna Beispiel', $html );
+		$this->assertStringNotContainsString( 'korkwand-latest__author', $html );
+	}
+
+	public function test_board_editor_sees_add_button_and_author() {
 		wp_set_current_user( $this->user );
 		$html = Render::board( 'test' );
 		$this->assertStringContainsString( 'data-can-post="1"', $html );
@@ -77,17 +95,12 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 		$this->assertTrue( wp_script_is( 'korkwand-config', 'enqueued' ) );
 		$data = wp_scripts()->get_data( 'korkwand-config', 'after' );
 		$this->assertStringContainsString( 'korkwand\/v1\/', implode( '', (array) $data ) );
-		$this->assertStringContainsString( 'loginUrl', implode( '', (array) $data ) );
+		$this->assertStringNotContainsString( 'loginUrl', implode( '', (array) $data ) );
+		$this->assertStringContainsString( 'sessionExpired', implode( '', (array) $data ) );
 		$this->assertStringContainsString( '"maxBytes":' . \Korkwand\Upload::max_bytes(), implode( '', (array) $data ) );
 		ob_start();
 		wp_script_modules()->print_enqueued_script_modules();
 		$this->assertStringContainsString( 'korkwand-script', ob_get_clean() );
-	}
-
-	public function test_login_hint_is_one_linked_sentence() {
-		$html = Render::board( 'test' );
-		$this->assertMatchesRegularExpression( '#<a href="[^"]*wp-login\.php[^"]*">Log in to pin a note</a>#', $html );
-		$this->assertStringNotContainsString( 'Anmelden</a>', $html );
 	}
 
 	public function test_style_registered_on_init_and_block_uses_it() {
@@ -162,32 +175,6 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'alt="Unterschrift"', $html );
 		$this->assertStringContainsString( '<figure class="korkwand-figure">', $html );
 		$this->assertMatchesRegularExpression( '#<figure class="korkwand-figure"><a class="korkwand-lightbox".*<figcaption>Unterschrift</figcaption></figure>#s', $html );
-	}
-
-	private function redirect_to( string $url ): string {
-		parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $q );
-		return (string) ( $q['redirect_to'] ?? '' );
-	}
-
-	public function test_login_url_uses_queried_permalink() {
-		$page = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$this->go_to( get_permalink( $page ) );
-		$this->assertSame( get_permalink( $page ), $this->redirect_to( Render::login_url() ) );
-		$this->assertStringContainsString( rawurlencode( get_permalink( $page ) ), Render::board( 'test' ) );
-	}
-
-	public function test_login_url_no_doubled_subdirectory() {
-		update_option( 'home', 'http://example.org/wordpress' );
-		update_option( 'siteurl', 'http://example.org/wordpress' );
-		$_SERVER['REQUEST_URI'] = '/wordpress/foo/';
-		$this->assertStringNotContainsString( '/wordpress/wordpress', Render::login_url() );
-		$this->assertStringNotContainsString( '/wordpress/wordpress', rawurldecode( Render::board( 'test' ) ) );
-	}
-
-	public function test_login_url_falls_back_to_home() {
-		$this->go_to( '/' );
-		$this->assertSame( 0, (int) get_queried_object_id() );
-		$this->assertSame( home_url( '/' ), $this->redirect_to( Render::login_url() ) );
 	}
 
 	public function test_pins_carry_pin_ids() {

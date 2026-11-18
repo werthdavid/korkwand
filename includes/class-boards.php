@@ -20,7 +20,7 @@ final class Boards {
 	private const META_PREFIX = 'korkwand_';
 
 	private const LIMITS = array(
-		'lifetime_days' => array( 0, 3650 ),
+		'lifetime_days' => array( 1, 3650 ),
 		'height'        => array( 300, 3000 ),
 		'max_pins'      => array( 1, 200 ),
 		'page_id'       => array( 0, PHP_INT_MAX ),

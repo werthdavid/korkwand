@@ -21,8 +21,8 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 
 		$id           = self::factory()->term->create( array( 'taxonomy' => 'korkwand_board', 'name' => 'Test', 'slug' => 'test' ) );
 		$this->board  = get_term( $id, 'korkwand_board' );
-		$this->sub    = self::factory()->user->create( array( 'role' => 'subscriber', 'display_name' => 'Anna Beispiel' ) );
-		$this->other  = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$this->sub    = self::factory()->user->create( array( 'role' => 'korkwand_editor', 'display_name' => 'Anna Beispiel' ) );
+		$this->other  = self::factory()->user->create( array( 'role' => 'korkwand_editor' ) );
 		$this->editor = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( 0 );
 		// wp-env host "localhost" yields an invalid default sender address (wordpress@localhost).
@@ -98,7 +98,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 	}
 
 	public function test_user_without_cap_cannot_create_403() {
-		$u = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$u = self::factory()->user->create( array( 'role' => 'korkwand_editor' ) );
 		get_userdata( $u )->remove_cap( 'korkwand_post' );
 		get_userdata( $u )->add_cap( 'korkwand_post', false );
 		$res = $this->create_as( $u );
@@ -106,7 +106,59 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 		$this->assertCount( 0, Pins::visible( $this->board ) );
 	}
 
-	public function test_subscriber_creates_postit_201() {
+	/** @return array<string, array{string}> */
+	public static function non_posting_roles(): array {
+		return array(
+			'subscriber'  => array( 'subscriber' ),
+			'contributor' => array( 'contributor' ),
+			'author'      => array( 'author' ),
+		);
+	}
+
+	/**
+	 * @dataProvider non_posting_roles
+	 */
+	public function test_default_roles_cannot_create_403( string $role ) {
+		$u   = self::factory()->user->create( array( 'role' => $role ) );
+		$res = $this->create_as( $u );
+		$this->assertSame( 403, $res->get_status() );
+		$this->assertCount( 0, Pins::visible( $this->board ) );
+	}
+
+	public function test_board_editor_role_has_exactly_read_and_post() {
+		$role = get_role( 'korkwand_editor' );
+		$this->assertNotNull( $role );
+		$caps = array_keys( array_filter( $role->capabilities ) );
+		sort( $caps );
+		$this->assertSame( array( 'korkwand_post', 'read' ), $caps );
+		$this->assertFalse( $role->has_cap( 'upload_files' ) );
+	}
+
+	public function test_board_editor_cannot_modify_foreign_pin() {
+		$pin = $this->pin_of( $this->other );
+		wp_set_current_user( $this->sub );
+		$this->assertSame( 403, $this->req( 'PATCH', '/pins/' . $pin->ID, array( 'x' => 5 ) )->get_status() );
+		$this->assertSame( 403, $this->req( 'DELETE', '/pins/' . $pin->ID )->get_status() );
+		$this->assertSame( 'publish', get_post_status( $pin->ID ) );
+	}
+
+	public function test_board_editor_own_pin_patch_and_delete_200() {
+		$pin = $this->pin_of( $this->sub );
+		wp_set_current_user( $this->sub );
+		$this->assertSame( 200, $this->req( 'PATCH', '/pins/' . $pin->ID, array( 'x' => 5, 'sticky' => true ) )->get_status() );
+		$this->assertSame( 0, (int) get_post_meta( $pin->ID, '_korkwand_sticky', true ) );
+		$this->assertSame( 200, $this->req( 'DELETE', '/pins/' . $pin->ID )->get_status() );
+	}
+
+	public function test_editor_moderates_foreign_pin_incl_sticky() {
+		$pin = $this->pin_of( $this->sub );
+		wp_set_current_user( $this->editor );
+		$this->assertSame( 200, $this->req( 'PATCH', '/pins/' . $pin->ID, array( 'x' => 7, 'sticky' => true ) )->get_status() );
+		$this->assertSame( 1, (int) get_post_meta( $pin->ID, '_korkwand_sticky', true ) );
+		$this->assertSame( 200, $this->req( 'DELETE', '/pins/' . $pin->ID )->get_status() );
+	}
+
+	public function test_board_editor_creates_postit_201() {
 		$res = $this->create_as( $this->sub, array( 'x' => 10, 'y' => 20 ) );
 		$this->assertSame( 201, $res->get_status() );
 		$d = $res->get_data();
@@ -188,7 +240,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 		$this->assertSame( $before, $this->attachment_count() );
 	}
 
-	public function test_subscriber_creates_image_pin_201() {
+	public function test_board_editor_creates_image_pin_201() {
 		add_filter( 'korkwand_is_uploaded_file', '__return_true' );
 		wp_set_current_user( $this->sub );
 		$res = $this->req( 'POST', '/boards/test/pins', array( 'type' => 'image', 'text' => 'Bild' ), $this->image_file() );
@@ -208,7 +260,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 		$this->assertSame( $before, $this->attachment_count() );
 	}
 
-	public function test_subscriber_cannot_patch_foreign_pin_403() {
+	public function test_board_editor_cannot_patch_foreign_pin_403() {
 		$pin = $this->pin_of( $this->sub );
 		wp_set_current_user( $this->other );
 		$res = $this->req( 'PATCH', '/pins/' . $pin->ID, array( 'x' => 500, 'y' => 300 ) );
@@ -233,7 +285,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 		$this->assertSame( 0, $res->get_data()['y'] );
 	}
 
-	public function test_subscriber_cannot_set_sticky() {
+	public function test_board_editor_cannot_set_sticky() {
 		$pin = $this->pin_of( $this->sub );
 		wp_set_current_user( $this->sub );
 		$this->req( 'PATCH', '/pins/' . $pin->ID, array( 'sticky' => true ) );
@@ -243,7 +295,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 		$this->assertSame( 1, (int) get_post_meta( $pin->ID, '_korkwand_sticky', true ) );
 	}
 
-	public function test_subscriber_cannot_delete_foreign_pin_403() {
+	public function test_board_editor_cannot_delete_foreign_pin_403() {
 		$pin = $this->pin_of( $this->sub );
 		wp_set_current_user( $this->other );
 		$res = $this->req( 'DELETE', '/pins/' . $pin->ID );

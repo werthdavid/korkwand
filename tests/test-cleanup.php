@@ -76,11 +76,11 @@ class Korkwand_Test_Cleanup extends WP_UnitTestCase {
 		$this->assertSame( 'publish', get_post_status( $fresh->ID ) );
 	}
 
-	public function test_trash_expired_skips_lifetime_zero() {
+	public function test_trash_expired_treats_stored_zero_as_one_day() {
 		update_term_meta( $this->board->term_id, 'korkwand_lifetime_days', 0 );
 		$old = $this->pin_aged( 500 );
-		$this->assertSame( 0, Cleanup::trash_expired() );
-		$this->assertSame( 'publish', get_post_status( $old->ID ) );
+		$this->assertSame( 1, Cleanup::trash_expired() );
+		$this->assertSame( 'trash', get_post_status( $old->ID ) );
 	}
 
 	public function test_trash_expired_handles_more_than_one_batch() {
@@ -234,7 +234,7 @@ class Korkwand_Test_Cleanup extends WP_UnitTestCase {
 
 	public function test_uninstall_removes_everything_by_default() {
 		delete_option( 'korkwand_delete_data_on_uninstall' );
-		update_option( 'korkwand_version', KORKWAND_VERSION, false );
+		$be                = self::factory()->user->create( array( 'role' => 'korkwand_editor' ) );
 		list( $pin, $att ) = $this->image_pin();
 		$trashed           = $this->pin_aged( 1 );
 		wp_trash_post( $trashed->ID );
@@ -252,7 +252,10 @@ class Korkwand_Test_Cleanup extends WP_UnitTestCase {
 		$this->assertFalse( wp_next_scheduled( 'korkwand_daily_cleanup' ) );
 		$this->assertFalse( get_role( 'administrator' )->has_cap( 'korkwand_moderate' ) );
 		$this->assertFalse( get_option( 'korkwand_delete_data_on_uninstall', false ) );
-		$this->assertFalse( get_option( 'korkwand_version', false ) );
+		$this->assertNull( get_role( 'korkwand_editor' ) );
+		$this->assertContains( 'subscriber', get_userdata( $be )->roles );
+		$this->assertFalse( get_role( 'editor' )->has_cap( 'korkwand_post' ) );
+		$this->assertFalse( get_role( 'subscriber' )->has_cap( 'korkwand_post' ) );
 		\Korkwand\Permissions::install_caps();
 		Plugin::activate();
 	}

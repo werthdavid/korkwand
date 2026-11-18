@@ -34,9 +34,6 @@ final class Cleanup {
 		$count = 0;
 		foreach ( $boards as $board ) {
 			$days = Boards::settings( $board )['lifetime_days'];
-			if ( $days <= 0 ) {
-				continue;
-			}
 			$cutoff = gmdate( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS );
 			$failed = array();
 			do {
@@ -252,7 +249,6 @@ final class Cleanup {
 		Permissions::remove_caps();
 		wp_clear_scheduled_hook( 'korkwand_daily_cleanup' );
 		delete_option( 'korkwand_delete_data_on_uninstall' );
-		delete_option( 'korkwand_version' );
 
 		// Rate-limit transients are keyed by user ID: delete them per key (works with and without a
 		// persistent object cache and needs no global cache flush). Users are read in pages of IDs.

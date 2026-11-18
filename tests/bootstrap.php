@@ -31,3 +31,7 @@ require $korkwand_tests_dir . '/includes/bootstrap.php';
 
 // Run activation once (tables/options for the later tasks).
 \Korkwand\Plugin::activate();
+
+// Hermetic role state: the test database persists between runs, so start from a clean install of the role and capabilities.
+\Korkwand\Permissions::remove_caps();
+\Korkwand\Permissions::install_caps();

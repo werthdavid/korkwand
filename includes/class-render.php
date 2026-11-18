@@ -94,14 +94,9 @@ final class Render {
 			$height,
 			$can_post ? '1' : '0'
 		);
-		$out .= '<div class="korkwand-toolbar">';
 		if ( $can_post ) {
-			$out .= '<button type="button" class="korkwand-add">' . esc_html__( '+ Add note', 'korkwand' ) . '</button>';
-		} else {
-			$out .= '<span class="korkwand-login-hint"><a href="' . esc_url( self::login_url() ) . '">'
-				. esc_html__( 'Log in to pin a note', 'korkwand' ) . '</a></span>';
+			$out .= '<div class="korkwand-toolbar"><button type="button" class="korkwand-add">' . esc_html__( '+ Add note', 'korkwand' ) . '</button></div>';
 		}
-		$out .= '</div>';
 		$out .= '<div class="korkwand-board"><div class="korkwand-canvas" style="height:' . $height . 'px">';
 		foreach ( Pins::visible( $board ) as $pin ) {
 			$out .= self::pin( Pins::to_array( $pin, $viewer, $board ), $viewer > 0 );
@@ -153,19 +148,6 @@ final class Render {
 		return $out . '</article>';
 	}
 
-	/**
-	 * Login URL that returns to the current page (permalink of the queried object, otherwise the home page).
-	 * Deliberately reads neither REQUEST_URI nor HTTP_HOST (subdirectory installs, REST context).
-	 */
-	public static function login_url(): string {
-		$id     = (int) get_queried_object_id();
-		$target = $id ? get_permalink( $id ) : false;
-		if ( ! is_string( $target ) || '' === $target ) {
-			$target = home_url( '/' );
-		}
-		return wp_login_url( $target );
-	}
-
 	private static function enqueue_assets(): void {
 		self::register_style();
 		wp_enqueue_style( 'korkwand-style' );
@@ -177,7 +159,6 @@ final class Render {
 			$config = array(
 				'rest'     => esc_url_raw( rest_url( 'korkwand/v1/' ) ),
 				'nonce'    => wp_create_nonce( 'wp_rest' ),
-				'loginUrl' => self::login_url(),
 				'maxBytes' => Upload::max_bytes(),
 				'maxLabel' => Upload::max_label(),
 				'i18n'     => self::js_strings(),

@@ -44,7 +44,7 @@ class Korkwand_Test_Model extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			array(
-				'lifetime_days' => 0,
+				'lifetime_days' => 1,
 				'height'        => 3000,
 				'max_pins'      => 1,
 				'page_id'       => 0,
@@ -52,6 +52,14 @@ class Korkwand_Test_Model extends WP_UnitTestCase {
 			),
 			\Korkwand\Boards::settings( $term )
 		);
+	}
+
+	public function test_stored_zero_lifetime_is_clamped_to_one() {
+		$term = $this->factory()->term->create_and_get( array( 'taxonomy' => 'korkwand_board' ) );
+		update_term_meta( $term->term_id, 'korkwand_lifetime_days', 0 );
+		$this->assertSame( 1, \Korkwand\Boards::settings( $term )['lifetime_days'] );
+		\Korkwand\Boards::save_settings( $term->term_id, array( 'lifetime_days' => '0' ) );
+		$this->assertSame( 1, (int) get_term_meta( $term->term_id, 'korkwand_lifetime_days', true ) );
 	}
 
 	public function test_get_unknown_board_returns_null() {

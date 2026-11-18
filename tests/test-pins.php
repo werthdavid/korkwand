@@ -14,7 +14,7 @@ class Korkwand_Test_Pins extends WP_UnitTestCase {
 		\Korkwand\Permissions::install_caps();
 		$id          = self::factory()->term->create( array( 'taxonomy' => 'korkwand_board', 'name' => 'Test' ) );
 		$this->board = get_term( $id, 'korkwand_board' );
-		$this->user  = self::factory()->user->create( array( 'role' => 'subscriber', 'display_name' => 'Anna Beispiel' ) );
+		$this->user  = self::factory()->user->create( array( 'role' => 'korkwand_editor', 'display_name' => 'Anna Beispiel' ) );
 	}
 
 	private function settings( array $meta ): void {
@@ -234,11 +234,12 @@ class Korkwand_Test_Pins extends WP_UnitTestCase {
 		$this->assertSame( 1, (int) get_post_meta( $res[0]->ID, '_korkwand_sticky', true ) );
 	}
 
-	public function test_lifetime_zero_never_expires() {
+	public function test_no_zero_bypass_non_sticky_old_note_never_visible() {
 		$this->settings( array( 'lifetime_days' => 0 ) );
 		$old = $this->old_pin( 2000 );
-		$this->assertContains( $old->ID, wp_list_pluck( Pins::visible( $this->board ), 'ID' ) );
-		$this->assertNull( Pins::expires_at( $old, $this->board ) );
+		$this->assertNotContains( $old->ID, wp_list_pluck( Pins::visible( $this->board ), 'ID' ) );
+		$this->assertInstanceOf( DateTimeImmutable::class, Pins::expires_at( $old, $this->board ) );
+		$this->assertContains( $this->old_pin( 0 )->ID, wp_list_pluck( Pins::visible( $this->board ), 'ID' ) );
 	}
 
 	public function test_expires_at() {

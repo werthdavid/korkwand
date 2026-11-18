@@ -179,7 +179,7 @@ class Board {
 			n = document.createElement('div');
 			n.className = 'korkwand-notice';
 			n.setAttribute('role', 'alert');
-			this.root.querySelector('.korkwand-toolbar').after(n);
+			this.board.before(n); // directly below the toolbar, if there is one
 		}
 		n.textContent = msg;
 		clearTimeout(this.noticeTimer);

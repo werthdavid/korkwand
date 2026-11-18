@@ -211,15 +211,13 @@ final class Pins {
 				),
 			),
 		);
-		if ( $s['lifetime_days'] > 0 ) {
-			$args['date_query'] = array(
-				array(
-					'column'    => 'post_date_gmt',
-					'after'     => gmdate( 'Y-m-d H:i:s', time() - $s['lifetime_days'] * DAY_IN_SECONDS ),
-					'inclusive' => true,
-				),
-			);
-		}
+		$args['date_query'] = array(
+			array(
+				'column'    => 'post_date_gmt',
+				'after'     => gmdate( 'Y-m-d H:i:s', time() - $s['lifetime_days'] * DAY_IN_SECONDS ),
+				'inclusive' => true,
+			),
+		);
 		$normal = ( new \WP_Query( $args ) )->posts;
 
 		return array_merge( $sticky, $normal );
@@ -227,7 +225,7 @@ final class Pins {
 
 	public static function expires_at( \WP_Post $pin, \WP_Term $board ): ?\DateTimeImmutable {
 		$days = Boards::settings( $board )['lifetime_days'];
-		if ( $days <= 0 || self::is_sticky( $pin ) ) {
+		if ( self::is_sticky( $pin ) ) {
 			return null;
 		}
 		$created = get_post_datetime( $pin, 'date', 'gmt' );

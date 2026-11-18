@@ -66,7 +66,7 @@ class Korkwand_Test_Latest extends WP_UnitTestCase {
 
 	public function test_expired_excluded_per_board_lifetime_sticky_kept() {
 		update_term_meta( $this->a->term_id, 'korkwand_lifetime_days', 1 );
-		update_term_meta( $this->b->term_id, 'korkwand_lifetime_days', 0 );
+		update_term_meta( $this->b->term_id, 'korkwand_lifetime_days', 1000 );
 		$this->note( $this->a, 'a-expired', 2 * DAY_IN_SECONDS );
 		$this->note( $this->a, 'a-fresh', 60 );
 		$this->note( $this->b, 'b-old-but-never-expires', 500 * DAY_IN_SECONDS );
