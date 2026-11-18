@@ -103,6 +103,7 @@ final class Admin {
 			'height'        => 700,
 			'max_pins'      => 60,
 			'notify'        => false,
+			'page_id'       => 0,
 		);
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
 		?>
@@ -118,6 +119,11 @@ final class Admin {
 		<div class="form-field">
 			<label for="korkwand-max-pins"><?php esc_html_e( 'Maximum number of notes', 'korkwand' ); ?></label>
 			<input type="number" name="max_pins" id="korkwand-max-pins" min="1" max="200" value="<?php echo esc_attr( (string) $s['max_pins'] ); ?>">
+		</div>
+		<div class="form-field">
+			<label for="korkwand-page-id"><?php esc_html_e( 'Board page', 'korkwand' ); ?></label>
+			<?php self::page_dropdown( (int) $s['page_id'] ); ?>
+			<p><?php esc_html_e( 'Page that shows this board. Used for links from the latest notes list.', 'korkwand' ); ?></p>
 		</div>
 		<div class="form-field">
 			<label for="korkwand-notify">
@@ -148,6 +154,13 @@ final class Admin {
 			<td><input type="number" name="max_pins" id="korkwand-max-pins" min="1" max="200" value="<?php echo esc_attr( (string) $s['max_pins'] ); ?>"></td>
 		</tr>
 		<tr class="form-field">
+			<th scope="row"><label for="korkwand-page-id"><?php esc_html_e( 'Board page', 'korkwand' ); ?></label></th>
+			<td>
+				<?php self::page_dropdown( (int) $s['page_id'] ); ?>
+				<p class="description"><?php esc_html_e( 'Page that shows this board. Used for links from the latest notes list.', 'korkwand' ); ?></p>
+			</td>
+		</tr>
+		<tr class="form-field">
 			<th scope="row"><?php esc_html_e( 'Email on new note', 'korkwand' ); ?></th>
 			<td>
 				<label for="korkwand-notify">
@@ -157,6 +170,18 @@ final class Admin {
 			</td>
 		</tr>
 		<?php
+	}
+
+	private static function page_dropdown( int $selected ): void {
+		wp_dropdown_pages(
+			array(
+				'name'              => 'page_id',
+				'id'                => 'korkwand-page-id',
+				'selected'          => $selected,
+				'show_option_none'  => __( '— automatic —', 'korkwand' ),
+				'option_none_value' => '0',
+			)
+		);
 	}
 
 	public static function save_term( $term_id ): void {
@@ -173,7 +198,7 @@ final class Admin {
 			return;
 		}
 		$raw = array( 'notify' => '0' );
-		foreach ( array( 'lifetime_days', 'height', 'max_pins', 'notify' ) as $key ) {
+		foreach ( array( 'lifetime_days', 'height', 'max_pins', 'page_id', 'notify' ) as $key ) {
 			if ( isset( $_POST[ $key ] ) ) {
 				$raw[ $key ] = sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
 			}

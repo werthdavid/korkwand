@@ -12,6 +12,8 @@ final class Plugin {
 		add_action( 'rest_api_init', array( Rest::class, 'register' ) );
 		add_action( 'template_redirect', array( Upload::class, 'block_attachment_page' ), 1 );
 		Render::register();
+		Boards::register();
+		Latest::register();
 		Cleanup::register();
 		Privacy::register();
 		add_action( 'admin_init', array( Admin::class, 'register_settings' ) );

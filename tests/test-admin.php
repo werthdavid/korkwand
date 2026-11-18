@@ -82,6 +82,41 @@ class Korkwand_Test_Admin extends WP_UnitTestCase {
 		$this->assertTrue( $s['notify'] );
 	}
 
+	public function test_page_id_saved_on_edit() {
+		wp_set_current_user( $this->admin );
+		$id   = $this->board();
+		$page = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$this->post_data( array( 'page_id' => (string) $page ) );
+		do_action( 'edited_korkwand_board', $id );
+		$this->assertSame( $page, Boards::settings( get_term( $id, 'korkwand_board' ) )['page_id'] );
+	}
+
+	public function test_page_id_ignored_without_nonce() {
+		wp_set_current_user( $this->admin );
+		$id = $this->board();
+		$this->post_data( array( 'page_id' => '7' ) );
+		unset( $_POST['korkwand_board_nonce'] );
+		do_action( 'edited_korkwand_board', $id );
+		$this->assertSame( 0, Boards::settings( get_term( $id, 'korkwand_board' ) )['page_id'] );
+	}
+
+	public function test_board_page_dropdown_rendered_in_forms() {
+		$page = self::factory()->post->create( array( 'post_type' => 'page', 'post_title' => 'Pinnwandseite' ) );
+		ob_start();
+		Admin::add_fields( 'korkwand_board' );
+		$add = ob_get_clean();
+		$this->assertStringContainsString( "name='page_id'", $add );
+		$this->assertStringContainsString( '<option value="0">— automatic —</option>', $add );
+		$this->assertStringContainsString( 'Pinnwandseite', $add );
+
+		$id = $this->board();
+		update_term_meta( $id, 'page_id', $page );
+		ob_start();
+		Admin::edit_fields( get_term( $id, 'korkwand_board' ) );
+		$edit = ob_get_clean();
+		$this->assertMatchesRegularExpression( '/<option[^>]*value="' . $page . '"[^>]*selected/', $edit );
+	}
+
 	public function test_unchecked_notify_saves_false() {
 		wp_set_current_user( $this->admin );
 		$id = $this->board();

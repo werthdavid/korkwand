@@ -24,6 +24,7 @@ class Korkwand_Test_Model extends WP_UnitTestCase {
 				'lifetime_days' => 100,
 				'height'        => 700,
 				'max_pins'      => 60,
+				'page_id'       => 0,
 				'notify'        => false,
 			),
 			\Korkwand\Boards::settings( $term )
@@ -46,6 +47,7 @@ class Korkwand_Test_Model extends WP_UnitTestCase {
 				'lifetime_days' => 0,
 				'height'        => 3000,
 				'max_pins'      => 1,
+				'page_id'       => 0,
 				'notify'        => true,
 			),
 			\Korkwand\Boards::settings( $term )

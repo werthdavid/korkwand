@@ -94,6 +94,8 @@ final class Model {
 			'height'        => 'integer',
 			'max_pins'      => 'integer',
 			'notify'        => 'boolean',
+			'page_id'       => 'integer',
+			'auto_page_id'  => 'integer',
 		);
 		foreach ( $term_meta as $key => $type ) {
 			register_term_meta(
