@@ -50,7 +50,6 @@ final class Privacy {
 				'orderby'          => 'ID',
 				'order'            => 'ASC',
 				'no_found_rows'    => true,
-				'suppress_filters' => true,
 			)
 		);
 

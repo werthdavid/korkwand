@@ -50,8 +50,7 @@ Creates `dist/korkwand.zip` with the top-level folder `korkwand/`, excluding dev
 All user-facing source strings are English with the text domain `korkwand` (`Domain Path: /languages`).
 Frontend script modules cannot use `wp_set_script_translations()`, so the PHP side translates all JavaScript UI strings
 and passes them as `window.Korkwand.i18n` (see `Render::js_strings()`). The block editor script uses the regular
-`wp.i18n` functions. `languages/de_DE-pairs.tsv` lists the English source string and its German translation (tab
-separated, `\n` written as an escape sequence).
+`wp.i18n` functions. German translations live in `languages/korkwand-de_DE.po` (compiled `.mo` and JSON files are committed).
 
 ## Code layout
 

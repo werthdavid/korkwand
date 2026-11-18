@@ -177,8 +177,8 @@ final class Admin {
 			array(
 				'name'              => 'page_id',
 				'id'                => 'korkwand-page-id',
-				'selected'          => $selected,
-				'show_option_none'  => __( '— automatic —', 'korkwand' ),
+				'selected'          => absint( $selected ),
+				'show_option_none'  => esc_html__( '— automatic —', 'korkwand' ),
 				'option_none_value' => '0',
 			)
 		);

@@ -167,6 +167,7 @@ final class Pins {
 			'no_found_rows'          => true,
 			'ignore_sticky_posts'    => true,
 			'update_post_term_cache' => false,
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- board scoping needs the board taxonomy; result sets are small and capped.
 			'tax_query'              => array(
 				array(
 					'taxonomy' => 'korkwand_board',
@@ -179,6 +180,7 @@ final class Pins {
 		$sticky = ( new \WP_Query(
 			$base + array(
 				'posts_per_page' => $limit,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- sticky flag / featured image lookup is stored as post meta; result sets are small and capped.
 				'meta_query'     => array(
 					array(
 						'key'   => '_korkwand_sticky',
@@ -195,6 +197,7 @@ final class Pins {
 
 		$args = $base + array(
 			'posts_per_page' => $rest,
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- sticky flag / featured image lookup is stored as post meta; result sets are small and capped.
 			'meta_query'     => array(
 				'relation' => 'OR',
 				array(

@@ -48,9 +48,10 @@ final class Cleanup {
 						'fields'           => 'ids',
 						'orderby'          => 'ID',
 						'order'            => 'ASC',
+						// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- bounded batch loop skips posts that failed to delete, so it cannot spin forever.
 						'post__not_in'     => $failed,
 						'no_found_rows'    => true,
-						'suppress_filters' => true,
+						// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- board scoping needs the board taxonomy; result sets are small and capped.
 						'tax_query'        => array(
 							array(
 								'taxonomy' => 'korkwand_board',
@@ -64,6 +65,7 @@ final class Cleanup {
 								'before' => $cutoff,
 							),
 						),
+						// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- sticky flag / featured image lookup is stored as post meta; result sets are small and capped.
 						'meta_query'       => array(
 							'relation' => 'OR',
 							array(
@@ -120,9 +122,10 @@ final class Cleanup {
 				'post_status'      => array_merge( array_values( get_post_stati() ), array( 'trash' ) ),
 				'posts_per_page'   => 1,
 				'fields'           => 'ids',
+				// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- single-post exclusion, query is limited to one result.
 				'post__not_in'     => array( $post_id ),
 				'no_found_rows'    => true,
-				'suppress_filters' => true,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- sticky flag / featured image lookup is stored as post meta; result sets are small and capped.
 				'meta_query'       => array(
 					array(
 						'key'   => '_thumbnail_id',
@@ -160,6 +163,7 @@ final class Cleanup {
 		$failed = array();
 		do {
 			$per = $limit > 0 ? min( $limit - $count, self::BATCH ) : self::BATCH;
+			// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- bounded batch loop skips posts that failed to delete, so it cannot spin forever.
 			$ids = get_posts( self::user_pins_query( $user_id, $per ) + array( 'post__not_in' => $failed ) );
 			foreach ( $ids as $id ) {
 				if ( wp_delete_post( (int) $id, true ) ) {
@@ -188,7 +192,6 @@ final class Cleanup {
 			'orderby'          => 'ID',
 			'order'            => 'ASC',
 			'no_found_rows'    => true,
-			'suppress_filters' => true,
 		);
 	}
 
@@ -218,9 +221,9 @@ final class Cleanup {
 						'fields'           => 'ids',
 						'orderby'          => 'ID',
 						'order'            => 'ASC',
+						// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- bounded batch loop skips posts that failed to delete, so it cannot spin forever.
 						'post__not_in'     => $failed,
 						'no_found_rows'    => true,
-						'suppress_filters' => true,
 					)
 				);
 				foreach ( $ids as $id ) {
