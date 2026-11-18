@@ -156,6 +156,10 @@ class Board {
 		window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
 		if (!pin.hasAttribute('tabindex')) pin.setAttribute('tabindex', '-1');
 		pin.focus({ preventScroll: true });
+		// The browser's native fragment navigation (#korkwand-note-ID) can also scroll the clipped (overflow:hidden)
+		// board container; it must never scroll.
+		this.board.scrollTop = 0;
+		this.board.scrollLeft = 0;
 
 		this.canvas.querySelectorAll('.korkwand-pin--highlight').forEach((el) => el.classList.remove('korkwand-pin--highlight'));
 		void pin.offsetWidth; // restart the CSS animation when the same note is linked again
@@ -329,7 +333,7 @@ class Board {
 		off();
 		el.remove();
 		this.menu = null;
-		if (btn.isConnected) btn.focus();
+		if (btn.isConnected) btn.focus({ preventScroll: true });
 	}
 
 	async openMenu(btn) {
@@ -378,7 +382,7 @@ class Board {
 				ev.preventDefault();
 				const bs = [...menu.querySelectorAll('button')];
 				const i = bs.indexOf(document.activeElement);
-				bs[(i + (ev.key === 'ArrowDown' ? 1 : bs.length - 1)) % bs.length].focus();
+				bs[(i + (ev.key === 'ArrowDown' ? 1 : bs.length - 1)) % bs.length].focus({ preventScroll: true });
 			}
 		};
 		const onClose = () => this.closeMenu();
@@ -393,7 +397,7 @@ class Board {
 			window.removeEventListener('scroll', onClose);
 		};
 		this.menu = { el: menu, btn, off };
-		menu.querySelector('button').focus();
+		menu.querySelector('button').focus({ preventScroll: true });
 	}
 
 	async fetchPin(id) {
