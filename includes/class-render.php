@@ -119,7 +119,7 @@ final class Render {
 
 		$out = sprintf(
 			'<article %sclass="%s" data-id="%d" data-x="%d" data-y="%d" data-can-edit="%s" data-sticky="%s" style="--x:%dpx;--y:%dpx;--r:%ddeg">',
-			'id="korkwand-note-' . (int) $p['id'] . '" ',
+			'id="korkwand-pin-' . (int) $p['id'] . '" ',
 			esc_attr( $classes ),
 			(int) $p['id'],
 			(int) $p['x'],

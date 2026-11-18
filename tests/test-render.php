@@ -184,10 +184,10 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 		$this->assertSame( home_url( '/' ), $this->redirect_to( Render::login_url() ) );
 	}
 
-	public function test_pins_carry_note_ids() {
+	public function test_pins_carry_pin_ids() {
 		$pin  = get_posts( array( 'post_type' => 'korkwand_pin', 'numberposts' => 1 ) )[0];
 		$html = Render::board( 'test' );
-		$this->assertStringContainsString( 'id="korkwand-note-' . $pin->ID . '"', $html );
+		$this->assertStringContainsString( 'id="korkwand-pin-' . $pin->ID . '"', $html );
 	}
 
 	public function test_note_ids_in_every_rendering_of_the_same_board() {
@@ -196,7 +196,7 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 		$pin    = get_posts( array( 'post_type' => 'korkwand_pin', 'numberposts' => 1 ) )[0];
 		$first  = Render::board( 'test' );
 		$second = Render::board( 'test' );
-		$this->assertStringContainsString( 'id="korkwand-note-' . $pin->ID . '"', $first );
-		$this->assertStringContainsString( 'id="korkwand-note-' . $pin->ID . '"', $second );
+		$this->assertStringContainsString( 'id="korkwand-pin-' . $pin->ID . '"', $first );
+		$this->assertStringContainsString( 'id="korkwand-pin-' . $pin->ID . '"', $second );
 	}
 }

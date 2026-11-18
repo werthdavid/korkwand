@@ -5,7 +5,7 @@ import { listPins, createPin, updatePin, deletePin, SessionExpiredError } from '
 import { openPinDialog } from 'korkwand-dialog';
 import { openLightbox } from 'korkwand-lightbox';
 import { t } from 'korkwand-i18n';
-import { parseNoteHash, duplicateIndexes, NOTE_HASH_PREFIX } from 'korkwand-hash';
+import { parseNoteHash, duplicateIndexes, PIN_ID_PREFIX } from 'korkwand-hash';
 
 const LIST_BREAKPOINT = 480;
 const DRAG_THRESHOLD = 4;
@@ -141,12 +141,12 @@ class Board {
 
 	/* ------------------------------ Deep link ------------------------------ */
 
-	// #korkwand-note-{id}: scroll to the note, highlight it briefly and move focus to it. Only reacts to
+	// #korkwand-note-{id} (element id is korkwand-pin-{id}): scroll to the note, highlight it briefly and move focus to it. Only reacts to
 	// notes that exist on this board (the server gives ids to the first rendering of a board only).
 	deepLink() {
 		const id = parseNoteHash(location.hash);
 		if (id === null) return;
-		const pin = document.getElementById(NOTE_HASH_PREFIX + id);
+		const pin = document.getElementById(PIN_ID_PREFIX + id);
 		if (!pin || !this.canvas.contains(pin)) return;
 
 		const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -156,7 +156,7 @@ class Board {
 		window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
 		if (!pin.hasAttribute('tabindex')) pin.setAttribute('tabindex', '-1');
 		pin.focus({ preventScroll: true });
-		// The browser's native fragment navigation (#korkwand-note-ID) can also scroll the clipped (overflow:hidden)
+		// The browser's native fragment navigation can also scroll the clipped (overflow:hidden)
 		// board container; it must never scroll.
 		this.board.scrollTop = 0;
 		this.board.scrollLeft = 0;
@@ -410,7 +410,7 @@ class Board {
 	replaceArticle(p) {
 		const old = this.canvas.querySelector(`.korkwand-pin[data-id="${p.id}"]`);
 		const fresh = renderPin(p, this.loggedIn);
-		const noteId = NOTE_HASH_PREFIX + p.id;
+		const noteId = PIN_ID_PREFIX + p.id;
 		// Keep the deep-link id (or add it unless another board instance on the page already owns it).
 		if (old && old.id) fresh.id = old.id;
 		else if (!document.getElementById(noteId)) fresh.id = noteId;
@@ -472,7 +472,7 @@ class Board {
 
 // The same board may be rendered more than once (server ids are always output): keep the first id in DOM order.
 function dedupeNoteIds() {
-	const pins = [...document.querySelectorAll('.korkwand-pin[id^="' + NOTE_HASH_PREFIX + '"]')];
+	const pins = [...document.querySelectorAll('.korkwand-pin[id^="' + PIN_ID_PREFIX + '"]')];
 	duplicateIndexes(pins.map((el) => el.id)).forEach((i) => pins[i].removeAttribute('id'));
 }
 

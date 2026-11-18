@@ -268,7 +268,7 @@
 }
 .korkwand-pin[data-can-edit="1"] a.korkwand-lightbox { -webkit-touch-callout: none; }
 
-/* Deep link target (#korkwand-note-ID): short highlight, then back to normal.
+/* Deep link target (#korkwand-note-N): short highlight, then back to normal.
    No 100% keyframe: the animation ends on the pin's own box-shadow (normal, sticky, hover). */
 .korkwand-pin--highlight {
 	animation: korkwand-highlight 2.5s ease-out;

@@ -1,5 +1,7 @@
 // Pure helper (no DOM dependency, testable with node:test).
-export const NOTE_HASH_PREFIX = 'korkwand-note-';
+// The URL hash is #korkwand-note-N, but pin elements carry id="korkwand-pin-N": with no element matching the
+// hash, the browser performs no native fragment scroll and only the deep link handler scrolls.
+export const PIN_ID_PREFIX = 'korkwand-pin-';
 
 // "#korkwand-note-42" -> 42; anything else (or id <= 0, trailing junk) -> null.
 export function parseNoteHash(hash) {
