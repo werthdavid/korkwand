@@ -65,7 +65,7 @@ class Korkwand_Test_Cleanup extends WP_UnitTestCase {
 	}
 
 	public function test_trash_expired_moves_old_nonsticky_only() {
-		update_term_meta( $this->board->term_id, 'lifetime_days', 10 );
+		update_term_meta( $this->board->term_id, 'korkwand_lifetime_days', 10 );
 		$old    = $this->pin_aged( 30 );
 		$sticky = $this->pin_aged( 30, true );
 		$fresh  = $this->pin_aged( 2 );
@@ -77,14 +77,14 @@ class Korkwand_Test_Cleanup extends WP_UnitTestCase {
 	}
 
 	public function test_trash_expired_skips_lifetime_zero() {
-		update_term_meta( $this->board->term_id, 'lifetime_days', 0 );
+		update_term_meta( $this->board->term_id, 'korkwand_lifetime_days', 0 );
 		$old = $this->pin_aged( 500 );
 		$this->assertSame( 0, Cleanup::trash_expired() );
 		$this->assertSame( 'publish', get_post_status( $old->ID ) );
 	}
 
 	public function test_trash_expired_handles_more_than_one_batch() {
-		update_term_meta( $this->board->term_id, 'lifetime_days', 10 );
+		update_term_meta( $this->board->term_id, 'korkwand_lifetime_days', 10 );
 		for ( $i = 0; $i < 120; $i++ ) {
 			$this->pin_aged( 30 );
 		}
@@ -238,7 +238,8 @@ class Korkwand_Test_Cleanup extends WP_UnitTestCase {
 		list( $pin, $att ) = $this->image_pin();
 		$trashed           = $this->pin_aged( 1 );
 		wp_trash_post( $trashed->ID );
-		set_transient( 'korkwand_rl_5', array( time() ), 3600 );
+		$rl_user = self::factory()->user->create();
+		set_transient( "korkwand_rl_{$rl_user}", array( time() ), 3600 );
 		$term_id = $this->board->term_id;
 
 		Cleanup::uninstall();
@@ -247,7 +248,7 @@ class Korkwand_Test_Cleanup extends WP_UnitTestCase {
 		$this->assertNull( get_post( $att ) );
 		$this->assertNull( get_post( $trashed->ID ) );
 		$this->assertNull( get_term( $term_id, 'korkwand_board' ) );
-		$this->assertFalse( get_transient( 'korkwand_rl_5' ) );
+		$this->assertFalse( get_transient( "korkwand_rl_{$rl_user}" ) );
 		$this->assertFalse( wp_next_scheduled( 'korkwand_daily_cleanup' ) );
 		$this->assertFalse( get_role( 'administrator' )->has_cap( 'korkwand_moderate' ) );
 		$this->assertFalse( get_option( 'korkwand_delete_data_on_uninstall', false ) );

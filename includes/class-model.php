@@ -90,12 +90,12 @@ final class Model {
 		}
 
 		$term_meta = array(
-			'lifetime_days' => 'integer',
-			'height'        => 'integer',
-			'max_pins'      => 'integer',
-			'notify'        => 'boolean',
-			'page_id'       => 'integer',
-			'auto_page_id'  => 'integer',
+			'korkwand_lifetime_days' => 'integer',
+			'korkwand_height'        => 'integer',
+			'korkwand_max_pins'      => 'integer',
+			'korkwand_notify'        => 'boolean',
+			'korkwand_page_id'       => 'integer',
+			'korkwand_auto_page_id'  => 'integer',
 		);
 		foreach ( $term_meta as $key => $type ) {
 			register_term_meta(
@@ -113,7 +113,7 @@ final class Model {
 	/**
 	 * Rotation: integer, clamped to -6..6.
 	 *
-	 * @param mixed $value Rohwert.
+	 * @param mixed $value Raw value.
 	 */
 	public static function sanitize_rotation( $value ): int {
 		return max( -6, min( 6, (int) $value ) );

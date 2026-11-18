@@ -19,7 +19,7 @@ class Korkwand_Test_Pins extends WP_UnitTestCase {
 
 	private function settings( array $meta ): void {
 		foreach ( $meta as $k => $v ) {
-			update_term_meta( $this->board->term_id, $k, $v );
+			update_term_meta( $this->board->term_id, "korkwand_{$k}", $v );
 		}
 	}
 

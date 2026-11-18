@@ -50,7 +50,7 @@ class Korkwand_Test_Admin extends WP_UnitTestCase {
 
 	public function test_column_output() {
 		$term = $this->board();
-		update_term_meta( $term, 'lifetime_days', 10 );
+		update_term_meta( $term, 'korkwand_lifetime_days', 10 );
 		$pin = self::factory()->post->create( array( 'post_type' => 'korkwand_pin' ) );
 		wp_set_object_terms( $pin, array( $term ), 'korkwand_board' );
 		update_post_meta( $pin, '_korkwand_type', 'image' );
@@ -110,7 +110,7 @@ class Korkwand_Test_Admin extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Pinnwandseite', $add );
 
 		$id = $this->board();
-		update_term_meta( $id, 'page_id', $page );
+		update_term_meta( $id, 'korkwand_page_id', $page );
 		ob_start();
 		Admin::edit_fields( get_term( $id, 'korkwand_board' ) );
 		$edit = ob_get_clean();
@@ -120,7 +120,7 @@ class Korkwand_Test_Admin extends WP_UnitTestCase {
 	public function test_unchecked_notify_saves_false() {
 		wp_set_current_user( $this->admin );
 		$id = $this->board();
-		update_term_meta( $id, 'notify', 1 );
+		update_term_meta( $id, 'korkwand_notify', 1 );
 		$this->post_data();
 		unset( $_POST['notify'] );
 		do_action( 'edited_korkwand_board', $id );
@@ -149,7 +149,7 @@ class Korkwand_Test_Admin extends WP_UnitTestCase {
 		$id = $this->board( 'category' );
 		$this->post_data();
 		Admin::save_term( $id );
-		$this->assertSame( '', get_term_meta( $id, 'lifetime_days', true ) );
+		$this->assertSame( '', get_term_meta( $id, 'korkwand_lifetime_days', true ) );
 	}
 
 	public function test_shortcode_column_on_term_list() {

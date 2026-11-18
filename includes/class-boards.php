@@ -16,6 +16,9 @@ final class Boards {
 		'page_id'       => 0,
 	);
 
+	/** Prefix of the term meta storage keys (the array keys of settings() stay unprefixed). */
+	private const META_PREFIX = 'korkwand_';
+
 	private const LIMITS = array(
 		'lifetime_days' => array( 0, 3650 ),
 		'height'        => array( 300, 3000 ),
@@ -43,11 +46,11 @@ final class Boards {
 	public static function settings( \WP_Term $term ): array {
 		$out = array();
 		foreach ( self::LIMITS as $key => $limits ) {
-			$raw         = get_term_meta( $term->term_id, $key, true );
+			$raw         = get_term_meta( $term->term_id, self::META_PREFIX . $key, true );
 			$value       = ( '' === $raw || false === $raw ) ? self::DEFAULTS[ $key ] : (int) $raw;
 			$out[ $key ] = self::clamp( $value, $limits[0], $limits[1] );
 		}
-		$raw           = get_term_meta( $term->term_id, 'notify', true );
+		$raw           = get_term_meta( $term->term_id, 'korkwand_notify', true );
 		$out['notify'] = '' === $raw ? (bool) self::DEFAULTS['notify'] : (bool) (int) $raw;
 
 		return $out;
@@ -56,8 +59,8 @@ final class Boards {
 	/**
 	 * Stores sanitized and clamped settings; missing keys remain unchanged.
 	 *
-	 * @param int                  $term_id Term-ID.
-	 * @param array<string, mixed> $raw     Rohdaten (z. B. $_POST).
+	 * @param int                  $term_id Term ID.
+	 * @param array<string, mixed> $raw     Raw data (e.g. $_POST).
 	 */
 	public static function save_settings( int $term_id, array $raw ): void {
 		foreach ( self::LIMITS as $key => $limits ) {
@@ -65,10 +68,10 @@ final class Boards {
 				continue;
 			}
 			$value = self::clamp( (int) $raw[ $key ], $limits[0], $limits[1] );
-			update_term_meta( $term_id, $key, $value );
+			update_term_meta( $term_id, self::META_PREFIX . $key, $value );
 		}
 		if ( array_key_exists( 'notify', $raw ) ) {
-			update_term_meta( $term_id, 'notify', rest_sanitize_boolean( $raw['notify'] ) ? 1 : 0 );
+			update_term_meta( $term_id, 'korkwand_notify', rest_sanitize_boolean( $raw['notify'] ) ? 1 : 0 );
 		}
 	}
 
@@ -78,7 +81,7 @@ final class Boards {
 	public static function page_url( \WP_Term $term ): ?string {
 		$candidates = array(
 			self::settings( $term )['page_id'],
-			(int) get_term_meta( $term->term_id, 'auto_page_id', true ),
+			(int) get_term_meta( $term->term_id, 'korkwand_auto_page_id', true ),
 		);
 		foreach ( $candidates as $id ) {
 			if ( $id > 0 && 'publish' === get_post_status( $id ) && ! post_password_required( $id ) ) {
@@ -94,7 +97,7 @@ final class Boards {
 	/**
 	 * save_post: remember the first published page/post that embeds a board (shortcode or block).
 	 *
-	 * @param int      $post_id Post-ID.
+	 * @param int      $post_id Post ID.
 	 * @param \WP_Post $post    Post.
 	 */
 	public static function detect_page( $post_id, $post ): void {
@@ -110,7 +113,7 @@ final class Boards {
 		// A page that no longer embeds its board stops being its auto page.
 		foreach ( self::boards_with_auto_page( (int) $post_id ) as $term ) {
 			if ( ! in_array( $term->slug, $slugs, true ) ) {
-				delete_term_meta( $term->term_id, 'auto_page_id' );
+				delete_term_meta( $term->term_id, 'korkwand_auto_page_id' );
 			}
 		}
 
@@ -119,11 +122,11 @@ final class Boards {
 			if ( ! $term || self::settings( $term )['page_id'] > 0 ) {
 				continue;
 			}
-			$old = (int) get_term_meta( $term->term_id, 'auto_page_id', true );
+			$old = (int) get_term_meta( $term->term_id, 'korkwand_auto_page_id', true );
 			if ( $old > 0 && $old !== (int) $post_id && self::is_valid_auto_page( $old, $term->slug ) ) {
 				continue;
 			}
-			update_term_meta( $term->term_id, 'auto_page_id', (int) $post_id );
+			update_term_meta( $term->term_id, 'korkwand_auto_page_id', (int) $post_id );
 		}
 	}
 
@@ -136,7 +139,7 @@ final class Boards {
 	/** Clears `auto_page_id` of every board that points to this post. */
 	public static function clear_auto_page( $post_id ): void {
 		foreach ( self::boards_with_auto_page( (int) $post_id ) as $term ) {
-			delete_term_meta( $term->term_id, 'auto_page_id' );
+			delete_term_meta( $term->term_id, 'korkwand_auto_page_id' );
 		}
 	}
 
@@ -148,8 +151,8 @@ final class Boards {
 			array(
 				'taxonomy'   => 'korkwand_board',
 				'hide_empty' => false,
-				'meta_key'   => 'auto_page_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_value' => $post_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_key'   => 'korkwand_auto_page_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- looks up the few boards (terms) that point at one page; term tables are small.
+				'meta_value' => $post_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- see meta_key above.
 			)
 		);
 		return is_wp_error( $terms ) ? array() : array_filter( $terms, static fn( $t ) => $t instanceof \WP_Term );

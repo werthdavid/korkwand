@@ -19,7 +19,7 @@ class Korkwand_Test_Board_Page extends WP_UnitTestCase {
 	}
 
 	private function auto(): int {
-		return (int) get_term_meta( $this->board->term_id, 'auto_page_id', true );
+		return (int) get_term_meta( $this->board->term_id, 'korkwand_auto_page_id', true );
 	}
 
 	public function test_page_id_setting_default_and_clamp() {
@@ -147,7 +147,7 @@ class Korkwand_Test_Board_Page extends WP_UnitTestCase {
 		$open = $this->page( 'y' );
 		Boards::save_settings( $this->board->term_id, array( 'page_id' => (string) $pw ) );
 		$this->assertNull( Boards::page_url( $this->board ) );
-		update_term_meta( $this->board->term_id, 'auto_page_id', $open );
+		update_term_meta( $this->board->term_id, 'korkwand_auto_page_id', $open );
 		$this->assertSame( get_permalink( $open ), Boards::page_url( $this->board ) );
 	}
 }

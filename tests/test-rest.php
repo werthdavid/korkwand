@@ -323,11 +323,11 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 	}
 
 	public function test_notify_sends_mail_when_enabled() {
-		update_term_meta( $this->board->term_id, 'notify', 1 );
+		update_term_meta( $this->board->term_id, 'korkwand_notify', 1 );
 		$this->assertSame( 201, $this->create_as( $this->sub, array( 'title' => 'Neu hier' ) )->get_status() );
 		$mails = tests_retrieve_phpmailer_instance()->get_sent();
 		$this->assertNotFalse( $mails );
-		$this->assertSame( 'New note on the Korkwand', $mails->subject );
+		$this->assertSame( 'New note on board "Test"', $mails->subject );
 		$this->assertStringContainsString( 'Neu hier', $mails->body );
 		$this->assertStringContainsString( 'Anna Beispiel', $mails->body );
 		$this->assertStringContainsString( 'post.php', $mails->body );
@@ -335,7 +335,7 @@ class Korkwand_Test_Rest extends WP_UnitTestCase {
 	}
 
 	public function test_no_mail_when_notify_disabled() {
-		update_term_meta( $this->board->term_id, 'notify', 0 );
+		update_term_meta( $this->board->term_id, 'korkwand_notify', 0 );
 		$this->assertSame( 201, $this->create_as( $this->sub )->get_status() );
 		$this->assertFalse( tests_retrieve_phpmailer_instance()->get_sent() );
 	}
