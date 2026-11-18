@@ -134,8 +134,20 @@ class Korkwand_Test_Board_Page extends WP_UnitTestCase {
 	}
 
 	public function test_revisions_are_ignored() {
-		$p = $this->page( 'plain' );
-		wp_update_post( array( 'ID' => $p, 'post_content' => '[korkwand board="brett"]' ) );
-		$this->assertSame( $p, $this->auto() );
+		$p   = $this->page( 'plain' );
+		$rev = self::factory()->post->create( array( 'post_type' => 'revision', 'post_parent' => $p, 'post_status' => 'inherit', 'post_content' => '[korkwand board="brett"]' ) );
+		Boards::detect_page( $rev, get_post( $rev ) );
+		$this->assertSame( 0, $this->auto() );
+	}
+
+	public function test_page_url_skips_password_protected_pages() {
+		$pw   = $this->page( '[korkwand board="brett"]', array( 'post_password' => 'secret' ) );
+		$this->assertSame( $pw, $this->auto() );
+		$this->assertNull( Boards::page_url( $this->board ) );
+		$open = $this->page( 'y' );
+		Boards::save_settings( $this->board->term_id, array( 'page_id' => (string) $pw ) );
+		$this->assertNull( Boards::page_url( $this->board ) );
+		update_term_meta( $this->board->term_id, 'auto_page_id', $open );
+		$this->assertSame( get_permalink( $open ), Boards::page_url( $this->board ) );
 	}
 }

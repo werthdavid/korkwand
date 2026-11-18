@@ -206,6 +206,10 @@ class Korkwand_Test_Latest extends WP_UnitTestCase {
 		$this->assertSame( array( 'korkwand-latest-style' ), WP_Block_Type_Registry::get_instance()->get_registered( 'korkwand/latest' )->style_handles );
 	}
 
+	public function test_block_renders_nothing_for_unknown_board_and_guest() {
+		$this->assertSame( '', trim( do_blocks( '<!-- wp:korkwand/latest {"board":"nope"} /-->' ) ) );
+	}
+
 	public function test_block_defaults() {
 		for ( $i = 0; $i < 7; $i++ ) {
 			$this->note( $this->a, 'n' . $i, 100 - $i );

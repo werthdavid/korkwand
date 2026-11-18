@@ -5,7 +5,7 @@ import { listPins, createPin, updatePin, deletePin, SessionExpiredError } from '
 import { openPinDialog } from 'korkwand-dialog';
 import { openLightbox } from 'korkwand-lightbox';
 import { t } from 'korkwand-i18n';
-import { parseNoteHash, NOTE_HASH_PREFIX } from 'korkwand-hash';
+import { parseNoteHash, duplicateIndexes, NOTE_HASH_PREFIX } from 'korkwand-hash';
 
 const LIST_BREAKPOINT = 480;
 const DRAG_THRESHOLD = 4;
@@ -150,7 +150,10 @@ class Board {
 		if (!pin || !this.canvas.contains(pin)) return;
 
 		const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		pin.scrollIntoView({ block: 'center', inline: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+		// Centre the note vertically by scrolling the window (never the board container).
+		const r = pin.getBoundingClientRect();
+		const top = Math.max(0, window.scrollY + r.top + r.height / 2 - window.innerHeight / 2);
+		window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
 		if (!pin.hasAttribute('tabindex')) pin.setAttribute('tabindex', '-1');
 		pin.focus({ preventScroll: true });
 
@@ -463,7 +466,14 @@ class Board {
 	}
 }
 
+// The same board may be rendered more than once (server ids are always output): keep the first id in DOM order.
+function dedupeNoteIds() {
+	const pins = [...document.querySelectorAll('.korkwand-pin[id^="' + NOTE_HASH_PREFIX + '"]')];
+	duplicateIndexes(pins.map((el) => el.id)).forEach((i) => pins[i].removeAttribute('id'));
+}
+
 function init() {
+	dedupeNoteIds();
 	document.querySelectorAll('.korkwand').forEach((root) => {
 		if (root.dataset.korkwandInit) return;
 		root.dataset.korkwandInit = '1';

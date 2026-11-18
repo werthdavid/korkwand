@@ -81,7 +81,7 @@ final class Boards {
 			(int) get_term_meta( $term->term_id, 'auto_page_id', true ),
 		);
 		foreach ( $candidates as $id ) {
-			if ( $id > 0 && 'publish' === get_post_status( $id ) ) {
+			if ( $id > 0 && 'publish' === get_post_status( $id ) && ! post_password_required( $id ) ) {
 				$url = get_permalink( $id );
 				if ( is_string( $url ) && '' !== $url ) {
 					return $url;

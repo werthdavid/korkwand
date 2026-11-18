@@ -13,18 +13,6 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Render {
 
-	/**
-	 * Boards whose notes already carry `id="korkwand-note-{ID}"` in this request. The same board embedded twice
-	 * must not output duplicate ids: only the first rendering gets them (the "latest notes" links target that one).
-	 *
-	 * @var array<int, true>
-	 */
-	private static array $noted = array();
-
-	public static function reset_note_ids(): void {
-		self::$noted = array();
-	}
-
 	public static function register(): void {
 		add_shortcode( 'korkwand', array( self::class, 'shortcode' ) );
 		add_action( 'init', array( self::class, 'register_block' ) );
@@ -114,10 +102,8 @@ final class Render {
 		}
 		$out .= '</div>';
 		$out .= '<div class="korkwand-board"><div class="korkwand-canvas" style="height:' . $height . 'px">';
-		$with_ids = ! isset( self::$noted[ $board->term_id ] );
-		self::$noted[ $board->term_id ] = true;
 		foreach ( Pins::visible( $board ) as $pin ) {
-			$out .= self::pin( Pins::to_array( $pin, $viewer, $board ), $viewer > 0, $with_ids );
+			$out .= self::pin( Pins::to_array( $pin, $viewer, $board ), $viewer > 0 );
 		}
 		$out .= '</div></div></div>';
 
@@ -127,13 +113,13 @@ final class Render {
 	/**
 	 * @param array<string, mixed> $p Result of Pins::to_array().
 	 */
-	private static function pin( array $p, bool $logged_in, bool $with_id = true ): string {
+	private static function pin( array $p, bool $logged_in ): string {
 		$is_image = 'image' === $p['type'] && ! empty( $p['image'] );
 		$classes  = 'korkwand-pin korkwand-pin--' . ( $is_image ? 'image' : 'postit' ) . ( $p['sticky'] ? ' korkwand-pin--sticky' : '' );
 
 		$out = sprintf(
 			'<article %sclass="%s" data-id="%d" data-x="%d" data-y="%d" data-can-edit="%s" data-sticky="%s" style="--x:%dpx;--y:%dpx;--r:%ddeg">',
-			$with_id ? 'id="korkwand-note-' . (int) $p['id'] . '" ' : '',
+			'id="korkwand-note-' . (int) $p['id'] . '" ',
 			esc_attr( $classes ),
 			(int) $p['id'],
 			(int) $p['x'],
