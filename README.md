@@ -9,6 +9,7 @@ This file is the developer README. End-user documentation lives in `readme.txt` 
 
 - Boards are managed in the admin under *Korkwand → Boards* (taxonomy `korkwand_board`). Per board: lifetime in days (0 = never expires), height, maximum number of notes, email notification.
 - Embed a board with the shortcode `[korkwand board="slug"]` or the block `korkwand/board`.
+- Show the newest notes (e.g. on the home page or in a sidebar) with `[korkwand_latest board="slug" count="5" show_date="1"]` or the block `korkwand/latest`. Entries link to the board page (set per board, otherwise auto-detected from the page embedding the board) and highlight the note there.
 - Capabilities: `korkwand_post` (create notes: subscriber and up) and `korkwand_moderate` (edit/delete any note, mark notes sticky: editor and administrator).
 - Notes are a custom post type (`korkwand_pin`), created only through the REST API (`korkwand/v1`) from the frontend.
 - Image uploads: JPEG, PNG, WebP up to 8 MB (or the host limit if lower), re-encoded to strip EXIF/GPS, file names anonymised (`korkwand-<random>.<ext>`).

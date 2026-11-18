@@ -118,7 +118,7 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 		ob_start();
 		wp_script_modules()->print_import_map();
 		$map = ob_get_clean();
-		foreach ( array( 'i18n', 'api', 'geometry', 'dialog', 'lightbox' ) as $name ) {
+		foreach ( array( 'i18n', 'api', 'geometry', 'hash', 'dialog', 'lightbox' ) as $name ) {
 			$this->assertMatchesRegularExpression( '#"korkwand-' . $name . '":\s*"[^"]*assets\\/js\\/' . $name . '\.js\?ver=' . preg_quote( KORKWAND_VERSION, '#' ) . '"#', $map, $name );
 		}
 		$src = file_get_contents( KORKWAND_DIR . 'assets/js/korkwand.js' );

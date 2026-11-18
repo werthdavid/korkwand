@@ -246,4 +246,21 @@ class Korkwand_Test_Latest extends WP_UnitTestCase {
 		// 20 more notes must not add per-note queries (tolerance: cache-dependent option loads).
 		$this->assertLessThanOrEqual( $few + 3, $many );
 	}
+
+	public function test_german_translations_shipped_for_editor_and_php() {
+		$json = glob( KORKWAND_DIR . 'languages/korkwand-de_DE-*.json' );
+		$found = array();
+		foreach ( $json as $file ) {
+			$data = json_decode( file_get_contents( $file ), true );
+			if ( 'blocks/latest/edit.js' === $data['source'] ) {
+				$found = $data['locale_data']['messages'];
+			}
+		}
+		$this->assertSame( array( 'Alle Pinnwände' ), $found['All boards'] ?? null );
+		$this->assertSame( array( 'Datum anzeigen' ), $found['Show date'] ?? null );
+		$po = file_get_contents( KORKWAND_DIR . 'languages/korkwand-de_DE.po' );
+		$this->assertStringContainsString( "msgid \"Nothing on the board yet.\"\nmsgstr \"Noch nichts auf der Pinnwand.\"", $po );
+		$this->assertStringContainsString( "msgid \"Photo\"\nmsgstr \"Foto\"", $po );
+		$this->assertStringContainsString( "msgstr \"Pinnwand-Seite\"", $po );
+	}
 }
