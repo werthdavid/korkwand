@@ -77,7 +77,7 @@ final class Cleanup {
 			$ids = get_posts(
 				$extra + array(
 					'post_type'      => 'korkwand_pin',
-					'post_status'    => array_merge( array_values( get_post_stati() ), array( 'trash' ) ),
+					'post_status'    => array_values( array_unique( array_merge( get_post_stati(), array( 'trash' ) ) ) ),
 					'posts_per_page' => self::BATCH,
 					'fields'         => 'ids',
 					'orderby'        => 'ID',
@@ -199,7 +199,7 @@ final class Cleanup {
 		$others = get_posts(
 			array(
 				'post_type'        => array_values( get_post_types() ),
-				'post_status'      => array_merge( array_values( get_post_stati() ), array( 'trash' ) ),
+				'post_status'      => array_values( array_unique( array_merge( get_post_stati(), array( 'trash' ) ) ) ),
 				'posts_per_page'   => 1,
 				'fields'           => 'ids',
 				// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- single-post exclusion, query is limited to one result.
@@ -266,7 +266,7 @@ final class Cleanup {
 	private static function user_pins_query( int $user_id, int $per ): array {
 		return array(
 			'post_type'        => 'korkwand_pin',
-			'post_status'      => array_merge( array_values( get_post_stati() ), array( 'trash' ) ),
+			'post_status'      => array_values( array_unique( array_merge( get_post_stati(), array( 'trash' ) ) ) ),
 			'author'           => $user_id,
 			'posts_per_page'   => $per,
 			'fields'           => 'ids',
@@ -296,7 +296,7 @@ final class Cleanup {
 				$ids = get_posts(
 					array(
 						'post_type'        => 'korkwand_pin',
-						'post_status'      => array_merge( array_values( get_post_stati() ), array( 'trash' ) ),
+						'post_status'      => array_values( array_unique( array_merge( get_post_stati(), array( 'trash' ) ) ) ),
 						'posts_per_page'   => self::BATCH,
 						'fields'           => 'ids',
 						'orderby'          => 'ID',

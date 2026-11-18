@@ -85,6 +85,10 @@ JPEG, PNG and WebP images up to 8 MB, or the PHP/WordPress upload limit of your 
 
 Yes. On narrow screens the board becomes a vertical list of notes and the add-note dialog is full width.
 
+= Are author pages available? =
+
+Author archives (`/author/name/`) answer 404 for every user who has no published public content (posts, pages or other public post types), so the names of note authors cannot be looked up. Users with published posts keep their author page.
+
 = How long do notes stay on the board? =
 
 That is set per board ("Lifetime in days", 1 to 3650, default 100). Sticky notes never expire. Expired notes disappear from the board immediately; a daily job moves them to the trash, and they are permanently deleted together with their uploaded images when WordPress empties the trash (after 30 days by default).
@@ -118,7 +122,7 @@ Korkwand stores the following data in your WordPress database and uploads folder
 
 Korkwand does not store IP addresses, does not set its own cookies, does not use external services and does not load external fonts or scripts. The rate limit works on user IDs only.
 
-Author names are never shown to guests: only logged-in users see who wrote a note. The author archives of users who have only written notes are disabled (`/author/name/` and `?author=ID` answer 404 and do not reveal the user name), so note authors cannot be looked up from outside. Only Board editors, Editors and Administrators can post. Notes expire after the lifetime of their board unless they are sticky. Deleting a board permanently deletes all of its notes and their images.
+Author names are never shown to guests: only logged-in users see who wrote a note. Author archives answer 404 for every user without published public content (posts, pages or other public post types), and `?author=ID` does not redirect to them, so note authors cannot be looked up from outside. Side effect: such users, for example subscribers, have no author page on your site; users with published posts keep theirs. Only Board editors, Editors and Administrators can post. Notes expire after the lifetime of their board unless they are sticky. Deleting a board permanently deletes all of its notes and their images; a note that has no board any more is permanently deleted by the daily cleanup.
 
 Korkwand registers a personal data exporter and eraser with the WordPress privacy tools (*Tools > Export Personal Data* and *Erase Personal Data*). Notes and images of a user are included in the export and are deleted on erasure. If you enable the email notification of a board, an email with the note title and the author's display name is sent to the site administrator address.
 
@@ -127,7 +131,7 @@ Korkwand registers a personal data exporter and eraser with the WordPress privac
 = 0.2.0 =
 * Posting restricted to the Board editor role, editors and administrators; boards always expire.
 * Deleting a board deletes its notes and images; a daily job also removes notes that belong to no board.
-* Author archives of users who only wrote notes answer 404 and ?author=ID no longer reveals their user name.
+* Author archives answer 404 for every user without published public content, and ?author=ID no longer reveals user names.
 * The Board editor role name follows the site language.
 
 = 0.1.0 =

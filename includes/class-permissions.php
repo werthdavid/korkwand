@@ -32,8 +32,18 @@ final class Permissions {
 
 	/** The role name is stored in the database at activation; show it in the current locale instead. */
 	public static function localize_role_name(): void {
-		if ( isset( wp_roles()->role_names[ self::ROLE ] ) ) {
-			wp_roles()->role_names[ self::ROLE ] = __( 'Board editor', 'korkwand' );
+		$roles = wp_roles();
+		if ( ! isset( $roles->role_names[ self::ROLE ] ) ) {
+			return;
+		}
+		$name = __( 'Board editor', 'korkwand' );
+
+		$roles->role_names[ self::ROLE ] = $name;
+		if ( isset( $roles->roles[ self::ROLE ] ) ) {
+			$roles->roles[ self::ROLE ]['name'] = $name; // Read by get_editable_roles() (role dropdowns).
+		}
+		if ( isset( $roles->role_objects[ self::ROLE ] ) ) {
+			$roles->role_objects[ self::ROLE ]->name = $name;
 		}
 	}
 

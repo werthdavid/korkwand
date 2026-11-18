@@ -37,7 +37,7 @@ class Korkwand_Test_Authors extends WP_UnitTestCase {
 		);
 	}
 
-	/** Runs the front-end request cycle up to template_redirect. @return string output of template_redirect hooks */
+	/** Runs the front-end request cycle up to template_redirect. @return void */
 	private function request( string $url ): void {
 		$this->go_to( $url );
 		parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $_GET ); // go_to() does not fill $_GET.

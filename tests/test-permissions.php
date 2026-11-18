@@ -84,6 +84,7 @@ class Korkwand_Test_Permissions extends WP_UnitTestCase {
 		$this->assertSame( array( 'korkwand_post', 'read' ), $caps );
 		$this->assertFalse( $role->has_cap( 'upload_files' ) );
 		$this->assertSame( 'Board editor', wp_roles()->role_names['korkwand_editor'] );
+		$this->assertSame( 'Board editor', get_editable_roles()['korkwand_editor']['name'] );
 	}
 
 	public function test_role_display_name_follows_current_locale() {
@@ -93,6 +94,9 @@ class Korkwand_Test_Permissions extends WP_UnitTestCase {
 		\Korkwand\Permissions::localize_role_name();
 		remove_filter( 'gettext', $filter, 10 );
 		$this->assertSame( 'Pinnwand-Redaktion', wp_roles()->role_names['korkwand_editor'] );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$this->assertSame( 'Pinnwand-Redaktion', get_editable_roles()['korkwand_editor']['name'] );
+		$this->assertSame( 'Pinnwand-Redaktion', get_role( 'korkwand_editor' )->name );
 		\Korkwand\Permissions::localize_role_name();
 		$this->assertSame( 'Board editor', wp_roles()->role_names['korkwand_editor'] );
 	}
