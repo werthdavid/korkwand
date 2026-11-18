@@ -267,3 +267,20 @@
 	-webkit-user-select: none;
 }
 .korkwand-pin[data-can-edit="1"] a.korkwand-lightbox { -webkit-touch-callout: none; }
+
+/* Deep link target (#korkwand-note-ID): short highlight, then back to normal. */
+.korkwand-pin:focus { outline: none; }
+.korkwand-pin--highlight {
+	animation: korkwand-highlight 2.5s ease-out;
+}
+@keyframes korkwand-highlight {
+	0%, 60% { box-shadow: 0 0 0 4px #ffb300, 0 0 22px 8px rgba(255, 179, 0, .75); }
+	100% { box-shadow: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+	.korkwand-pin--highlight {
+		animation: none;
+		outline: 3px solid #ffb300;
+		outline-offset: 2px;
+	}
+}

@@ -201,7 +201,7 @@ final class Render {
 		// Register sub-modules individually with a version and import them by module ID: the import map carries
 		// ?ver=..., so browsers do not use stale sub-modules from the cache after updates.
 		$deps = array();
-		foreach ( array( 'i18n', 'api', 'geometry', 'dialog', 'lightbox' ) as $name ) {
+		foreach ( array( 'i18n', 'api', 'geometry', 'hash', 'dialog', 'lightbox' ) as $name ) {
 			wp_register_script_module( 'korkwand-' . $name, KORKWAND_URL . 'assets/js/' . $name . '.js', array(), KORKWAND_VERSION );
 			$deps[] = 'korkwand-' . $name;
 		}

@@ -5,10 +5,12 @@ import { listPins, createPin, updatePin, deletePin, SessionExpiredError } from '
 import { openPinDialog } from 'korkwand-dialog';
 import { openLightbox } from 'korkwand-lightbox';
 import { t } from 'korkwand-i18n';
+import { parseNoteHash, NOTE_HASH_PREFIX } from 'korkwand-hash';
 
 const LIST_BREAKPOINT = 480;
 const DRAG_THRESHOLD = 4;
 const LONG_PRESS_MS = 300;
+const HIGHLIGHT_MS = 2500;
 
 /* ------------------------------ Rendering ------------------------------ */
 
@@ -98,6 +100,10 @@ class Board {
 		const add = root.querySelector('.korkwand-add');
 		if (add) add.addEventListener('click', () => this.openCreate(add));
 
+		this.highlightTimer = 0;
+		window.addEventListener('hashchange', () => this.deepLink());
+		this.deepLink();
+
 		root.addEventListener('click', (e) => this.onClick(e), true);
 		root.addEventListener('dragstart', (e) => e.preventDefault());
 		root.addEventListener('pointerdown', (e) => this.onPointerDown(e));
@@ -131,6 +137,28 @@ class Board {
 			? parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth)
 			: 0;
 		this.board.style.height = Math.ceil(this.height * this.scale + extra) + 'px';
+	}
+
+	/* ------------------------------ Deep link ------------------------------ */
+
+	// #korkwand-note-{id}: scroll to the note, highlight it briefly and move focus to it. Only reacts to
+	// notes that exist on this board (the server gives ids to the first rendering of a board only).
+	deepLink() {
+		const id = parseNoteHash(location.hash);
+		if (id === null) return;
+		const pin = document.getElementById(NOTE_HASH_PREFIX + id);
+		if (!pin || !this.canvas.contains(pin)) return;
+
+		const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		pin.scrollIntoView({ block: 'center', inline: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+		if (!pin.hasAttribute('tabindex')) pin.setAttribute('tabindex', '-1');
+		pin.focus({ preventScroll: true });
+
+		this.canvas.querySelectorAll('.korkwand-pin--highlight').forEach((el) => el.classList.remove('korkwand-pin--highlight'));
+		void pin.offsetWidth; // restart the CSS animation when the same note is linked again
+		pin.classList.add('korkwand-pin--highlight');
+		clearTimeout(this.highlightTimer);
+		this.highlightTimer = setTimeout(() => pin.classList.remove('korkwand-pin--highlight'), HIGHLIGHT_MS);
 	}
 
 	/* ------------------------------ Hinweise ------------------------------ */
@@ -375,6 +403,10 @@ class Board {
 	replaceArticle(p) {
 		const old = this.canvas.querySelector(`.korkwand-pin[data-id="${p.id}"]`);
 		const fresh = renderPin(p, this.loggedIn);
+		const noteId = NOTE_HASH_PREFIX + p.id;
+		// Keep the deep-link id (or add it unless another board instance on the page already owns it).
+		if (old && old.id) fresh.id = old.id;
+		else if (!document.getElementById(noteId)) fresh.id = noteId;
 		if (old) old.replaceWith(fresh);
 		else this.canvas.appendChild(fresh);
 		return fresh;
