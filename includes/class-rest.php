@@ -257,7 +257,7 @@ final class Rest {
 	private static function body_dropped( \WP_REST_Request $request ): bool {
 		$content_type = (string) $request->get_header( 'content_type' );
 		return 0 === stripos( $content_type, 'multipart/form-data' )
-			&& (int) ( $_SERVER['CONTENT_LENGTH'] ?? 0 ) > 0 // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+			&& (int) ( $_SERVER['CONTENT_LENGTH'] ?? 0 ) > 0 // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- read-only integer cast of the request size; no output, no storage.
 			&& empty( $request->get_body_params() )
 			&& empty( $request->get_file_params() );
 	}

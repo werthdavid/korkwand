@@ -13,6 +13,22 @@ final class Privacy {
 	public static function register(): void {
 		add_filter( 'wp_privacy_personal_data_exporters', array( self::class, 'add_exporter' ) );
 		add_filter( 'wp_privacy_personal_data_erasers', array( self::class, 'add_eraser' ) );
+		add_action( 'admin_init', array( self::class, 'add_policy_content' ) );
+	}
+
+	/**
+	 * Suggested text for the site's privacy policy (Settings > Privacy). Keep in sync with the Privacy section of readme.txt.
+	 */
+	public static function add_policy_content(): void {
+		if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) {
+			return;
+		}
+		$content  = '<h2>' . esc_html__( 'Korkwand pinboard', 'korkwand' ) . '</h2>';
+		$content .= '<p class="privacy-policy-tutorial">' . esc_html__( 'Suggested text. Review it and adapt it to how you use the plugin.', 'korkwand' ) . '</p>';
+		$content .= '<p>' . esc_html__( 'Logged-in members can pin notes and photos to a pinboard on this site. For every note we store the user ID of the author, the note text, its position and tilt on the board, the sticky flag and its creation date. Uploaded images are stored in the media library as attachments with the uploader as author; before storage they are re-encoded to remove EXIF and GPS metadata, and they are given random file names.', 'korkwand' ) . '</p>';
+		$content .= '<p>' . esc_html__( 'Visitors who are not logged in see the notes but not the names of their authors. The plugin does not store IP addresses, does not set its own cookies and does not use external services. The limit on new notes per hour is based on the user ID only.', 'korkwand' ) . '</p>';
+		$content .= '<p>' . esc_html__( 'Notes are removed automatically after the lifetime configured for the board (if any). On request, notes and images of a user are included in the personal data export and are deleted by the personal data erasure of WordPress. If the email notification of a board is enabled, an email with the note title and the display name of the author is sent to the site administrator.', 'korkwand' ) . '</p>';
+		wp_add_privacy_policy_content( 'Korkwand', wp_kses_post( $content ) );
 	}
 
 	public static function add_exporter( $exporters ) {
@@ -40,6 +56,7 @@ final class Privacy {
 			return array( 'data' => array(), 'done' => true );
 		}
 		$page  = max( 1, $page );
+		// get_posts() defaults to suppress_filters=true.
 		$posts = get_posts(
 			array(
 				'post_type'        => 'korkwand_pin',

@@ -37,7 +37,7 @@ final class Admin {
 	}
 
 	/**
-	 * @param array<string,string> $cols Spalten.
+	 * @param array<string,string> $cols Columns.
 	 * @return array<string,string>
 	 */
 	public static function columns( array $cols ): array {
@@ -78,7 +78,7 @@ final class Admin {
 	}
 
 	/**
-	 * @param array<string,string> $cols Spalten.
+	 * @param array<string,string> $cols Columns.
 	 * @return array<string,string>
 	 */
 	public static function board_columns( array $cols ): array {

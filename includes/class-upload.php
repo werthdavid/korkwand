@@ -70,8 +70,8 @@ class Upload {
 	/**
 	 * Accepts a file in $_FILES format and creates an attachment.
 	 *
-	 * @param array $file    Eintrag im $_FILES-Format.
-	 * @param int   $user_id Autor des Attachments.
+	 * @param array $file    Entry in $_FILES format.
+	 * @param int   $user_id Author of the attachment.
 	 * @return int|\WP_Error Attachment ID or error (code korkwand_upload, status 400).
 	 */
 	public static function handle( array $file, int $user_id ) {
@@ -100,7 +100,7 @@ class Upload {
 		if ( empty( $check['type'] ) || ! in_array( $check['type'], $mimes, true ) ) {
 			return self::error( $type_msg );
 		}
-		$info = @getimagesize( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		$info = @getimagesize( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- corrupt uploads must produce a clean validation error, not a PHP warning.
 		if ( false === $info || empty( $info['mime'] ) || $info['mime'] !== $check['type'] ) {
 			return self::error( $type_msg );
 		}
@@ -178,13 +178,13 @@ class Upload {
 
 		$orientation = 1;
 		if ( 'image/jpeg' === $mime && function_exists( 'exif_read_data' ) ) {
-			$exif = @exif_read_data( $path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			$exif = @exif_read_data( $path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- malformed EXIF segments raise warnings; a missing result falls back to the default orientation.
 			if ( is_array( $exif ) && isset( $exif['Orientation'] ) ) {
 				$orientation = (int) $exif['Orientation'];
 			}
 		}
 
-		$img = @$loaders[ $mime ]( $path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		$img = @$loaders[ $mime ]( $path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- GD warns on corrupt images; failure is handled by the false result.
 		if ( ! $img ) {
 			return false;
 		}

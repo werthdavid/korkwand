@@ -40,6 +40,7 @@ final class Cleanup {
 			$cutoff = gmdate( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS );
 			$failed = array();
 			do {
+				// get_posts() defaults to suppress_filters=true.
 				$ids = get_posts(
 					array(
 						'post_type'        => 'korkwand_pin',
@@ -116,6 +117,7 @@ final class Cleanup {
 			return;
 		}
 		// Used elsewhere as a featured image (any type, all statuses incl. trash)?
+		// get_posts() defaults to suppress_filters=true.
 		$others = get_posts(
 			array(
 				'post_type'        => array_values( get_post_types() ),
@@ -163,6 +165,7 @@ final class Cleanup {
 		$failed = array();
 		do {
 			$per = $limit > 0 ? min( $limit - $count, self::BATCH ) : self::BATCH;
+			// get_posts() defaults to suppress_filters=true.
 			// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- bounded batch loop skips posts that failed to delete, so it cannot spin forever.
 			$ids = get_posts( self::user_pins_query( $user_id, $per ) + array( 'post__not_in' => $failed ) );
 			foreach ( $ids as $id ) {
@@ -199,8 +202,6 @@ final class Cleanup {
 	 * Uninstall (called from uninstall.php).
 	 */
 	public static function uninstall(): void {
-		global $wpdb;
-
 		$purge = get_option( 'korkwand_delete_data_on_uninstall', '1' );
 
 		if ( '1' === (string) $purge ) {
@@ -213,6 +214,7 @@ final class Cleanup {
 			}
 			$failed = array();
 			do {
+				// get_posts() defaults to suppress_filters=true.
 				$ids = get_posts(
 					array(
 						'post_type'        => 'korkwand_pin',
@@ -252,10 +254,23 @@ final class Cleanup {
 		delete_option( 'korkwand_delete_data_on_uninstall' );
 		delete_option( 'korkwand_version' );
 
-		// Rate-limit transients (incl. timeout entries).
-		$like = $wpdb->esc_like( '_transient_korkwand_rl_' ) . '%';
-		$tmo  = $wpdb->esc_like( '_transient_timeout_korkwand_rl_' ) . '%';
-		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s", $like, $tmo ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		wp_cache_flush();
+		// Rate-limit transients are keyed by user ID: delete them per key (works with and without a
+		// persistent object cache and needs no global cache flush). Users are read in pages of IDs.
+		$page = 1;
+		do {
+			$user_ids = get_users(
+				array(
+					'fields'  => 'ID',
+					'number'  => 500,
+					'paged'   => $page,
+					'orderby' => 'ID',
+					'order'   => 'ASC',
+				)
+			);
+			foreach ( $user_ids as $user_id ) {
+				delete_transient( 'korkwand_rl_' . (int) $user_id );
+			}
+			++$page;
+		} while ( count( $user_ids ) >= 500 );
 	}
 }
