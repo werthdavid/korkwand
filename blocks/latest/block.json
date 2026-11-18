@@ -1,0 +1,26 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "korkwand/latest",
+	"title": "Korkwand: Latest notes",
+	"category": "widgets",
+	"icon": "sticky",
+	"description": "Lists the newest notes of a Korkwand pinboard.",
+	"textdomain": "korkwand",
+	"version": "0.1.0",
+	"license": "GPL-2.0-or-later",
+	"attributes": {
+		"board": { "type": "string", "default": "" },
+		"count": { "type": "integer", "default": 5 },
+		"showDate": { "type": "boolean", "default": true }
+	},
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ],
+		"spacing": { "margin": true, "padding": true },
+		"typography": { "fontSize": true }
+	},
+	"editorScript": "korkwand-latest-editor",
+	"style": "korkwand-latest-style",
+	"render": "file:./render.php"
+}

@@ -183,4 +183,20 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 		$this->assertSame( 0, (int) get_queried_object_id() );
 		$this->assertSame( home_url( '/' ), $this->redirect_to( Render::login_url() ) );
 	}
+
+	public function test_pins_carry_note_ids() {
+		\Korkwand\Render::reset_note_ids();
+		$pin = get_posts( array( 'post_type' => 'korkwand_pin', 'numberposts' => 1 ) )[0];
+		$html = Render::board( 'test' );
+		$this->assertStringContainsString( 'id="korkwand-note-' . $pin->ID . '"', $html );
+	}
+
+	public function test_note_ids_only_on_first_render_of_same_board() {
+		\Korkwand\Render::reset_note_ids();
+		$pin    = get_posts( array( 'post_type' => 'korkwand_pin', 'numberposts' => 1 ) )[0];
+		$first  = Render::board( 'test' );
+		$second = Render::board( 'test' );
+		$this->assertSame( 1, substr_count( $first . $second, 'id="korkwand-note-' . $pin->ID . '"' ) );
+		$this->assertStringContainsString( 'korkwand-pin--postit', $second );
+	}
 }

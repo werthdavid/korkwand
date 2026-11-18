@@ -1,0 +1,17 @@
+/* Korkwand: latest notes list. Fonts and colours come from the theme. */
+.korkwand-latest__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.korkwand-latest__item {
+	margin: 0 0 .5em;
+}
+.korkwand-latest__item time,
+.korkwand-latest__author,
+.korkwand-latest__empty {
+	font-size: .875em;
+	opacity: .7;
+}
+.korkwand-latest__author::before { content: "· "; }
+.korkwand-latest__empty { margin: 0; }
