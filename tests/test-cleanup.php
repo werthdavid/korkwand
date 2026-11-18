@@ -83,6 +83,54 @@ class Korkwand_Test_Cleanup extends WP_UnitTestCase {
 		$this->assertSame( 'trash', get_post_status( $old->ID ) );
 	}
 
+	public function test_deleting_a_board_permanently_deletes_its_notes_and_images() {
+		list( $img, $att ) = $this->image_pin();
+		$plain             = $this->pin_aged( 1 );
+		$trashed           = $this->pin_aged( 1 );
+		wp_trash_post( $trashed->ID );
+		$other_id = self::factory()->term->create( array( 'taxonomy' => 'korkwand_board', 'name' => 'Other' ) );
+		$mine     = $this->pin_aged( 1 );
+		wp_set_object_terms( $mine->ID, array( $other_id ), 'korkwand_board' );
+
+		wp_delete_term( $this->board->term_id, 'korkwand_board' );
+
+		$this->assertNull( get_post( $img ) );
+		$this->assertNull( get_post( $att ), 'plugin upload image must go with the note' );
+		$this->assertNull( get_post( $plain->ID ) );
+		$this->assertNull( get_post( $trashed->ID ) );
+		$this->assertNotNull( get_post( $mine->ID ), 'notes of other boards stay' );
+	}
+
+	public function test_deleting_a_board_handles_more_than_one_batch() {
+		for ( $i = 0; $i < 120; $i++ ) {
+			$this->pin_aged( 1 );
+		}
+		wp_delete_term( $this->board->term_id, 'korkwand_board' );
+		$this->assertCount( 0, get_posts( array( 'post_type' => 'korkwand_pin', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids' ) ) );
+	}
+
+	public function test_daily_job_deletes_orphan_notes_without_board() {
+		$orphan = $this->pin_aged( 1 );
+		wp_set_object_terms( $orphan->ID, array(), 'korkwand_board' );
+		$orphan_trashed = $this->pin_aged( 1 );
+		wp_set_object_terms( $orphan_trashed->ID, array(), 'korkwand_board' );
+		wp_trash_post( $orphan_trashed->ID );
+		$kept = $this->pin_aged( 1 );
+
+		do_action( 'korkwand_daily_cleanup' );
+
+		$this->assertNull( get_post( $orphan->ID ) );
+		$this->assertNull( get_post( $orphan_trashed->ID ) );
+		$this->assertNotNull( get_post( $kept->ID ) );
+	}
+
+	public function test_daily_job_still_trashes_expired() {
+		update_term_meta( $this->board->term_id, 'korkwand_lifetime_days', 10 );
+		$old = $this->pin_aged( 30 );
+		do_action( 'korkwand_daily_cleanup' );
+		$this->assertSame( 'trash', get_post_status( $old->ID ) );
+	}
+
 	public function test_trash_expired_handles_more_than_one_batch() {
 		update_term_meta( $this->board->term_id, 'korkwand_lifetime_days', 10 );
 		for ( $i = 0; $i < 120; $i++ ) {
@@ -211,7 +259,8 @@ class Korkwand_Test_Cleanup extends WP_UnitTestCase {
 		$this->assertNotFalse( has_action( 'wpmu_delete_user', array( Cleanup::class, 'delete_user_pins' ) ) );
 		$this->assertNotFalse( has_action( 'delete_user', array( Cleanup::class, 'delete_user_pins' ) ) );
 		$this->assertNotFalse( has_action( 'before_delete_post', array( Cleanup::class, 'delete_attachment' ) ) );
-		$this->assertNotFalse( has_action( 'korkwand_daily_cleanup', array( Cleanup::class, 'trash_expired' ) ) );
+		$this->assertNotFalse( has_action( 'korkwand_daily_cleanup', array( Cleanup::class, 'daily' ) ) );
+		$this->assertNotFalse( has_action( 'pre_delete_term', array( Cleanup::class, 'delete_board_pins' ) ) );
 	}
 
 	public function test_cron_scheduled_on_activate() {

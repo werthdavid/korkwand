@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-18T06:56:53+00:00\n"
+"POT-Creation-Date: 2026-11-18T07:06:03+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: korkwand\n"
@@ -211,7 +211,8 @@ msgstr ""
 msgid "New note on board \"%s\""
 msgstr ""
 
-#: includes/class-permissions.php:35
+#: includes/class-permissions.php:36
+#: includes/class-permissions.php:46
 msgid "Board editor"
 msgstr ""
 
@@ -247,11 +248,11 @@ msgid "Only users with the Board editor role, editors and administrators can pin
 msgstr ""
 
 #: includes/class-privacy.php:29
-msgid "Visitors see the notes but the names of their authors are never shown to guests. The plugin does not store IP addresses, does not set its own cookies and does not use external services. The limit on new notes per hour is based on the user ID only."
+msgid "Visitors see the notes but the names of their authors are never shown to guests. Author archives of users who only wrote notes are disabled, so authors cannot be looked up through author URLs. The plugin does not store IP addresses, does not set its own cookies and does not use external services. The limit on new notes per hour is based on the user ID only."
 msgstr ""
 
 #: includes/class-privacy.php:30
-msgid "Notes expire after the lifetime configured for the board unless they are marked sticky. Expired notes are hidden immediately, moved to the trash by a daily job and permanently deleted together with their images when WordPress empties the trash (after 30 days by default). On request, notes and images of a user are included in the personal data export and are deleted by the personal data erasure of WordPress. If the email notification of a board is enabled, an email with the note title and the display name of the author is sent to the site administrator."
+msgid "Notes expire after the lifetime configured for the board unless they are marked sticky. Expired notes are hidden immediately, moved to the trash by a daily job and permanently deleted together with their images when WordPress empties the trash (after 30 days by default). Deleting a board permanently deletes all of its notes and images. On request, notes and images of a user are included in the personal data export and are deleted by the personal data erasure of WordPress. If the email notification of a board is enabled, an email with the note title and the display name of the author is sent to the site administrator."
 msgstr ""
 
 #: includes/class-privacy.php:82

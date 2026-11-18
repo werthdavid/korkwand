@@ -118,7 +118,7 @@ Korkwand stores the following data in your WordPress database and uploads folder
 
 Korkwand does not store IP addresses, does not set its own cookies, does not use external services and does not load external fonts or scripts. The rate limit works on user IDs only.
 
-Author names are never shown to guests: only logged-in users see who wrote a note. Only Board editors, Editors and Administrators can post. Notes expire after the lifetime of their board unless they are sticky.
+Author names are never shown to guests: only logged-in users see who wrote a note. The author archives of users who have only written notes are disabled (`/author/name/` and `?author=ID` answer 404 and do not reveal the user name), so note authors cannot be looked up from outside. Only Board editors, Editors and Administrators can post. Notes expire after the lifetime of their board unless they are sticky. Deleting a board permanently deletes all of its notes and their images.
 
 Korkwand registers a personal data exporter and eraser with the WordPress privacy tools (*Tools > Export Personal Data* and *Erase Personal Data*). Notes and images of a user are included in the export and are deleted on erasure. If you enable the email notification of a board, an email with the note title and the author's display name is sent to the site administrator address.
 
@@ -126,6 +126,9 @@ Korkwand registers a personal data exporter and eraser with the WordPress privac
 
 = 0.2.0 =
 * Posting restricted to the Board editor role, editors and administrators; boards always expire.
+* Deleting a board deletes its notes and images; a daily job also removes notes that belong to no board.
+* Author archives of users who only wrote notes answer 404 and ?author=ID no longer reveals their user name.
+* The Board editor role name follows the site language.
 
 = 0.1.0 =
 * Initial release.

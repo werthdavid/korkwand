@@ -86,6 +86,17 @@ class Korkwand_Test_Permissions extends WP_UnitTestCase {
 		$this->assertSame( 'Board editor', wp_roles()->role_names['korkwand_editor'] );
 	}
 
+	public function test_role_display_name_follows_current_locale() {
+		$this->assertNotFalse( has_action( 'init', array( \Korkwand\Permissions::class, 'localize_role_name' ) ) );
+		$filter = static fn( $t, $text, $domain ) => ( 'korkwand' === $domain && 'Board editor' === $text ) ? 'Pinnwand-Redaktion' : $t;
+		add_filter( 'gettext', $filter, 10, 3 );
+		\Korkwand\Permissions::localize_role_name();
+		remove_filter( 'gettext', $filter, 10 );
+		$this->assertSame( 'Pinnwand-Redaktion', wp_roles()->role_names['korkwand_editor'] );
+		\Korkwand\Permissions::localize_role_name();
+		$this->assertSame( 'Board editor', wp_roles()->role_names['korkwand_editor'] );
+	}
+
 	public function test_remove_caps_removes_role_and_caps_and_demotes_users() {
 		$be = self::factory()->user->create( array( 'role' => 'korkwand_editor' ) );
 		$multi = self::factory()->user->create( array( 'role' => 'korkwand_editor' ) );

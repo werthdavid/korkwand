@@ -13,6 +13,8 @@ final class Plugin {
 		Boards::register();
 		Latest::register();
 		Cleanup::register();
+		Authors::register();
+		Permissions::register();
 		Privacy::register();
 		add_action( 'admin_init', array( Admin::class, 'register_settings' ) );
 		if ( is_admin() ) {

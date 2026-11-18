@@ -26,6 +26,17 @@ final class Permissions {
 		'delete_private_korkwand_pins',
 	);
 
+	public static function register(): void {
+		add_action( 'init', array( self::class, 'localize_role_name' ) );
+	}
+
+	/** The role name is stored in the database at activation; show it in the current locale instead. */
+	public static function localize_role_name(): void {
+		if ( isset( wp_roles()->role_names[ self::ROLE ] ) ) {
+			wp_roles()->role_names[ self::ROLE ] = __( 'Board editor', 'korkwand' );
+		}
+	}
+
 	/**
 	 * Installs the "Board editor" role (read + korkwand_post only, deliberately no upload_files:
 	 * uploads go through the plugin's REST endpoint) and the capabilities. Runs on activation only.

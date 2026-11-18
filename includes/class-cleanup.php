@@ -11,10 +11,91 @@ final class Cleanup {
 	private const BATCH = 100;
 
 	public static function register(): void {
-		add_action( 'korkwand_daily_cleanup', array( self::class, 'trash_expired' ) );
+		add_action( 'korkwand_daily_cleanup', array( self::class, 'daily' ) );
+		add_action( 'pre_delete_term', array( self::class, 'delete_board_pins' ), 10, 2 );
 		add_action( 'before_delete_post', array( self::class, 'delete_attachment' ) );
 		add_action( 'delete_user', array( self::class, 'delete_user_pins' ) );
 		add_action( 'wpmu_delete_user', array( self::class, 'delete_user_pins' ) );
+	}
+
+	/** Daily job: trash expired notes, then remove notes that belong to no board. */
+	public static function daily(): void {
+		self::trash_expired();
+		self::delete_orphans();
+	}
+
+	/**
+	 * Before a board is deleted (term relationships still exist), permanently delete all of its notes
+	 * including trashed ones. Images follow through the before_delete_post guard.
+	 *
+	 * @param int|string $term_id  Term ID.
+	 * @param string     $taxonomy Taxonomy.
+	 */
+	public static function delete_board_pins( $term_id, $taxonomy ): int {
+		if ( 'korkwand_board' !== $taxonomy ) {
+			return 0;
+		}
+		return self::delete_matching(
+			array(
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- board scoping needs the board taxonomy; runs only when a board is deleted.
+				'tax_query' => array(
+					array(
+						'taxonomy' => 'korkwand_board',
+						'field'    => 'term_id',
+						'terms'    => array( (int) $term_id ),
+					),
+				),
+			)
+		);
+	}
+
+	/** Safety net: permanently deletes notes that have no board at all (any status). */
+	public static function delete_orphans(): int {
+		return self::delete_matching(
+			array(
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- finds notes without any board; daily job, capped batches.
+				'tax_query' => array(
+					array(
+						'taxonomy' => 'korkwand_board',
+						'operator' => 'NOT EXISTS',
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Permanently deletes all notes (any status) matching extra query args, in batches.
+	 *
+	 * @param array<string,mixed> $extra Extra get_posts() arguments.
+	 */
+	private static function delete_matching( array $extra ): int {
+		$count  = 0;
+		$failed = array();
+		do {
+			// get_posts() defaults to suppress_filters=true.
+			$ids = get_posts(
+				$extra + array(
+					'post_type'      => 'korkwand_pin',
+					'post_status'    => array_merge( array_values( get_post_stati() ), array( 'trash' ) ),
+					'posts_per_page' => self::BATCH,
+					'fields'         => 'ids',
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
+					// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- bounded batch loop skips posts that failed to delete, so it cannot spin forever.
+					'post__not_in'   => $failed,
+					'no_found_rows'  => true,
+				)
+			);
+			foreach ( $ids as $id ) {
+				if ( wp_delete_post( (int) $id, true ) ) {
+					++$count;
+				} else {
+					$failed[] = (int) $id;
+				}
+			}
+		} while ( count( $ids ) >= self::BATCH );
+		return $count;
 	}
 
 	/**
