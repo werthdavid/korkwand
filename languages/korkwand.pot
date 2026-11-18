@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-18T07:10:24+00:00\n"
+"POT-Creation-Date: 2026-11-18T11:40:02+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: korkwand\n"
@@ -185,12 +185,89 @@ msgid "No notes found."
 msgstr ""
 
 #: includes/class-model.php:42
+#: includes/class-model.php:44
 msgid "Boards"
 msgstr ""
 
 #: includes/class-model.php:43
 #: blocks/latest/edit.js:29
 msgid "Board"
+msgstr ""
+
+#: includes/class-model.php:45
+msgid "All Boards"
+msgstr ""
+
+#: includes/class-model.php:46
+msgid "Edit Board"
+msgstr ""
+
+#: includes/class-model.php:47
+msgid "View Board"
+msgstr ""
+
+#: includes/class-model.php:48
+msgid "Update Board"
+msgstr ""
+
+#: includes/class-model.php:49
+msgid "Add New Board"
+msgstr ""
+
+#: includes/class-model.php:50
+msgid "New Board Name"
+msgstr ""
+
+#: includes/class-model.php:51
+msgid "Search Boards"
+msgstr ""
+
+#: includes/class-model.php:52
+msgid "Popular Boards"
+msgstr ""
+
+#: includes/class-model.php:53
+msgid "Separate boards with commas"
+msgstr ""
+
+#: includes/class-model.php:54
+msgid "Add or remove boards"
+msgstr ""
+
+#: includes/class-model.php:55
+msgid "Choose from the most used boards"
+msgstr ""
+
+#: includes/class-model.php:56
+msgid "No boards found."
+msgstr ""
+
+#: includes/class-model.php:57
+msgid "No boards"
+msgstr ""
+
+#: includes/class-model.php:58
+msgid "Boards list"
+msgstr ""
+
+#: includes/class-model.php:59
+msgid "Boards list navigation"
+msgstr ""
+
+#: includes/class-model.php:60
+msgid "&larr; Go to Boards"
+msgstr ""
+
+#: includes/class-model.php:61
+msgid "Board updated."
+msgstr ""
+
+#: includes/class-model.php:62
+msgid "Board added."
+msgstr ""
+
+#: includes/class-model.php:63
+msgid "Board deleted."
 msgstr ""
 
 #. translators: 1: note title, 2: author display name, 3: edit link

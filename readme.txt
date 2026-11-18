@@ -133,6 +133,7 @@ Korkwand registers a personal data exporter and eraser with the WordPress privac
 * Deleting a board deletes its notes and images; a daily job also removes notes that belong to no board.
 * Author archives answer 404 for every user without published public content, and ?author=ID no longer reveals user names.
 * The Board editor role name follows the site language.
+* The board admin screens say "Board" instead of "Tag".
 
 = 0.1.0 =
 * Initial release.

@@ -91,4 +91,12 @@ class Korkwand_Test_Model extends WP_UnitTestCase {
 		$this->assertNotFalse( wp_trash_post( $pin ) );
 		$this->assertNotFalse( wp_delete_post( $pin, true ) );
 	}
+
+	public function test_board_taxonomy_has_board_labels() {
+		$labels = get_taxonomy( 'korkwand_board' )->labels;
+		$this->assertSame( 'Edit Board', $labels->edit_item );
+		$this->assertSame( 'Add New Board', $labels->add_new_item );
+		$this->assertSame( 'Search Boards', $labels->search_items );
+		$this->assertSame( 'Board updated.', $labels->item_updated );
+	}
 }
