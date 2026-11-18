@@ -20,3 +20,5 @@ package-lock.json
 phpunit.xml.dist
 README.md
 .github/
+CONTRIBUTING.md
+docs/

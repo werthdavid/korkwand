@@ -1,0 +1,74 @@
+# Developing Korkwand
+
+This file is for developers. The user documentation is in [README.md](README.md) and in `readme.txt` (WordPress.org format).
+
+## Technical overview
+
+- Notes are a custom post type (`korkwand_pin`), created only through the REST API (`korkwand/v1`) from the frontend.
+- Boards are the taxonomy `korkwand_board`. Per-board settings are term meta with the prefix `korkwand_`
+  (lifetime 1 to 3650 days, height, maximum number of notes, email notification, board page).
+- Blocks `korkwand/board` and `korkwand/latest`, shortcodes `[korkwand]` and `[korkwand_latest]`.
+- Permissions: viewing is public. `korkwand_post` (create notes, edit/delete own) belongs to the `korkwand_editor` role
+  ("Board editor", capabilities `read` + `korkwand_post` only, no `upload_files`), editors and administrators.
+  `korkwand_moderate` (edit/delete any note, mark notes sticky) belongs to editors and administrators. Boards are created
+  and configured with `manage_options`. The role and capabilities are installed on activation and removed on uninstall
+  (Board editors become subscribers).
+- Image uploads: JPEG, PNG, WebP up to 8 MB (or the host limit if lower), re-encoded to strip EXIF/GPS, file names
+  anonymised (`korkwand-<random>.<ext>`).
+- Rate limit: 10 new notes per user per hour. Privacy export/erase hooks and uninstall cleanup are included.
+
+## Development setup
+
+The host needs Node.js and Docker; PHP is not required locally because the tests run inside [wp-env](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/).
+
+```sh
+npm install
+./node_modules/.bin/wp-env start
+./node_modules/.bin/wp-env run tests-cli --env-cwd=wp-content/plugins/korkwand composer install
+```
+
+wp-env mounts the repository folder under its folder name, so the checkout directory must be called `korkwand`
+(otherwise adjust the `--env-cwd` path in the `test:php` script in `package.json`).
+The development site runs on http://localhost:8888, the test site on http://localhost:8889.
+
+## Tests
+
+```sh
+npm run test:php   # PHPUnit inside wp-env (tests/test-*.php)
+npm run test:js    # node --test for the pure helpers (tests/js)
+```
+
+## Build
+
+```sh
+npm run build:zip
+```
+
+Creates `dist/korkwand.zip` with the top-level folder `korkwand/`, excluding development files listed in `.distignore`
+(requires `rsync` and `zip`).
+
+## Release
+
+```sh
+npm run bump 0.3.0
+```
+
+Sets the version in the `korkwand.php` header (the only source for `KORKWAND_VERSION` and the asset versions),
+the `readme.txt` Stable tag and `package.json`. Add the changelog entry `= 0.3.0 =` to `readme.txt`, commit and push to
+`main`: the workflow runs the tests and attaches `korkwand-<version>.zip` to the GitHub release `v<version>`.
+
+## Internationalisation
+
+All user-facing source strings are English with the text domain `korkwand` (`Domain Path: /languages`).
+Frontend script modules cannot use `wp_set_script_translations()`, so the PHP side translates all JavaScript UI strings
+and passes them as `window.Korkwand.i18n` (see `Render::js_strings()`). The block editor scripts use the regular
+`wp.i18n` functions. German translations live in `languages/korkwand-de_DE.po` (compiled `.mo` and JSON files are committed).
+
+## Code layout
+
+- `korkwand.php`: plugin header, constants, autoloader (`Korkwand\` namespace, `includes/class-*.php`)
+- `includes/`: model, REST API, rendering, latest notes, permissions, upload handling, cleanup, privacy, admin
+- `assets/js/`: ES modules (registered as script modules with versioned import map), `assets/css/`
+- `blocks/board/`, `blocks/latest/`: block.json, editor script, server-side render
+- `uninstall.php`: removes data unless the option to keep it is set
+- `docs/images/`: screenshots for the README; `.wordpress-org/`: icons, banners and screenshots for WordPress.org

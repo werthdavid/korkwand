@@ -1,71 +1,161 @@
 # Korkwand
 
-A cork pinboard for WordPress: board editors pin post-it notes and photos to a board, everyone else can only look.
-Requires WordPress 6.5+ and PHP 8.1+. License: GPL-2.0-or-later.
+**A cork pinboard for your WordPress site.** Board editors pin post-it notes and photos, everyone else just looks.
 
-This file is the developer README. End-user documentation lives in `readme.txt` (WordPress.org format).
+Use it as a notice board for a club or community, a team wall, a classroom or family pinboard, or a
+"looking for / offering" board for your neighbourhood.
 
-## Features at a glance
+![A Korkwand board with post-it notes and photos](.wordpress-org/screenshot-1.png)
 
-- Boards are managed in the admin under *Korkwand → Boards* (taxonomy `korkwand_board`). Per board: lifetime in days (1 to 3650; sticky notes never expire), height, maximum number of notes, email notification.
-- Embed a board with the shortcode `[korkwand board="slug"]` or the block `korkwand/board`.
-- Show the newest notes (e.g. on the home page or in a sidebar) with `[korkwand_latest board="slug" count="5" show_date="1"]` or the block `korkwand/latest`. Entries link to the board page (set per board, otherwise auto-detected from the page embedding the board) and highlight the note there.
-- Permissions: viewing is public. `korkwand_post` (create notes, edit/delete own) belongs to the `korkwand_editor` role ("Board editor", capabilities `read` + `korkwand_post` only, no `upload_files`), editors and administrators. `korkwand_moderate` (edit/delete any note, mark notes sticky) belongs to editors and administrators. Boards are created and configured with `manage_options`. The role and capabilities are installed on activation and removed on uninstall (Board editors become subscribers).
-- Notes are a custom post type (`korkwand_pin`), created only through the REST API (`korkwand/v1`) from the frontend.
-- Image uploads: JPEG, PNG, WebP up to 8 MB (or the host limit if lower), re-encoded to strip EXIF/GPS, file names anonymised (`korkwand-<random>.<ext>`).
-- Rate limit: 10 new notes per user per hour. Privacy export/erase hooks and uninstall cleanup are included.
+Requires WordPress 6.5 or newer and PHP 8.1 or newer. Free software under the GPL 2.0 or later.
 
-## Development setup
+**[Download the latest version](https://github.com/werthdavid/korkwand/releases/latest)**
 
-The host needs Node.js and Docker; PHP is not required locally because the tests run inside [wp-env](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/).
+---
 
-```sh
-npm install
-./node_modules/.bin/wp-env start
-./node_modules/.bin/wp-env run tests-cli --env-cwd=wp-content/plugins/korkwand composer install
+## What you get
+
+- **Post-it notes and photo notes** that can be placed anywhere on the board.
+- **As many boards as you like**, each with its own lifetime, height and note limit.
+- **A "latest notes" list** for your home page or sidebar, so visitors see what is new without opening the board.
+- **Works on phones:** on small screens the board turns into a simple list.
+- **Notes clean up after themselves:** each board has a lifetime, and expired notes disappear automatically.
+- **Privacy-friendly:** guests never see who wrote a note, photo location data is removed on upload,
+  and there are no external services, tracking or cookies.
+- **In English and German.**
+
+## Installation
+
+1. Download `korkwand-<version>.zip` from the [releases page](https://github.com/werthdavid/korkwand/releases/latest).
+2. In WordPress, go to *Plugins > Add New Plugin > Upload Plugin*, choose the ZIP file and click *Install Now*.
+3. Click *Activate*.
+
+A new menu **Korkwand** appears in the admin.
+
+## Getting started
+
+### 1. Create a board
+
+Go to *Korkwand > Boards*, enter a name (for example "Club board") and a short slug (for example `club`), and click
+*Add New Board*. Open the board to change its settings:
+
+![Board settings](docs/images/board-settings.png)
+
+| Setting | What it does |
+|---|---|
+| **Lifetime in days** | Notes disappear after this many days (1 to 3650, default 100). Sticky notes stay. |
+| **Height in pixels** | Height of the cork board on the page. |
+| **Maximum number of notes** | The board shows at most this many notes: sticky notes first, then the newest. Older notes beyond the limit are no longer shown. |
+| **Board page** | The page that shows this board. The "latest notes" list links there. Leave it on *automatic* and Korkwand finds the page itself. |
+| **Email on new note** | Sends an email to the site administrator address whenever someone pins a note. |
+
+### 2. Put the board on a page
+
+Create or edit a page, click **+** and search for **Korkwand**. Insert the block **Korkwand board** and enter the
+slug of your board in the block settings on the right.
+
+![Inserting the Korkwand board block](docs/images/block-editor.png)
+
+If you use the classic editor, put this shortcode on the page instead:
+
+```
+[korkwand board="club"]
 ```
 
-wp-env mounts the repository folder under its folder name, so the checkout directory must be called `korkwand`
-(otherwise adjust the `--env-cwd` path in the `test:php` script in `package.json`).
-The development site runs on http://localhost:8888, the test site on http://localhost:8889.
+### 3. Decide who may post
 
-## Tests
+| Who | Can do |
+|---|---|
+| Everyone, including visitors who are not logged in | Look at the board and the latest notes |
+| **Board editor** (a role added by Korkwand) | Pin notes, edit and remove their own notes |
+| Editor, Administrator | Additionally edit and remove any note, and mark notes as *sticky* |
+| Administrator | Create boards and change their settings |
 
-```sh
-npm run test:php   # PHPUnit inside wp-env (tests/test-*.php)
-npm run test:js    # node --test for the pure geometry helpers (tests/js)
-```
+To let someone post, go to *Users*, edit the user (or add a new one) and set the **Role** to **Board editor**.
+This role has no other rights: in the admin it only sees its own profile. Subscribers, Contributors and Authors cannot post.
 
-## Build
+![Giving a user the Board editor role](docs/images/board-editor-role.png)
 
-```sh
-npm run build:zip
-```
+## Using the board
 
-Creates `dist/korkwand.zip` with the top-level folder `korkwand/`, excluding development files listed in `.distignore`
-(requires `rsync` and `zip`).
+Logged-in board editors see the button **+ Add note** above the board.
 
-## Release
+- **Post-it:** a title (up to 60 characters) and an optional text (up to 300 characters).
+- **Image:** a JPEG, PNG or WebP photo (up to 8 MB, or less if your web host sets a lower limit) with an optional caption.
 
-```sh
-npm run bump 0.3.0
-```
+![Adding a note](.wordpress-org/screenshot-3.png)
 
-Sets the version in the `korkwand.php` header (the only source for `KORKWAND_VERSION` and the asset versions),
-the `readme.txt` Stable tag and `package.json`. Add the changelog entry `= 0.3.0 =` to `readme.txt`, commit and push to
-`main`: the workflow runs the tests and attaches `korkwand-<version>.zip` to the GitHub release `v<version>`.
+New notes appear on the board straight away. **Drag** a note to move it. The **…** button on a note opens a menu to
+**edit** or **delete** it; editors and administrators can also make a note **sticky** so that it never expires.
 
-## Internationalisation
+![The note menu](docs/images/note-menu.png)
 
-All user-facing source strings are English with the text domain `korkwand` (`Domain Path: /languages`).
-Frontend script modules cannot use `wp_set_script_translations()`, so the PHP side translates all JavaScript UI strings
-and passes them as `window.Korkwand.i18n` (see `Render::js_strings()`). The block editor script uses the regular
-`wp.i18n` functions. German translations live in `languages/korkwand-de_DE.po` (compiled `.mo` and JSON files are committed).
+On phones the board is shown as a list: sticky notes first, then the newest.
 
-## Code layout
+<img src=".wordpress-org/screenshot-2.png" alt="The board as a list on a phone" width="300">
 
-- `korkwand.php`: plugin header, constants, autoloader (`Korkwand\` namespace, `includes/class-*.php`)
-- `includes/`: model, REST API, rendering, permissions, upload handling, cleanup, privacy, admin
-- `assets/js/`: ES modules (registered as script modules with versioned import map), `assets/css/korkwand.css`
-- `blocks/board/`: block.json, editor script, server-side render
-- `uninstall.php`: removes data unless the option to keep it is set
+## Showing the newest notes on your home page
+
+The **Korkwand latest notes** block shows a short list of the newest notes, for example on the home page or in a
+sidebar. Each entry links to the board and highlights the note there.
+
+![Latest notes on the home page](.wordpress-org/screenshot-4.png)
+
+- **On a page:** insert the block **Korkwand latest notes** and choose the board (or *All boards*), the number of notes
+  (1 to 20) and whether to show the date.
+- **In a sidebar (widget area):** go to *Appearance > Widgets*, open the sidebar, click **+** and add the block
+  **Korkwand latest notes**. With a block theme, go to *Appearance > Editor* and add the block to the template or
+  template part that holds your sidebar.
+- **With a shortcode**, for example in a text or shortcode widget:
+
+  ```
+  [korkwand_latest board="club" count="5" show_date="1"]
+  ```
+
+  Leave out `board` to show notes from all boards.
+
+The links only work if Korkwand knows the board page (see *Board page* above). Otherwise the list shows the notes
+without links.
+
+## Moderating
+
+Editors and administrators can edit, delete and mark notes as sticky directly on the board. All notes are also listed
+in the admin under *Korkwand > All Notes*. Turn on *Email on new note* in the board settings to be told about every new
+note.
+
+## Privacy
+
+- Visitors who are not logged in never see the names of note authors, and author pages of users without published
+  posts return "not found".
+- Uploaded photos are re-saved without their metadata (such as camera and GPS location) and get random file names.
+- Notes expire after the board's lifetime. Expired notes are hidden at once, moved to the trash by a daily job and
+  deleted for good, together with their photos, when WordPress empties the trash (after 30 days by default).
+- Korkwand supports the WordPress privacy tools (*Tools > Export Personal Data* and *Erase Personal Data*) and suggests
+  a paragraph for your privacy policy (*Settings > Privacy*).
+
+## Frequently asked questions
+
+**Can visitors post without an account?**
+No. Only logged-in users with the Board editor, Editor or Administrator role can post.
+
+**How long do notes stay on the board?**
+As long as the board's *Lifetime in days* (default 100). Sticky notes stay until someone removes them.
+
+**Does it work with caching plugins?**
+Yes. New notes show up for other visitors once the cache is refreshed. Most cache plugins skip the cache for
+logged-in users, so board editors always see the current state.
+
+**Can I change the look?**
+Yes, with custom CSS. The colours and sizes are CSS custom properties starting with `--korkwand-`.
+
+**What happens when I delete the plugin?**
+By default, all boards, notes and uploaded photos are removed. To keep them, untick *Remove all notes and images when
+the plugin is deleted* under *Korkwand > Settings* before you delete the plugin.
+
+**Does it work on multisite?**
+Yes. Each site has its own boards, notes and settings.
+
+## Help and feedback
+
+Found a bug or have an idea? Please open an issue on [GitHub](https://github.com/werthdavid/korkwand/issues).
+Developers find setup, tests and the release process in [CONTRIBUTING.md](CONTRIBUTING.md).
