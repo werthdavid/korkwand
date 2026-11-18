@@ -1,0 +1,87 @@
+name: Test and release
+
+# On every push to main: run the tests, build dist/korkwand.zip and attach it
+# to the GitHub release for the plugin version in korkwand.php (tag v<version>).
+# A new version creates a new release; further pushes with the same version
+# replace the ZIP of that release.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: JS tests
+        run: npm run test:js
+
+      - name: Start wp-env
+        run: npx wp-env start
+
+      - name: Install composer dependencies
+        run: npx wp-env run tests-cli --env-cwd=wp-content/plugins/korkwand composer install --no-interaction --no-progress
+
+      - name: PHP tests
+        run: npm run test:php
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read and check version
+        id: version
+        run: |
+          set -eu
+          VERSION=$(sed -n 's/^[ *]*Version:[[:space:]]*//p' korkwand.php | head -n1 | tr -d '[:space:]')
+          STABLE=$(sed -n 's/^Stable tag:[[:space:]]*//p' readme.txt | head -n1 | tr -d '[:space:]')
+          CONST=$(sed -n "s/.*define([[:space:]]*'KORKWAND_VERSION',[[:space:]]*'\([^']*\)'.*/\1/p" korkwand.php | head -n1)
+          echo "Header: $VERSION, Stable tag: $STABLE, KORKWAND_VERSION: $CONST"
+          if [ -z "$VERSION" ] || [ "$VERSION" != "$STABLE" ] || [ "$VERSION" != "$CONST" ]; then
+            echo "::error::Version mismatch between korkwand.php header, KORKWAND_VERSION and readme.txt Stable tag"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build ZIP
+        run: |
+          sh scripts/build-zip.sh
+          cp dist/korkwand.zip "dist/korkwand-${{ steps.version.outputs.version }}.zip"
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ steps.version.outputs.version }}
+          ZIP: dist/korkwand-${{ steps.version.outputs.version }}.zip
+        run: |
+          set -eu
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG exists - replacing the ZIP."
+            gh release upload "$TAG" "$ZIP" --clobber
+          else
+            echo "Creating release $TAG."
+            gh release create "$TAG" "$ZIP" \
+              --target "$GITHUB_SHA" \
+              --title "Korkwand $TAG" \
+              --generate-notes
+          fi
