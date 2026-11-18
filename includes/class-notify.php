@@ -6,8 +6,8 @@ defined( 'ABSPATH' ) || exit;
 final class Notify {
 
 	/**
-	 * Mail to the site admin about a new note. Plain text only; the subject is constant
-	 * (no user input in headers).
+	 * Mail to the site admin about a new note. Plain text only; the subject contains
+	 * only the board name, a term name sanitized by WordPress (no line breaks).
 	 */
 	public static function new_pin( \WP_Post $pin ): void {
 		$data = Pins::to_array( $pin, 0 );
@@ -22,6 +22,14 @@ final class Notify {
 			$link
 		);
 
-		wp_mail( (string) get_option( 'admin_email' ), __( 'New note on the Korkwand', 'korkwand' ), $body );
+		$term       = wp_get_object_terms( (int) $pin->ID, 'korkwand_board' );
+		$board_name = ( ! is_wp_error( $term ) && $term && $term[0] instanceof \WP_Term ) ? $term[0]->name : '';
+		$subject    = sprintf(
+			/* translators: %s: board name */
+			__( 'New note on board "%s"', 'korkwand' ),
+			wp_specialchars_decode( $board_name, ENT_QUOTES )
+		);
+
+		wp_mail( (string) get_option( 'admin_email' ), $subject, $body );
 	}
 }

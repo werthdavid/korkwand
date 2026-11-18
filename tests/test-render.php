@@ -147,6 +147,11 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'data-board="test"', $html );
 	}
 
+	public function test_root_carries_site_language() {
+		$html = Render::board( 'test' );
+		$this->assertStringContainsString( 'lang="' . esc_attr( get_bloginfo( 'language' ) ) . '"', $html );
+	}
+
 	public function test_image_pin_markup() {
 		$att = self::factory()->attachment->create_object( array( 'file' => 'a.jpg', 'post_mime_type' => 'image/jpeg', 'post_type' => 'attachment' ) );
 		Pins::create( $this->board, $this->user, array( 'type' => 'image', 'text' => 'Unterschrift', 'attachment_id' => $att ) );
@@ -155,7 +160,8 @@ class Korkwand_Test_Render extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'class="korkwand-lightbox"', $html );
 		$this->assertStringContainsString( 'loading="lazy"', $html );
 		$this->assertStringContainsString( 'alt="Unterschrift"', $html );
-		$this->assertStringContainsString( '<figcaption>Unterschrift</figcaption>', $html );
+		$this->assertStringContainsString( '<figure class="korkwand-figure">', $html );
+		$this->assertMatchesRegularExpression( '#<figure class="korkwand-figure"><a class="korkwand-lightbox".*<figcaption>Unterschrift</figcaption></figure>#s', $html );
 	}
 
 	private function redirect_to( string $url ): string {

@@ -55,7 +55,7 @@ final class Render {
 	}
 
 	/**
-	 * @param array<string, string>|string $atts Shortcode-Attribute.
+	 * @param array<string, string>|string $atts Shortcode attributes.
 	 */
 	public static function shortcode( $atts ): string {
 		$atts = shortcode_atts( array( 'board' => '' ), (array) $atts, 'korkwand' );
@@ -87,8 +87,9 @@ final class Render {
 		$id       = wp_unique_id( 'korkwand-' );
 
 		$out  = sprintf(
-			'<div class="korkwand" id="%s" data-board="%s" data-height="%d" data-can-post="%s">',
+			'<div class="korkwand" id="%s" lang="%s" data-board="%s" data-height="%d" data-can-post="%s">',
 			esc_attr( $id ),
+			esc_attr( get_bloginfo( 'language' ) ),
 			esc_attr( $board->slug ),
 			$height,
 			$can_post ? '1' : '0'
@@ -133,12 +134,13 @@ final class Render {
 
 		if ( $is_image ) {
 			$img  = $p['image'];
-			$out .= '<a class="korkwand-lightbox" href="' . esc_url( $img['full'] ) . '"><img src="' . esc_url( $img['thumb'] )
+			$out .= '<figure class="korkwand-figure"><a class="korkwand-lightbox" href="' . esc_url( $img['full'] ) . '"><img src="' . esc_url( $img['thumb'] )
 				. '" width="' . (int) $img['width'] . '" height="' . (int) $img['height']
 				. '" loading="lazy" alt="' . esc_attr( $p['text'] ) . '"></a>';
 			if ( '' !== $p['text'] ) {
 				$out .= '<figcaption>' . esc_html( $p['text'] ) . '</figcaption>';
 			}
+			$out .= '</figure>';
 		} else {
 			$out .= '<h3>' . esc_html( $p['title'] ) . '</h3>';
 			if ( '' !== $p['text'] ) {

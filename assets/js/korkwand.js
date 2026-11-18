@@ -28,6 +28,8 @@ function renderPin(p, loggedIn) {
 	a.style.setProperty('--r', (p.rotation || 0) + 'deg');
 
 	if (isImage) {
+		const fig = document.createElement('figure');
+		fig.className = 'korkwand-figure';
 		const link = document.createElement('a');
 		link.className = 'korkwand-lightbox';
 		link.href = p.image.full;
@@ -37,13 +39,14 @@ function renderPin(p, loggedIn) {
 		img.height = p.image.height;
 		img.alt = p.text || '';
 		link.appendChild(img);
-		a.appendChild(link);
+		fig.appendChild(link);
 		if (p.text) {
 			const fc = document.createElement('figcaption');
 			fc.textContent = p.text;
 			fc.style.whiteSpace = 'pre-line';
-			a.appendChild(fc);
+			fig.appendChild(fc);
 		}
+		a.appendChild(fig);
 	} else {
 		const h = document.createElement('h3');
 		h.textContent = p.title;
@@ -76,7 +79,7 @@ function addMenuButton(article) {
 	article.appendChild(b);
 }
 
-/* ------------------------------ Board-Klasse ------------------------------ */
+/* ------------------------------ Board class ------------------------------ */
 
 class Board {
 	constructor(root) {
@@ -168,7 +171,7 @@ class Board {
 		this.highlightTimer = setTimeout(() => pin.classList.remove('korkwand-pin--highlight'), HIGHLIGHT_MS);
 	}
 
-	/* ------------------------------ Hinweise ------------------------------ */
+	/* ------------------------------ Notices ------------------------------ */
 
 	notice(msg, persistent = false) {
 		let n = this.root.querySelector('.korkwand-notice');
@@ -187,7 +190,7 @@ class Board {
 		this.notice(err instanceof SessionExpiredError ? err.message : (err && err.message) || t('unknownError'), err instanceof SessionExpiredError);
 	}
 
-	/* ------------------------------ Klicks ------------------------------ */
+	/* ------------------------------ Clicks ------------------------------ */
 
 	onClick(e) {
 		if (Date.now() < this.suppressClickUntil) {
@@ -405,7 +408,7 @@ class Board {
 		return data.pins.find((p) => String(p.id) === String(id)) || null;
 	}
 
-	/* ------------------------------ Aktionen ------------------------------ */
+	/* ------------------------------ Actions ------------------------------ */
 
 	replaceArticle(p) {
 		const old = this.canvas.querySelector(`.korkwand-pin[data-id="${p.id}"]`);

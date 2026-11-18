@@ -2,7 +2,7 @@
 /**
  * Server-side rendering of the korkwand/board block.
  *
- * @var array<string, mixed> $attributes Block-Attribute.
+ * @var array<string, mixed> $attributes Block attributes.
  */
 
 defined( 'ABSPATH' ) || exit;
