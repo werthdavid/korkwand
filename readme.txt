@@ -12,7 +12,7 @@ A cork pinboard for your site: members pin post-it notes and photos, guests just
 
 == Description ==
 
-Korkwand adds a cork pinboard to your WordPress site. Logged-in members pin colourful post-it notes and photos to the board, drag them around, and edit or remove their own notes. Guests can look at the board, but cannot post, and they do not see who wrote what.
+Korkwand adds a cork pinboard to your WordPress site. Logged-in members pin post-it notes and photos to the board, drag them around, and edit or remove their own notes. Guests can look at the board, but cannot post, and they do not see who wrote what.
 
 Typical uses: a community or club notice board, a team wall, a classroom or family pinboard, a "looking for / offering" board for a neighbourhood.
 
@@ -70,7 +70,7 @@ Logged-in users with the capability `korkwand_post`. By default these are Subscr
 
 = How do I moderate notes? =
 
-Editors and Administrators (capability `korkwand_moderate`) can edit and delete any note directly on the board, and mark notes as sticky. In the admin, notes are listed under *Korkwand > Notes*. You can also enable an email notification per board to be told about new notes.
+Editors and Administrators (capability `korkwand_moderate`) can edit and delete any note directly on the board, and mark notes as sticky. In the admin, notes are listed under *Korkwand > All Notes*. You can also enable an email notification per board to be told about new notes.
 
 = Does it work with page caching? =
 
@@ -90,7 +90,15 @@ That is set per board ("Lifetime in days"). 0 means notes never expire. Expired 
 
 = What happens to my data when I delete the plugin? =
 
-By default, uninstalling removes all notes, uploaded images, boards, options and capabilities created by Korkwand. Enable the option to keep the data if you want to preserve it.
+By default, deleting the plugin removes all notes, uploaded images, boards, options and capabilities created by Korkwand. To keep your data, untick *Remove all notes and images when the plugin is deleted* under *Korkwand > Settings* before deleting the plugin.
+
+= Does it work on multisite? =
+
+Yes. Data is per site: boards, notes and settings of each site are separate. The uninstall cleanup runs once when the plugin is deleted and only handles the site it runs on (the main site), so other sites of the network keep their data; remove it there manually if needed.
+
+= Can anyone post on a site with open registration? =
+
+By default, Subscribers can post (capability `korkwand_post`). On a site where anyone can register, anyone who registers can therefore post notes (rate limit: 10 notes per hour and user). To restrict this, remove `korkwand_post` from the Subscriber role with a role editor plugin.
 
 = Can I change the colours or fonts? =
 
@@ -108,8 +116,8 @@ Yes, with custom CSS. The stylesheet uses CSS custom properties prefixed with `-
 Korkwand stores the following data in your WordPress database and uploads folder:
 
 * The WordPress user ID of the author of each note.
-* The note text and its position, colour and creation date.
-* Uploaded images, re-encoded to remove EXIF and GPS metadata and stored under neutral, random file names.
+* The note text, its position and tilt on the board, the sticky flag and its creation date.
+* Uploaded images, re-encoded to remove EXIF and GPS metadata and stored under neutral, random file names. They are stored as media attachments with the uploader's user ID as author.
 
 Korkwand does not store IP addresses, does not set its own cookies, does not use external services and does not load external fonts or scripts. The rate limit works on user IDs only.
 

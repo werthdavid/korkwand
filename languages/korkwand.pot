@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-18T06:15:13+00:00\n"
+"POT-Creation-Date: 2026-11-18T06:33:59+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: korkwand\n"
@@ -17,9 +17,9 @@ msgstr ""
 #. Plugin Name of the plugin
 #: korkwand.php
 #: includes/class-model.php:18
-#: includes/class-privacy.php:20
-#: includes/class-privacy.php:28
-#: includes/class-privacy.php:63
+#: includes/class-privacy.php:36
+#: includes/class-privacy.php:44
+#: includes/class-privacy.php:79
 #: blocks/board/edit.js:16
 msgid "Korkwand"
 msgstr ""
@@ -49,7 +49,7 @@ msgid "Type"
 msgstr ""
 
 #: includes/class-admin.php:45
-#: includes/class-render.php:247
+#: includes/class-render.php:235
 msgid "Sticky"
 msgstr ""
 
@@ -59,13 +59,13 @@ msgstr ""
 
 #: includes/class-admin.php:58
 #: includes/class-pins.php:36
-#: includes/class-privacy.php:69
-#: includes/class-render.php:227
+#: includes/class-privacy.php:85
+#: includes/class-render.php:215
 msgid "Image"
 msgstr ""
 
 #: includes/class-admin.php:59
-#: includes/class-render.php:226
+#: includes/class-render.php:214
 msgid "Post-it"
 msgstr ""
 
@@ -143,7 +143,7 @@ msgstr ""
 
 #. translators: %s: board slug
 #: includes/class-latest.php:86
-#: includes/class-render.php:85
+#: includes/class-render.php:73
 #, php-format
 msgid "Board \"%s\" not found."
 msgstr ""
@@ -205,8 +205,10 @@ msgid ""
 ""
 msgstr ""
 
-#: includes/class-notify.php:25
-msgid "New note on the Korkwand"
+#. translators: %s: board name
+#: includes/class-notify.php:29
+#, php-format
+msgid "New note on board \"%s\""
 msgstr ""
 
 #: includes/class-pins.php:27
@@ -214,146 +216,166 @@ msgstr ""
 msgid "Invalid note type."
 msgstr ""
 
-#: includes/class-pins.php:294
+#: includes/class-pins.php:297
 msgid "The title must be 1 to 60 characters long."
 msgstr ""
 
 #. translators: %d: maximum number of characters
-#: includes/class-pins.php:302
+#: includes/class-pins.php:305
 #, php-format
 msgid "The text must not be longer than %d characters."
 msgstr ""
 
-#: includes/class-pins.php:309
+#: includes/class-pins.php:312
 msgid "A valid image is required."
 msgstr ""
 
-#: includes/class-privacy.php:66
+#: includes/class-privacy.php:26
+msgid "Korkwand pinboard"
+msgstr ""
+
+#: includes/class-privacy.php:27
+msgid "Suggested text. Review it and adapt it to how you use the plugin."
+msgstr ""
+
+#: includes/class-privacy.php:28
+msgid "Logged-in members can pin notes and photos to a pinboard on this site. For every note we store the user ID of the author, the note text, its position and tilt on the board, the sticky flag and its creation date. Uploaded images are stored in the media library as attachments with the uploader as author; before storage they are re-encoded to remove EXIF and GPS metadata, and they are given random file names."
+msgstr ""
+
+#: includes/class-privacy.php:29
+msgid "Visitors who are not logged in see the notes but not the names of their authors. The plugin does not store IP addresses, does not set its own cookies and does not use external services. The limit on new notes per hour is based on the user ID only."
+msgstr ""
+
+#: includes/class-privacy.php:30
+msgid "Notes are removed automatically after the lifetime configured for the board (if any). On request, notes and images of a user are included in the personal data export and are deleted by the personal data erasure of WordPress. If the email notification of a board is enabled, an email with the note title and the display name of the author is sent to the site administrator."
+msgstr ""
+
+#: includes/class-privacy.php:82
 msgid "Title"
 msgstr ""
 
-#: includes/class-privacy.php:67
+#: includes/class-privacy.php:83
 msgid "Text"
 msgstr ""
 
-#: includes/class-privacy.php:68
+#: includes/class-privacy.php:84
 msgid "Date"
 msgstr ""
 
-#: includes/class-privacy.php:95
+#: includes/class-privacy.php:111
 msgid "Some notes could not be deleted."
 msgstr ""
 
-#: includes/class-render.php:110
+#: includes/class-render.php:99
 msgid "+ Add note"
 msgstr ""
 
-#: includes/class-render.php:113
+#: includes/class-render.php:102
 msgid "Log in to pin a note"
 msgstr ""
 
-#: includes/class-render.php:220
+#: includes/class-render.php:208
 msgid "Session expired – please reload the page."
 msgstr ""
 
-#: includes/class-render.php:221
+#: includes/class-render.php:209
 msgid "Network error – please check your connection."
 msgstr ""
 
-#: includes/class-render.php:222
+#: includes/class-render.php:210
 msgid "Unknown error."
 msgstr ""
 
-#: includes/class-render.php:223
+#: includes/class-render.php:211
 msgid "Edit note"
 msgstr ""
 
-#: includes/class-render.php:224
+#: includes/class-render.php:212
 msgid "New note"
 msgstr ""
 
-#: includes/class-render.php:225
+#: includes/class-render.php:213
 msgid "Note type"
 msgstr ""
 
-#: includes/class-render.php:228
+#: includes/class-render.php:216
 msgid "Title (required, max. 60 characters)"
 msgstr ""
 
-#: includes/class-render.php:229
+#: includes/class-render.php:217
 msgid "Text (optional, max. 300 characters)"
 msgstr ""
 
 #. translators: %s: maximum upload size in MB
-#: includes/class-render.php:231
+#: includes/class-render.php:219
 #, php-format
 msgid "Image (JPEG, PNG or WebP, max. %s MB)"
 msgstr ""
 
-#: includes/class-render.php:232
+#: includes/class-render.php:220
 msgid "Caption (optional, max. 100 characters)"
 msgstr ""
 
-#: includes/class-render.php:233
+#: includes/class-render.php:221
 msgid "Save"
 msgstr ""
 
-#: includes/class-render.php:234
+#: includes/class-render.php:222
 msgid "Pin"
 msgstr ""
 
-#: includes/class-render.php:235
+#: includes/class-render.php:223
 msgid "Cancel"
 msgstr ""
 
-#: includes/class-render.php:236
+#: includes/class-render.php:224
 msgid "Please choose an image."
 msgstr ""
 
-#: includes/class-render.php:237
+#: includes/class-render.php:225
 msgid "Only JPEG, PNG or WebP are allowed."
 msgstr ""
 
 #. translators: %s: maximum upload size in MB
-#: includes/class-render.php:239
+#: includes/class-render.php:227
 #: includes/class-upload.php:59
 #, php-format
 msgid "The image is too large (maximum %s MB)."
 msgstr ""
 
-#: includes/class-render.php:240
+#: includes/class-render.php:228
 msgid "Please enter a title."
 msgstr ""
 
-#: includes/class-render.php:241
+#: includes/class-render.php:229
 msgid "Image view"
 msgstr ""
 
-#: includes/class-render.php:242
+#: includes/class-render.php:230
 msgid "Close"
 msgstr ""
 
-#: includes/class-render.php:243
+#: includes/class-render.php:231
 msgid "Open note menu"
 msgstr ""
 
-#: includes/class-render.php:244
+#: includes/class-render.php:232
 msgid "This note no longer exists."
 msgstr ""
 
-#: includes/class-render.php:245
+#: includes/class-render.php:233
 msgid "Edit"
 msgstr ""
 
-#: includes/class-render.php:246
+#: includes/class-render.php:234
 msgid "Delete"
 msgstr ""
 
-#: includes/class-render.php:248
+#: includes/class-render.php:236
 msgid "Remove sticky"
 msgstr ""
 
-#: includes/class-render.php:249
+#: includes/class-render.php:237
 msgid "Really delete this note?"
 msgstr ""
 
@@ -441,7 +463,25 @@ msgstr ""
 
 #: blocks/board/block.json
 msgctxt "block title"
-msgid "Korkwand"
+msgid "Korkwand board"
+msgstr ""
+
+#: blocks/board/block.json
+#: blocks/latest/block.json
+msgctxt "block keyword"
+msgid "pinboard"
+msgstr ""
+
+#: blocks/board/block.json
+#: blocks/latest/block.json
+msgctxt "block keyword"
+msgid "notes"
+msgstr ""
+
+#: blocks/board/block.json
+#: blocks/latest/block.json
+msgctxt "block keyword"
+msgid "korkwand"
 msgstr ""
 
 #: blocks/board/block.json
@@ -451,7 +491,7 @@ msgstr ""
 
 #: blocks/latest/block.json
 msgctxt "block title"
-msgid "Korkwand: Latest notes"
+msgid "Korkwand latest notes"
 msgstr ""
 
 #: blocks/latest/block.json
